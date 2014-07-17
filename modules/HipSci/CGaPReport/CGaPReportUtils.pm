@@ -25,7 +25,7 @@ our $cgap_report_suffix = '.hipsci_progress.csv';
 sub read_cgap_report {
   my (%args) = @_;
   my $file = $args{file} || get_latest_file();
-  print "File: $file\n";
+  print STDERR "File: $file\n";
     
   my $sanger_file = new Text::Delimited;
   $sanger_file->delimiter(';');
@@ -73,6 +73,11 @@ sub get_latest_file {
   my ($year, $month, $day) = (localtime())[5,4,3];
   my $date = sprintf("%04d%02d%02d", $year+1900, $month+1, $day);
   my $file = "$cgap_report_dir/$date$cgap_report_suffix";
+  if (! -f $file) {
+    ($year, $month, $day) = (localtime(time() - 86400))[5,4,3];
+    $date = sprintf("%04d%02d%02d", $year+1900, $month+1, $day);
+    $file = "$cgap_report_dir/$date$cgap_report_suffix";
+  }
   return $file;
   
 }

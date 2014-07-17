@@ -8,6 +8,7 @@ use BioSD;
 
 #my $tissues = read_cgap_report(file=>'/nfs/research2/hipsci/drop/hip-drop/incoming/cgap_dnap_reports/20140715.hipsci_progress.csv')->{ips_lines};
 my $ips_lines = read_cgap_report()->{ips_lines};
+print join("\t", qw(SAMPLE_ID  ATTR_KEY  ATTR_VALUE  TERM_SOURCE_REF TERM_SOURCE_ID  TERM_SOURCE_URI TERM_SOURCE_VERSION UNIT)), "\n";
 
 IPS_LINE:
 foreach my $ips_line (@$ips_lines) {
@@ -62,6 +63,18 @@ foreach my $ips_line (@$ips_lines) {
   }
   elsif($cgap_reprogramming_tech) {
     die "unrecognised reprogramming tech $ips_id $cgap_reprogramming_tech";
+  }
+
+  my $biosd_sop_url = $biosd_ips_line->property('sop url');
+  if (!$biosd_sop_url) {
+    print join("\t", $ips_id, 'comment[sop url]', 'http://www.hipsci.org/hipsci-ips-preparation-standard-operating-procedures', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL'), "\n";
+  }
+
+  my $biosd_date = $biosd_ips_line->property('date of derivation');
+  my $cgap_date = $ips_line->ips_created;
+  if (!$biosd_date && $biosd_date) {
+    $cgap_date =~ s/\s.*//g;
+    print join("\t", $ips_id, 'comment[date of derivation]', $cgap_date, 'NULL', 'NULL', 'NULL', 'NULL', 'NULL'), "\n";
   }
 
 }
