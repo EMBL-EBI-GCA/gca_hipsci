@@ -51,7 +51,7 @@ while (my $line_data = $demographic_file->read) {
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
       if (!$biosd_disease) {
-        print join("\t", $biosample->id, 'characteristic[disease state]', $disease, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+        print join("\t", $biosample->id, 'characteristic[disease state]', $disease_name, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
       }
       elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
         die "disagreement for disease $disease ".$biosample->id;
