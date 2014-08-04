@@ -1,0 +1,61 @@
+CREATE TABLE cell_line(
+       cell_line_id int unsigned NOT NULL AUTO_INCREMENT,
+       name char(17) NOT NULL,
+       biosample_id char(12),
+       cell_type varchar(255),
+       is_on_feeder tinyint,
+       gender varchar(255),
+       age varchar(255),
+       disease varchar(255),
+       ethnicity varchar(255),
+       derived_from_tissue_type varchar(255),
+       reprogramming varchar(255),
+       PRIMARY KEY (cell_line_id),
+       UNIQUE INDEX (name)
+) ENGINE=InnoDB;
+
+CREATE TABLE experiment(
+       experiment_id int unsigned NOT NULL AUTO_INCREMENT,
+       cell_line_name char(17) NOT NULL,
+       cell_file_name varchar(255) NOT NULL,
+       platform varchar(255) NOT NULL,
+       form_factor varchar(255) NOT NULL,
+       p_col tinyint unsigned NOT NULL,
+       p_row tinyint unsigned NOT NULL,
+       channel tinyint unsigned NOT NULL,
+       dye varchar(255) NOT NULL,
+       composite_color mediumint unsigned NOT NULL,
+       name_measure varchar(255) NOT NULL,
+       w_field_x double NOT NULL,
+       w_field_y double NOT NULL,
+       z double NOT NULL,
+       z_offset double NOT NULL,
+       pixel_size double NOT NULL,
+       marker varchar(255) NOT NULL,
+       barcode bigint unsigned NOT NULL,
+       date_stained date NOT NULL,
+       date_read date NOT NULL,
+       PRIMARY KEY (experiment_id),
+       FOREIGN KEY fk_experiment_line_line_name (cell_line_name) REFERENCES cell_line(name)
+) ENGINE=InnoDB;
+
+CREATE TABLE cell(
+       cell_id int unsigned NOT NULL AUTO_INCREMENT,
+       experiment_id int unsigned NOT NULL,
+       barcode bigint unsigned NOT NULL,
+       channel tinyint unsigned NOT NULL,
+       x_centroid smallint unsigned NOT NULL,
+       y_centroid smallint unsigned NOT NULL,
+       x_left smallint unsigned NOT NULL,
+       y_top smallint unsigned NOT NULL,
+       height smallint unsigned NOT NULL,
+       width smallint unsigned NOT NULL,
+       area double unsigned NOT NULL,
+       shape_p2a double unsigned NOT NULL,
+       shape_lwr double unsigned NOT NULL,
+       total_inten mediumint unsigned NOT NULL,
+       avg_inten smallint unsigned NOT NULL,
+       var_inten smallint unsigned NOT NULL,
+       PRIMARY KEY (cell_id),
+       FOREIGN KEY fk_cell_experiment_experiment_id (experiment_id) REFERENCES experiment(experiment_id)
+) ENGINE=InnoDB;
