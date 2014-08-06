@@ -44,24 +44,24 @@ while (my $line_data = $demographic_file->read) {
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
     if ($disease) {
       $disease = lc($disease);
-      my ($disease_name, $efo_term) = $disease eq 'normal' ? ('normal', 'EFO_0000761')
-                  : $disease eq 'bbs' ? ('bardet-biedl syndrome', 'Orphanet:110')
-                  : $disease eq 'nd' ? ('neonatal diabetes', 'Orphanet:224????')
+      my ($disease_name, $efo_term) = $disease eq 'normal' ? ('normal', 'http://www.ebi.ac.uk/efo/EFO_0000761')
+                  : $disease eq 'bbs' ? ('bardet-biedl syndrome', 'http://www.orpha.net/ORDO/Orphanet_110')
+                  : $disease eq 'nd' ? ('neonatal diabetes', 'http://www.orpha.net/ORDO/Orphanet_224')
                   : die "did not recognise disease $disease";
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
       if (!$biosd_disease) {
         print join("\t", $biosample->id, 'characteristic[disease state]', $disease_name, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
       }
-      elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
+      elsif (! grep { /$disease_name/i } @{$biosd_disease->values}) {
         die "disagreement for disease $disease ".$biosample->id;
       }
     }
     if ($gender && $gender !~ /unknown/i) {
       $gender = lc($gender);
       $gender =~ s/[^\w]//g;
-      my $efo_term = $gender eq 'male' ? 'EFO_0001266'
-                  : $gender eq 'female' ? 'EFO_0001265'
+      my $efo_term = $gender eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
+                  : $gender eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
                   : die "did not recognise gender $gender";
       my $biosd_gender = $biosample->property('Sex');
       #if (!$biosd_gender || ! grep { lc($_) eq $gender } @{$biosd_gender->values}) {
@@ -76,7 +76,7 @@ while (my $line_data = $demographic_file->read) {
       my $biosd_age = $biosample->property('age');
       #if (!$biosd_age || ! grep { $_ eq $age_band } @{$biosd_age->values}) {
       if (!$biosd_age) {
-        print join("\t", $biosample->id, 'characteristic[age]', $age_band, 'EFO', 'EFO_0001725',  'http://www.ebi.ac.uk/efo', 'NULL', 'year'), "\n";
+        print join("\t", $biosample->id, 'characteristic[age]', $age_band, 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0001725',  'http://www.ebi.ac.uk/efo', 'NULL', 'year'), "\n";
       }
       elsif (! grep { $_ eq $age_band } @{$biosd_age->values}) {
         die "disagreement for age $age_band ".$biosample->id;

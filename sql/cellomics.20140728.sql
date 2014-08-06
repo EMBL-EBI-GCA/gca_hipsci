@@ -1,6 +1,7 @@
 CREATE TABLE cell_line(
        cell_line_id int unsigned NOT NULL AUTO_INCREMENT,
-       name char(17) NOT NULL,
+       name char(18) NOT NULL,
+       short_name char(7) NOT NULL,
        biosample_id char(12),
        cell_type varchar(255),
        is_on_feeder tinyint,
@@ -11,12 +12,14 @@ CREATE TABLE cell_line(
        derived_from_tissue_type varchar(255),
        reprogramming varchar(255),
        PRIMARY KEY (cell_line_id),
-       UNIQUE INDEX (name)
+       UNIQUE INDEX (name),
+       UNIQUE INDEX (short_name)
 ) ENGINE=InnoDB;
 
 CREATE TABLE experiment(
        experiment_id int unsigned NOT NULL AUTO_INCREMENT,
-       cell_line_name char(17) NOT NULL,
+       cell_line_id int unsigned NOT NULL,
+       w_field_id smallint unsigned not NULL,
        cell_file_name varchar(255) NOT NULL,
        platform varchar(255) NOT NULL,
        form_factor varchar(255) NOT NULL,
@@ -36,14 +39,13 @@ CREATE TABLE experiment(
        date_stained date NOT NULL,
        date_read date NOT NULL,
        PRIMARY KEY (experiment_id),
-       FOREIGN KEY fk_experiment_line_line_name (cell_line_name) REFERENCES cell_line(name)
+       UNIQUE INDEX (w_field_id, channel, barcode),
+       FOREIGN KEY fk_experiment_line_line_id (cell_line_id) REFERENCES cell_line(cell_line_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE cell(
        cell_id int unsigned NOT NULL AUTO_INCREMENT,
        experiment_id int unsigned NOT NULL,
-       barcode bigint unsigned NOT NULL,
-       channel tinyint unsigned NOT NULL,
        x_centroid smallint unsigned NOT NULL,
        y_centroid smallint unsigned NOT NULL,
        x_left smallint unsigned NOT NULL,
