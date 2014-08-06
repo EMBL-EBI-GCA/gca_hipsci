@@ -28,12 +28,12 @@ foreach my $ips_line (@$ips_lines) {
 
   my $biosd_material = $biosd_ips_line->property('Material');
   if (!$biosd_material) {
-    print join("\t", $ips_id, 'Material', 'cell line', 'EFO', 'EFO_0000322', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+    print join("\t", $ips_id, 'Material', 'cell line', 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0000322', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
   }
 
   my $biosd_cell_type = $biosd_ips_line->property('cell type');
   if (!$biosd_cell_type || $biosd_cell_type->values->[0] ne 'induced pluripotent stem cell') {
-      print join("\t", $ips_id, 'characteristic[cell type]', 'induced pluripotent stem cell', 'EFO', 'EFO_0004905', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+      print join("\t", $ips_id, 'characteristic[cell type]', 'induced pluripotent stem cell', 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0004905', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
   }
 
   my $biosd_derived_from = $biosd_ips_line->derived_from()->[0];

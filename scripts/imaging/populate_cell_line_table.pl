@@ -47,6 +47,7 @@ my $donors = read_cgap_report()->{donors};
 my $sql1 = <<"SQL";
   INSERT INTO cell_line (
     name,
+    short_name,
     biosample_id,
     cell_type,
     derived_from_tissue_type,
@@ -54,7 +55,7 @@ my $sql1 = <<"SQL";
     gender,
     age,
     disease,
-    ethnicity,
+    ethnicity
   )
   VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 SQL
@@ -79,15 +80,17 @@ foreach my $donor (@$donors) {
   foreach my $tissue (@{$donor->tissues}) {
     my $tissue_type = $tissue->type;
     $tissue_type = $tissue_type ? lc($tissue_type) : undef;
+    my ($tissue_short_name) = $tissue->name =~ /-([a-z]+(?:_\d+)?)$/;
     $sth1->bind_param(1, $tissue->name);
-    $sth1->bind_param(2, $tissue->biosample_id);
-    $sth1->bind_param(3, $tissue_type),
-    $sth1->bind_param(4, undef);
+    $sth1->bind_param(2, $tissue_short_name);
+    $sth1->bind_param(3, $tissue->biosample_id);
+    $sth1->bind_param(4, $tissue_type),
     $sth1->bind_param(5, undef);
-    $sth1->bind_param(6, $gender);
-    $sth1->bind_param(7, $age);
-    $sth1->bind_param(8, $disease);
-    $sth1->bind_param(9, $ethnicity);
+    $sth1->bind_param(6, undef);
+    $sth1->bind_param(7, $gender);
+    $sth1->bind_param(8, $age);
+    $sth1->bind_param(9, $disease);
+    $sth1->bind_param(10, $ethnicity);
 
     $sth1->execute;
 
@@ -97,16 +100,17 @@ foreach my $donor (@$donors) {
       my $reprogramming_tech = $ips_line->reprogramming_tech;
       $reprogramming_tech = $reprogramming_tech ? lc($reprogramming_tech) : undef;
 
-      my $tissue = $ips_line->tissue;
+      my ($ips_short_name) = $ips_line->name =~ /-([a-z]+(?:_\d+)?)$/;
       $sth1->bind_param(1, $ips_line->name);
-      $sth1->bind_param(2, $ips_line->biosample_id);
-      $sth1->bind_param(3, 'ips');
-      $sth1->bind_param(4, $tissue_type),
-      $sth1->bind_param(5, $reprogramming_tech),
-      $sth1->bind_param(6, $gender);
-      $sth1->bind_param(7, $age);
-      $sth1->bind_param(8, $disease);
-      $sth1->bind_param(9, $ethnicity);
+      $sth1->bind_param(2, $ips_short_name);
+      $sth1->bind_param(3, $ips_line->biosample_id);
+      $sth1->bind_param(4, 'ips');
+      $sth1->bind_param(5, $tissue_type),
+      $sth1->bind_param(6, $reprogramming_tech),
+      $sth1->bind_param(7, $gender);
+      $sth1->bind_param(8, $age);
+      $sth1->bind_param(9, $disease);
+      $sth1->bind_param(10, $ethnicity);
 
       $sth1->execute;
 

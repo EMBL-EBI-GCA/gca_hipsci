@@ -28,19 +28,19 @@ foreach my $tissue (@$tissues) {
 
   my $biosd_material = $biosd_tissue->property('Material');
   if (!$biosd_material) {
-    print join("\t", $tissue_id, 'Material', 'cell line', 'EFO', 'EFO_0000322', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+    print join("\t", $tissue_id, 'Material', 'cell line', 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0000322', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
   }
 
   my $biosd_cell_type = $biosd_tissue->property('cell type');
   my $cgap_cell_type = $tissue->type;
   if ($cgap_cell_type && $cgap_cell_type =~ /Skin Tissue/i) {
     if (!$biosd_cell_type || $biosd_cell_type->values->[0] ne 'fibroblast') {
-        print join("\t", $tissue_id, 'characteristic[cell type]', 'fibroblast', 'EFO', 'CL_0000057', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+        print join("\t", $tissue_id, 'characteristic[cell type]', 'fibroblast', 'EFO', 'http://purl.obolibrary.org/obo/CL_0000057', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
     }
   }
   elsif ($cgap_cell_type && $cgap_cell_type =~ /Whole blood/i) {
     if (!$biosd_cell_type || $biosd_cell_type->values->[0] ne 'pbmc') {
-        print join("\t", $tissue_id, 'characteristic[cell type]', 'pbmc', 'EFO', 'CL_0000842', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+        print join("\t", $tissue_id, 'characteristic[cell type]', 'pbmc', 'EFO', 'http://purl.obolibrary.org/obo/CL_0000842', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
     }
   }
   elsif($cgap_cell_type) {
