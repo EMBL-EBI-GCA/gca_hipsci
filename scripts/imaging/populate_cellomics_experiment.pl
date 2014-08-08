@@ -36,11 +36,11 @@ my $sql1 = <<"SQL";
     platform, form_factor, p_col,
     p_row, channel, dye, composite_color, name_measure,
     w_field_x, w_field_y, z, z_offset, pixel_size,
-    marker, barcode, date_stained, date_read
+    marker, barcode, date_stained, date_read, avg_inten_level_high
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -70,6 +70,7 @@ while (my $line_data = $experiment_file->read) {
   $sth1->bind_param(18, $line_data->{'barcode'}),
   $sth1->bind_param(19, $line_data->{'date_stained'}),
   $sth1->bind_param(20, $line_data->{'date_read'}),
+  $sth1->bind_param(20, $line_data->{'AvgIntenLevelHigh'}),
   $sth1->execute;
 }
 $experiment_file->close;

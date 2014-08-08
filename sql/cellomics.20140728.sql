@@ -38,6 +38,7 @@ CREATE TABLE experiment(
        barcode bigint unsigned NOT NULL,
        date_stained date NOT NULL,
        date_read date NOT NULL,
+       avg_inten_level_high smallint NOT NULL,
        PRIMARY KEY (experiment_id),
        UNIQUE INDEX (w_field_id, channel, barcode),
        FOREIGN KEY fk_experiment_line_line_id (cell_line_id) REFERENCES cell_line(cell_line_id)
