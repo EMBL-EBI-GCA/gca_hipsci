@@ -38,6 +38,9 @@ my %aliases = (
   sent_to_genomics => undef,
   sent_to_qc1 => undef,
   ips_created => undef,
+  transfer_to_feeder_free => undef,
+  feeder_free_from_source => undef,
+  ecacc => undef,
 );
 
 foreach my $attr (keys %aliases) {
