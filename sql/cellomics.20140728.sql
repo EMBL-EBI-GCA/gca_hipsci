@@ -2,6 +2,7 @@ CREATE TABLE cell_line(
        cell_line_id int unsigned NOT NULL AUTO_INCREMENT,
        name char(18) NOT NULL,
        short_name char(7) NOT NULL,
+       donor char(4),
        biosample_id char(12),
        cell_type varchar(255),
        is_on_feeder tinyint,

@@ -25,15 +25,14 @@ while (my $line_data = $feeder_file->read) {
 IPS_LINE:
 foreach my $ips_line (@$ips_lines) {
   next IPS_LINE if !$ips_line->biosample_id;
-  my ($friendly_name) = $ips_line->name =~ /-(.*)$/;
-  next IPS_LINE if !$is_feeder_free{$friendly_name};
-  next IPS_LINE if !$ips_line->biosample_id;
+  my ($uuid) = $ips_line->uuid;
+  next IPS_LINE if !$is_feeder_free{$uuid};
 
   my $biosample = BioSD::Sample->new($ips_line->biosample_id);
   next IPS_LINE if !$biosample->is_valid;
 
-  my $growing_conditions = $is_feeder_free{$friendly_name} eq 'Y' ? 'E8'
-                        : $is_feeder_free{$friendly_name} eq 'N' ? 'on feeder cells'
+  my $growing_conditions = $is_feeder_free{$uuid} eq 'Y' ? 'E8'
+                        : $is_feeder_free{$uuid} eq 'N' ? 'on feeder cells'
                         : undef;
   my $biosd_growing_conditions = $biosample->property('growing conditions');
   if (!$biosd_growing_conditions) {

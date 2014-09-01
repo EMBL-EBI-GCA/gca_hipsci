@@ -48,6 +48,7 @@ my $sql1 = <<"SQL";
   INSERT INTO cell_line (
     name,
     short_name,
+    donor,
     biosample_id,
     cell_type,
     derived_from_tissue_type,
@@ -69,6 +70,7 @@ foreach my $donor (@$donors) {
   my $disease = $donor_demographics->{'Disease phenotype'};
   my $age = $donor_demographics->{'Age-band'};
   my $ethnicity = $donor_demographics->{'Ethnicity'};
+  my $donor_name = $donor_demographics->{'Friendly name'};
   if ($gender) {
     $gender = lc($gender);
     $gender =~ s/[^\w]//g;
@@ -83,14 +85,15 @@ foreach my $donor (@$donors) {
     my ($tissue_short_name) = $tissue->name =~ /-([a-z]+(?:_\d+)?)$/;
     $sth1->bind_param(1, $tissue->name);
     $sth1->bind_param(2, $tissue_short_name);
-    $sth1->bind_param(3, $tissue->biosample_id);
-    $sth1->bind_param(4, $tissue_type),
-    $sth1->bind_param(5, undef);
+    $sth1->bind_param(3, $donor_name);
+    $sth1->bind_param(4, $tissue->biosample_id);
+    $sth1->bind_param(5, $tissue_type),
     $sth1->bind_param(6, undef);
-    $sth1->bind_param(7, $gender);
-    $sth1->bind_param(8, $age);
-    $sth1->bind_param(9, $disease);
-    $sth1->bind_param(10, $ethnicity);
+    $sth1->bind_param(7, undef);
+    $sth1->bind_param(8, $gender);
+    $sth1->bind_param(9, $age);
+    $sth1->bind_param(10, $disease);
+    $sth1->bind_param(11, $ethnicity);
 
     $sth1->execute;
 
