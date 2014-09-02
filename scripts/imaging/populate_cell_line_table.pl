@@ -75,7 +75,8 @@ foreach my $donor (@$donors) {
   if ($gender) {
     $gender = lc($gender);
     $gender =~ s/[^\w]//g;
-    $gender =~ /unknown/ ? undef : $gender;
+    $gender =~ /unknown/ ? undef :
+              $gender ? $gender : undef;
   }
   $disease = $disease ? lc($disease) : undef;
   $age = $age && $age !~ /unknown/i ? lc($age) : undef;
