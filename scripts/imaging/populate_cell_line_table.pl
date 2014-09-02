@@ -50,6 +50,7 @@ my $sql1 = <<"SQL";
     short_name,
     donor,
     biosample_id,
+    donor_biosample_id,
     cell_type,
     derived_from_tissue_type,
     reprogramming,
@@ -88,13 +89,14 @@ foreach my $donor (@$donors) {
     $sth1->bind_param(2, $tissue_short_name);
     $sth1->bind_param(3, $donor_name);
     $sth1->bind_param(4, $tissue->biosample_id);
-    $sth1->bind_param(5, $tissue_type),
-    $sth1->bind_param(6, undef);
+    $sth1->bind_param(5, $donor->biosample_id);
+    $sth1->bind_param(6, $tissue_type),
     $sth1->bind_param(7, undef);
-    $sth1->bind_param(8, $gender);
-    $sth1->bind_param(9, $age);
-    $sth1->bind_param(10, $disease);
-    $sth1->bind_param(11, $ethnicity);
+    $sth1->bind_param(8, undef);
+    $sth1->bind_param(9, $gender);
+    $sth1->bind_param(10, $age);
+    $sth1->bind_param(11, $disease);
+    $sth1->bind_param(12, $ethnicity);
 
     $sth1->execute;
 
@@ -107,14 +109,16 @@ foreach my $donor (@$donors) {
       my ($ips_short_name) = $ips_line->name =~ /-([a-z]+(?:_\d+)?)$/;
       $sth1->bind_param(1, $ips_line->name);
       $sth1->bind_param(2, $ips_short_name);
-      $sth1->bind_param(3, $ips_line->biosample_id);
-      $sth1->bind_param(4, 'ips');
-      $sth1->bind_param(5, $tissue_type),
-      $sth1->bind_param(6, $reprogramming_tech),
-      $sth1->bind_param(7, $gender);
-      $sth1->bind_param(8, $age);
-      $sth1->bind_param(9, $disease);
-      $sth1->bind_param(10, $ethnicity);
+      $sth1->bind_param(3, $donor_name);
+      $sth1->bind_param(4, $ips_line->biosample_id);
+      $sth1->bind_param(5, $donor->biosample_id);
+      $sth1->bind_param(6, 'ips');
+      $sth1->bind_param(7, $tissue_type),
+      $sth1->bind_param(8, $reprogramming_tech),
+      $sth1->bind_param(9, $gender);
+      $sth1->bind_param(10, $age);
+      $sth1->bind_param(11, $disease);
+      $sth1->bind_param(12, $ethnicity);
 
       $sth1->execute;
 

@@ -4,6 +4,7 @@ CREATE TABLE cell_line(
        short_name char(7) NOT NULL,
        donor char(4),
        biosample_id char(12),
+       donor_biosample_id char(12),
        cell_type varchar(255),
        is_on_feeder tinyint,
        gender varchar(255),
