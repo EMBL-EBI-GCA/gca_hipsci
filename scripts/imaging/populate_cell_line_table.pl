@@ -74,10 +74,11 @@ foreach my $donor (@$donors) {
   if ($gender) {
     $gender = lc($gender);
     $gender =~ s/[^\w]//g;
+    $gender =~ /unknown/ ? undef : $gender;
   }
   $disease = $disease ? lc($disease) : undef;
-  $age = $age ? lc($age) : undef;
-  $ethnicity = $ethnicity ? lc($ethnicity) : undef;
+  $age = $age && $age !~ /unknown/i ? lc($age) : undef;
+  $ethnicity = $ethnicity && $ethnicity !~ /unknown/i ? lc($ethnicity) : undef;
   TISSUE:
   foreach my $tissue (@{$donor->tissues}) {
     my $tissue_type = $tissue->type;
