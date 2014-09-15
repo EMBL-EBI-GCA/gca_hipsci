@@ -40,6 +40,7 @@ my %cell_line_raw;
 foreach my $file (@{$fa->fetch_by_type($type)}) {
   my ($filename, $dir) = fileparse($file->name);
   my ($raw_id) = $filename =~ /(^PTSS\d+)/;
+  die $file->name if !$raw_id;
   $num_raw{$raw_id} +=1;
   if ($num_raw{$raw_id} ==1) {
     my ($cell_line) = $dir =~ /(HPSI\d+i-\w+)/;
@@ -49,7 +50,9 @@ foreach my $file (@{$fa->fetch_by_type($type)}) {
 
 
 print '#', join("\t", qw(cell_line raw_id fractionation)), "\n";
+CELL_LINE:
 foreach my $cell_line (sort {$a cmp $b} keys %cell_line_raw) {
+  next CELL_LINE if !$cell_line;
   foreach my $raw_id (@{$cell_line_raw{$cell_line}}) {
     my $frac_method = $num_raw{$raw_id} == 16 ? 'SAX'
                     : $num_raw{$raw_id} == 23 ? 'HILIC'
