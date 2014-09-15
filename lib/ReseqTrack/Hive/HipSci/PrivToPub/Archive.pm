@@ -1,5 +1,5 @@
 
-package HipSci::PrivToPub::Archive;
+package ReseqTrack::Hive::HipSci::PrivToPub::Archive;
 
 use strict;
 

@@ -1,5 +1,5 @@
 
-package HipSci::FileRelease::Checks;
+package ReseqTrack::Hive::HipSci::FileRelease::Checks;
 use strict;
 use File::Basename qw(fileparse);
 

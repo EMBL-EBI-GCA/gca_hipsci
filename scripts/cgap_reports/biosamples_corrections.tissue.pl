@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
+use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
 #my $tissues = read_cgap_report(file=>'/nfs/research2/hipsci/drop/hip-drop/incoming/cgap_dnap_reports/20140715.hipsci_progress.csv')->{tissues};

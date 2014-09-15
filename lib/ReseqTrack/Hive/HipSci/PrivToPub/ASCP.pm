@@ -1,5 +1,5 @@
 
-package HipSci::PrivToPub::ASCP;
+package ReseqTrack::Hive::HipSci::PrivToPub::ASCP;
 
 use strict;
 

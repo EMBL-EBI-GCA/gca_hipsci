@@ -1,5 +1,5 @@
 
-package HipSci::FileRelease::Move;
+package ReseqTrack::Hive::HipSci::FileRelease::Move;
 
 use strict;
 use File::Basename qw(fileparse dirname);

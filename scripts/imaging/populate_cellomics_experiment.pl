@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
+use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Text::Delimited;
 use DBI;
 use Getopt::Long;

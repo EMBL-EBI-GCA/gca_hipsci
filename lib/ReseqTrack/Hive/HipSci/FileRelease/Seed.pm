@@ -1,5 +1,5 @@
 
-package HipSci::FileRelease::Seed;
+package ReseqTrack::Hive::HipSci::FileRelease::Seed;
 
 use strict;
 use ReseqTrack::Tools::FileSystemUtils qw(get_lines_from_file);

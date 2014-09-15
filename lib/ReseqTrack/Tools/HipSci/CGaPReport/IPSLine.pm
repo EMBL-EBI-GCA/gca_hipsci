@@ -3,11 +3,11 @@
 
 =head1 NAME
 
-HipSci::CGaPReport::IPSLine
+ReseqTrack::Tools::HipSci::CGaPReport::IPSLine
 
 =cut
 
-package HipSci::CGaPReport::IPSLine;
+package ReseqTrack::Tools::HipSci::CGaPReport::IPSLine;
 use namespace::autoclean;
 use Moose;
 use MooseX::Aliases;
@@ -53,12 +53,12 @@ foreach my $attr (keys %aliases) {
 
 has 'tissue' => (
   is => 'rw',
-  isa => 'HipSci::CGaPReport::Tissue',
+  isa => 'ReseqTrack::Tools::HipSci::CGaPReport::Tissue',
 );
 
 has 'sequencescape' => (
   is => 'rw',
-  isa => 'ArrayRef[HipSci::CGaPReport::SequenceScape]',
+  isa => 'ArrayRef[ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape]',
   default => sub {[]},
   lazy => 1,
 );

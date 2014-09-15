@@ -1,14 +1,14 @@
 
-package HipSci::CGaPReport::CGaPReportUtils;
+package ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils;
 
 use strict;
 use warnings;
 
 use Text::Delimited;
-use HipSci::CGaPReport::Donor;
-use HipSci::CGaPReport::Tissue;
-use HipSci::CGaPReport::IPSLine;
-use HipSci::CGaPReport::SequenceScape;
+use ReseqTrack::Tools::HipSci::CGaPReport::Donor;
+use ReseqTrack::Tools::HipSci::CGaPReport::Tissue;
+use ReseqTrack::Tools::HipSci::CGaPReport::IPSLine;
+use ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape;
 
 use Exporter 'import';
 use vars qw(@EXPORT_OK);
@@ -40,26 +40,26 @@ sub read_cgap_report {
     my $ips_line = $ips_lines{$ips_id} if $ips_id;
 
     if (!$donor) {
-      $donor = HipSci::CGaPReport::Donor->new( %$line_data);
+      $donor = ReseqTrack::Tools::HipSci::CGaPReport::Donor->new( %$line_data);
       next LINE if ! $donor->has_values;
       $donors{$donor_id} = $donor;
     }
     if (!$tissue) {
-      $tissue = HipSci::CGaPReport::Tissue->new( %$line_data);
+      $tissue = ReseqTrack::Tools::HipSci::CGaPReport::Tissue->new( %$line_data);
       next LINE if ! $tissue->has_values;
       $tissue->donor($donor);
       $tissues{$tissue_id} = $tissue;
       push(@{$donor->tissues}, $tissue);
     }
     if (!$ips_line) {
-      $ips_line = HipSci::CGaPReport::IPSLine->new( %$line_data);
+      $ips_line = ReseqTrack::Tools::HipSci::CGaPReport::IPSLine->new( %$line_data);
       next LINE if ! $ips_line->has_values;
       $ips_line->tissue($tissue);
       $ips_lines{$ips_id} = $ips_line;
       push(@{$tissue->ips_lines}, $ips_line);
     }
 
-    my $sequence_scape = HipSci::CGaPReport::SequenceScape->new( %$line_data);
+    my $sequence_scape = ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape->new( %$line_data);
     next LINE if ! $sequence_scape->has_values;
     push(@{$ips_line->sequencescape}, $sequence_scape);
 

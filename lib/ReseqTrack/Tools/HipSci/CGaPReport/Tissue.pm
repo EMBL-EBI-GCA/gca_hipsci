@@ -3,11 +3,11 @@
 
 =head1 NAME
 
-HipSci::CGaPReport::Tissue
+ReseqTrack::Tools::HipSci::CGaPReport::Tissue
 
 =cut
 
-package HipSci::CGaPReport::Tissue;
+package ReseqTrack::Tools::HipSci::CGaPReport::Tissue;
 use namespace::autoclean;
 use Moose;
 use MooseX::Aliases;
@@ -41,14 +41,14 @@ foreach my $attr (keys %aliases) {
 
 has 'ips_lines' => (
   is => 'rw',
-  isa => 'ArrayRef[HipSci::CGaPReport::IPSLine]',
+  isa => 'ArrayRef[ReseqTrack::Tools::HipSci::CGaPReport::IPSLine]',
   default => sub {[]},
   lazy => 1,
 );
 
 has 'donor' => (
   is => 'rw',
-  isa => 'HipSci::CGaPReport::Donor',
+  isa => 'ReseqTrack::Tools::HipSci::CGaPReport::Donor',
 );
 
 sub has_values {
