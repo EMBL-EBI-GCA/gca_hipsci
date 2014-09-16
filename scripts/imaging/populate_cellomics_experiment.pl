@@ -73,6 +73,6 @@ while (my $line_data = $experiment_file->read) {
   $sth1->bind_param(20, $line_data->{'date_read'}),
   $sth1->bind_param(21, $line_data->{'AvgIntenLevelHigh'}),
   $sth1->bind_param(22, $line_data->{'technician'}),
-  $sth1->execute;
+  $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
 }
 $experiment_file->close;

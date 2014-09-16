@@ -63,6 +63,6 @@ while (my $line_data = $cell_file->read) {
   $sth1->bind_param(13, $line_data->{'TotalInten'}),
   $sth1->bind_param(14, $line_data->{'AvgInten'}),
   $sth1->bind_param(15, $line_data->{'VarInten'}),
-  $sth1->execute;
+  $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
 }
 $cell_file->close;
