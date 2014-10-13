@@ -6,6 +6,8 @@ use ReseqTrack::DBSQL::DBAdaptor;
 use ReseqTrack::Tools::Exception;
 use File::Copy qw(move);
 use ReseqTrack::Tools::FileUtils qw(create_history);
+use File::Basename qw(dirname);
+use ReseqTrack::Tools::FileSystemUtils qw(check_directory_exists);
 use Getopt::Long;
 
 $| = 1;
@@ -56,4 +58,5 @@ $to_object->name($to);
 my $history = create_history($to_object, $from_object);
 $to_object->history($history);
 $fa->update($to_object, 0, 1);
+check_directory_exists(dirname($to));
 move($from, $to);

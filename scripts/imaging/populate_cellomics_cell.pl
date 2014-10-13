@@ -28,7 +28,10 @@ die "did not get a file on the command line" if !$file;
 my $dbh = DBI->connect(
   "dbi:mysql:dbname=$dbname;host=$dbhost;port=$dbport",
   $dbuser, $dbpass,
+  {AutoCommit => 0},
 ) or die $DBI::errstr;
+
+$dbh->do('SET foreign_key_checks=0') or die $dbh->errstr;
 
 my $sql1 = <<"SQL";
   INSERT INTO cell (
@@ -60,7 +63,7 @@ while (my $line_data = $cell_file->read) {
   }
   my $experiment_id = $experiment_ids{$line_data->{'barcode'}}{$line_data->{'channel'}}{$line_data->{'wFieldID'}};
   if (!$experiment_id) {
-    throw( "do not have experiment_id for ".$line_data->{'__LINE__'});
+    die( "do not have experiment_id for ".$line_data->{'__LINE__'}."\n");
   }
 
   $sth1->bind_param(1, $experiment_id);
@@ -79,3 +82,7 @@ while (my $line_data = $cell_file->read) {
   $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
 }
 $cell_file->close;
+
+$dbh->commit or die $dbh->errstr;
+$dbh->do('SET foreign_key_checks=1') or die $dbh->errstr;
+$dbh->disconnect or die $dbh->errstr;

@@ -1,0 +1,21 @@
+
+biosample_present_in_cgap_report.pl
+
+  Finds every BioSample in the HipSci BioSamples group.
+  Checks that each BioSample is present in the CGaP daily report
+  Checks that every BioSample from the CGaP daily report is in the HipSci Biosamples group
+
+________________________________________________________________________________
+
+cell_line_is_in_biosamples.pl
+
+  Checks every cell in CGaP daily report is registered and visible in BioSamples.
+  Checks cell line is derived from a tissue in BioSamples.
+  Checks cell tissue is derived from a donor in BioSamples.
+
+________________________________________________________________________________
+
+ega_has_correct_biosample_id.pl
+
+  Given an EGA study_id, finds samples in ERAPRO associated with that study.
+  Checks that each ENA sample matches a BioSample ID in the CGaP report
