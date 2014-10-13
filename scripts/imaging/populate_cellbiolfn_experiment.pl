@@ -12,7 +12,7 @@ my $dbname = 'hipsci_cellbiolfn';
 my $dbuser = 'g1krw';
 my $dbpass;
 my $file;
-my $cellline;
+my $is_production;
 &GetOptions(
   'dbhost=s' => \$dbhost,
   'dbport=s' => \$dbport,
@@ -20,9 +20,14 @@ my $cellline;
   'dbuser=s' => \$dbuser,
   'dbpass=s' => \$dbpass,
   'file=s' => \$file,
+  'is_production!' => \$is_production,
 );
 
 die "did not get a file on the command line" if !$file;
+
+if (!defined $is_production) {
+  $is_production = $file =~ m{/pipeline_testing_experiments/} ? 0 : 1;
+}
 
 my $dbh = DBI->connect(
   "dbi:mysql:dbname=$dbname;host=$dbhost;port=$dbport",
@@ -31,7 +36,7 @@ my $dbh = DBI->connect(
 
 my $sql1 = <<"SQL";
   INSERT INTO experiment (
-    cell_line_id, evaluation_guid, p_col, p_row,
+    cell_line_id, evaluation_guid, p_col, p_row, is_production,
     num_nuclei, num_cells,
     cell_nuc_area_mean, cell_nuc_area_sd, cell_nuc_area_sum, cell_nuc_area_max, cell_nuc_area_min, cell_nuc_area_median,
     edu_median_mean, edu_median_sd, edu_median_sum, edu_median_max, edu_median_min, edu_median_median,
@@ -45,7 +50,7 @@ my $sql1 = <<"SQL";
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ? or name = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -80,66 +85,69 @@ while (my $line = <$IN>) {
   foreach my $val (@split_line) {
     undef($val) if $val eq 'NaN';
   }
-  $sth1->bind_param(1, lc($split_line[$field_columns{'type'}]));
-  $sth1->bind_param(2, uc($split_line[$field_columns{'type'}]));
+  my $short_name = $split_line[$field_columns{'type'}];
+  $short_name =~ s/\s/_/g;
+  $sth1->bind_param(1, lc($short_name));
+  $sth1->bind_param(2, uc($short_name));
   $sth1->bind_param(3, $evaluation_guid);
   $sth1->bind_param(4, $split_line[$field_columns{'column'}]);
   $sth1->bind_param(5, $split_line[$field_columns{'row'}]);
-  $sth1->bind_param(6, $split_line[$field_columns{'nucleinumberofobjects'}]);
-  $sth1->bind_param(7, $split_line[$field_columns{'numberofobjects'}]);
-  $sth1->bind_param(8, $split_line[$field_columns{'nucleusareammeanperwell'}]);
-  $sth1->bind_param(9, $split_line[$field_columns{'nucleusareamstddevperwell'}]);
-  $sth1->bind_param(10, $split_line[$field_columns{'nucleusareamsumperwell'}]);
-  $sth1->bind_param(11, $split_line[$field_columns{'nucleusareammaxperwell'}]);
-  $sth1->bind_param(12, $split_line[$field_columns{'nucleusareamminperwell'}]);
-  $sth1->bind_param(13, $split_line[$field_columns{'nucleusareammedianperwell'}]);
-  $sth1->bind_param(14, $split_line[$field_columns{'edumedianmeanperwell'}]);
-  $sth1->bind_param(15, $split_line[$field_columns{'edumedianstddevperwell'}]);
-  $sth1->bind_param(16, $split_line[$field_columns{'edumediansumperwell'}]);
-  $sth1->bind_param(17, $split_line[$field_columns{'edumedianmaxperwell'}]);
-  $sth1->bind_param(18, $split_line[$field_columns{'edumedianminperwell'}]);
-  $sth1->bind_param(19, $split_line[$field_columns{'edumedianmedianperwell'}]);
-  $sth1->bind_param(20, $split_line[$field_columns{'oct4mockmedianmeanperwell'}]);
-  $sth1->bind_param(21, $split_line[$field_columns{'oct4mockmedianstddevperwell'}]);
-  $sth1->bind_param(22, $split_line[$field_columns{'oct4mockmediansumperwell'}]);
-  $sth1->bind_param(23, $split_line[$field_columns{'oct4mockmedianmaxperwell'}]);
-  $sth1->bind_param(24, $split_line[$field_columns{'oct4mockmedianminperwell'}]);
-  $sth1->bind_param(25, $split_line[$field_columns{'oct4mockmedianmedianperwell'}]);
-  $sth1->bind_param(26, $split_line[$field_columns{'intensitynucleusdapimedianmeanpe'}]);
-  $sth1->bind_param(27, $split_line[$field_columns{'intensitynucleusdapimedianstddev'}]);
-  $sth1->bind_param(28, $split_line[$field_columns{'intensitynucleusdapimediansumper'}]);
-  $sth1->bind_param(29, $split_line[$field_columns{'intensitynucleusdapimedianmaxper'}]);
-  $sth1->bind_param(30, $split_line[$field_columns{'intensitynucleusdapimedianminper'}]);
-  $sth1->bind_param(31, $split_line[$field_columns{'intensitynucleusdapimedianmedian'}]);
-  $sth1->bind_param(32, $split_line[$field_columns{'numberofcellperclumpsummeanperwe'}]);
-  $sth1->bind_param(33, $split_line[$field_columns{'numberofcellperclumpsumstddevper'}]);
-  $sth1->bind_param(34, $split_line[$field_columns{'numberofcellperclumpsumsumperwel'}]);
-  $sth1->bind_param(35, $split_line[$field_columns{'numberofcellperclumpsummaxperwel'}]);
-  $sth1->bind_param(36, $split_line[$field_columns{'numberofcellperclumpsumminperwel'}]);
-  $sth1->bind_param(37, $split_line[$field_columns{'numberofcellperclumpsummedianper'}]);
-  $sth1->bind_param(38, $split_line[$field_columns{'cellareammeanperwell'}]);
-  $sth1->bind_param(39, $split_line[$field_columns{'cellareamstddevperwell'}]);
-  $sth1->bind_param(40, $split_line[$field_columns{'cellareamsumperwell'}]);
-  $sth1->bind_param(41, $split_line[$field_columns{'cellareammaxperwell'}]);
-  $sth1->bind_param(42, $split_line[$field_columns{'cellareamminperwell'}]);
-  $sth1->bind_param(43, $split_line[$field_columns{'cellareammedianperwell'}]);
-  $sth1->bind_param(44, $split_line[$field_columns{'cellroundnessmeanperwell'}]);
-  $sth1->bind_param(45, $split_line[$field_columns{'cellroundnessstddevperwell'}]);
-  $sth1->bind_param(46, $split_line[$field_columns{'cellroundnesssumperwell'}]);
-  $sth1->bind_param(47, $split_line[$field_columns{'cellroundnessmaxperwell'}]);
-  $sth1->bind_param(48, $split_line[$field_columns{'cellroundnessminperwell'}]);
-  $sth1->bind_param(49, $split_line[$field_columns{'cellroundnessmedianperwell'}]);
-  $sth1->bind_param(50, $split_line[$field_columns{'cellratiowidthtolengthmeanperwel'}]);
-  $sth1->bind_param(51, $split_line[$field_columns{'cellratiowidthtolengthstddevperw'}]);
-  $sth1->bind_param(52, $split_line[$field_columns{'cellratiowidthtolengthsumperwell'}]);
-  $sth1->bind_param(53, $split_line[$field_columns{'cellratiowidthtolengthmaxperwell'}]);
-  $sth1->bind_param(54, $split_line[$field_columns{'cellratiowidthtolengthminperwell'}]);
-  $sth1->bind_param(55, $split_line[$field_columns{'cellratiowidthtolengthmedianperw'}]);
-  $sth1->bind_param(56, $split_line[$field_columns{'singlesnumberofobjects'}]);
-  $sth1->bind_param(57, $split_line[$field_columns{'compound'}]);
-  $sth1->bind_param(58, $split_line[$field_columns{'concentration'}]);
-  $sth1->bind_param(59, $split_line[$field_columns{'count'}]);
-  $sth1->bind_param(60, $split_line[$field_columns{'numberofanalyzedfields'}]);
+  $sth1->bind_param(6, $is_production);
+  $sth1->bind_param(7, $split_line[$field_columns{'nucleinumberofobjects'}]);
+  $sth1->bind_param(8, $split_line[$field_columns{'numberofobjects'}]);
+  $sth1->bind_param(9, $split_line[$field_columns{'nucleusareammeanperwell'}]);
+  $sth1->bind_param(10, $split_line[$field_columns{'nucleusareamstddevperwell'}]);
+  $sth1->bind_param(11, $split_line[$field_columns{'nucleusareamsumperwell'}]);
+  $sth1->bind_param(12, $split_line[$field_columns{'nucleusareammaxperwell'}]);
+  $sth1->bind_param(13, $split_line[$field_columns{'nucleusareamminperwell'}]);
+  $sth1->bind_param(14, $split_line[$field_columns{'nucleusareammedianperwell'}]);
+  $sth1->bind_param(15, $split_line[$field_columns{'edumedianmeanperwell'}]);
+  $sth1->bind_param(16, $split_line[$field_columns{'edumedianstddevperwell'}]);
+  $sth1->bind_param(17, $split_line[$field_columns{'edumediansumperwell'}]);
+  $sth1->bind_param(18, $split_line[$field_columns{'edumedianmaxperwell'}]);
+  $sth1->bind_param(19, $split_line[$field_columns{'edumedianminperwell'}]);
+  $sth1->bind_param(20, $split_line[$field_columns{'edumedianmedianperwell'}]);
+  $sth1->bind_param(21, $split_line[$field_columns{'oct4medianmeanperwell'}]);
+  $sth1->bind_param(22, $split_line[$field_columns{'oct4medianstddevperwell'}]);
+  $sth1->bind_param(23, $split_line[$field_columns{'oct4mediansumperwell'}]);
+  $sth1->bind_param(24, $split_line[$field_columns{'oct4medianmaxperwell'}]);
+  $sth1->bind_param(25, $split_line[$field_columns{'oct4medianminperwell'}]);
+  $sth1->bind_param(26, $split_line[$field_columns{'oct4medianmedianperwell'}]);
+  $sth1->bind_param(27, $split_line[$field_columns{'intensitynucleusdapimedianmeanpe'}]);
+  $sth1->bind_param(28, $split_line[$field_columns{'intensitynucleusdapimedianstddev'}]);
+  $sth1->bind_param(29, $split_line[$field_columns{'intensitynucleusdapimediansumper'}]);
+  $sth1->bind_param(30, $split_line[$field_columns{'intensitynucleusdapimedianmaxper'}]);
+  $sth1->bind_param(31, $split_line[$field_columns{'intensitynucleusdapimedianminper'}]);
+  $sth1->bind_param(32, $split_line[$field_columns{'intensitynucleusdapimedianmedian'}]);
+  $sth1->bind_param(33, $split_line[$field_columns{'numberofcellperclumpsummeanperwe'}]);
+  $sth1->bind_param(34, $split_line[$field_columns{'numberofcellperclumpsumstddevper'}]);
+  $sth1->bind_param(35, $split_line[$field_columns{'numberofcellperclumpsumsumperwel'}]);
+  $sth1->bind_param(36, $split_line[$field_columns{'numberofcellperclumpsummaxperwel'}]);
+  $sth1->bind_param(37, $split_line[$field_columns{'numberofcellperclumpsumminperwel'}]);
+  $sth1->bind_param(38, $split_line[$field_columns{'numberofcellperclumpsummedianper'}]);
+  $sth1->bind_param(39, $split_line[$field_columns{'cellaream2meanperwell'}]);
+  $sth1->bind_param(40, $split_line[$field_columns{'cellaream2stddevperwell'}]);
+  $sth1->bind_param(41, $split_line[$field_columns{'cellaream2sumperwell'}]);
+  $sth1->bind_param(42, $split_line[$field_columns{'cellaream2maxperwell'}]);
+  $sth1->bind_param(43, $split_line[$field_columns{'cellaream2minperwell'}]);
+  $sth1->bind_param(44, $split_line[$field_columns{'cellaream2medianperwell'}]);
+  $sth1->bind_param(45, $split_line[$field_columns{'cellroundnessmeanperwell'}]);
+  $sth1->bind_param(46, $split_line[$field_columns{'cellroundnessstddevperwell'}]);
+  $sth1->bind_param(47, $split_line[$field_columns{'cellroundnesssumperwell'}]);
+  $sth1->bind_param(48, $split_line[$field_columns{'cellroundnessmaxperwell'}]);
+  $sth1->bind_param(49, $split_line[$field_columns{'cellroundnessminperwell'}]);
+  $sth1->bind_param(50, $split_line[$field_columns{'cellroundnessmedianperwell'}]);
+  $sth1->bind_param(51, $split_line[$field_columns{'cellratiowidthtolengthmeanperwel'}]);
+  $sth1->bind_param(52, $split_line[$field_columns{'cellratiowidthtolengthstddevperw'}]);
+  $sth1->bind_param(53, $split_line[$field_columns{'cellratiowidthtolengthsumperwell'}]);
+  $sth1->bind_param(54, $split_line[$field_columns{'cellratiowidthtolengthmaxperwell'}]);
+  $sth1->bind_param(55, $split_line[$field_columns{'cellratiowidthtolengthminperwell'}]);
+  $sth1->bind_param(56, $split_line[$field_columns{'cellratiowidthtolengthmedianperw'}]);
+  $sth1->bind_param(57, $split_line[$field_columns{'singlesnumberofobjects'}]);
+  $sth1->bind_param(58, $split_line[$field_columns{'compound'}]);
+  $sth1->bind_param(59, $split_line[$field_columns{'concentration'}]);
+  $sth1->bind_param(60, $split_line[$field_columns{'count'}]);
+  $sth1->bind_param(61, $split_line[$field_columns{'numberofanalyzedfields'}]);
   $sth1->execute;
 }
 close $IN;

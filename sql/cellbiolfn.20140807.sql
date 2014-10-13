@@ -24,6 +24,7 @@ CREATE TABLE experiment(
        evaluation_guid char(36) NOT NULL,
        p_col tinyint unsigned NOT NULL,
        p_row tinyint unsigned NOT NULL,
+       is_production boolean NOT NULL,
        num_nuclei smallint unsigned NOT NULL,
        num_cells smallint unsigned NOT NULL,
        cell_nuc_area_mean double,

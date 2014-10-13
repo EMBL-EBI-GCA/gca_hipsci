@@ -89,10 +89,10 @@ while (my $line = <$IN>) {
   $sth1->bind_param(12, $split_line[$field_columns{'y'}]);
   $sth1->bind_param(13, $y_min);
   $sth1->bind_param(14, $y_max);
-  $sth1->bind_param(15, $split_line[$field_columns{'cellcellaream'}]);
+  $sth1->bind_param(15, $split_line[$field_columns{'cellcellaream2'}]);
   $sth1->bind_param(16, $split_line[$field_columns{'cellnucleusaream'}]);
   $sth1->bind_param(17, $split_line[$field_columns{'celledumedian'}]);
-  $sth1->bind_param(18, $split_line[$field_columns{'celloct4mockmedian'}]);
+  $sth1->bind_param(18, $split_line[$field_columns{'celloct4median'}]);
   $sth1->bind_param(19, $split_line[$field_columns{'cellintensitynucleusdapimedian'}]);
   $sth1->bind_param(20, $split_line[$field_columns{'cellcellroundness'}]);
   $sth1->bind_param(21, $split_line[$field_columns{'cellcellratiowidthtolength'}]);

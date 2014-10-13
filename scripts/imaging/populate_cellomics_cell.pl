@@ -28,7 +28,10 @@ die "did not get a file on the command line" if !$file;
 my $dbh = DBI->connect(
   "dbi:mysql:dbname=$dbname;host=$dbhost;port=$dbport",
   $dbuser, $dbpass,
+  {AutoCommit => 0},
 ) or die $DBI::errstr;
+
+$dbh->do('SET foreign_key_checks=0') or die $dbh->errstr;
 
 my $sql1 = <<"SQL";
   INSERT INTO cell (
@@ -77,5 +80,10 @@ while (my $line_data = $cell_file->read) {
   $sth1->bind_param(12, $line_data->{'AvgInten'}),
   $sth1->bind_param(13, $line_data->{'VarInten'}),
   $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
+  last LINE;
 }
 $cell_file->close;
+
+$dbh->commit or die $dbh->errstr;
+$dbh->do('SET foreign_key_checks=1') or die $dbh->errstr;
+#$dbh->disconnect or die $dbh->errstr;
