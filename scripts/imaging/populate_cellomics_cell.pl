@@ -80,9 +80,14 @@ while (my $line_data = $cell_file->read) {
   $sth1->bind_param(12, $line_data->{'AvgInten'}),
   $sth1->bind_param(13, $line_data->{'VarInten'}),
   $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
+  last LINE;
 }
 $cell_file->close;
 
 $dbh->commit or die $dbh->errstr;
 $dbh->do('SET foreign_key_checks=1') or die $dbh->errstr;
+<<<<<<< HEAD
 $dbh->disconnect or die $dbh->errstr;
+=======
+#$dbh->disconnect or die $dbh->errstr;
+>>>>>>> f70f8969e7473b02ac020d5339aacbeffbe78cc9
