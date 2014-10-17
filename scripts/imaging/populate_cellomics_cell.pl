@@ -86,4 +86,4 @@ $cell_file->close;
 
 $dbh->commit or die $dbh->errstr;
 $dbh->do('SET foreign_key_checks=1') or die $dbh->errstr;
-#$dbh->disconnect or die $dbh->errstr;
+$dbh->disconnect or die $dbh->errstr;
