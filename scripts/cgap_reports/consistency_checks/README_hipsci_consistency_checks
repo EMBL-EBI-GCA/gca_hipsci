@@ -24,5 +24,10 @@ ________________________________________________________________________________
 
 num_samples_is_increasing.pl
   
-  The number of donors / tissues / ips_lines in the CGaP daily report has increased in the last 14 days.
-  Donors / tisues / IPS lines have not been removed from the daily report in the last 14 days.
+  The number of donors / tissues / ips_lines in the CGaP daily report has increased in the last 28 days.
+
+________________________________________________________________________________
+
+withdrawn_samples.pl
+  
+  Donors / tisues / IPS lines have not been removed from the daily report in the last day.
