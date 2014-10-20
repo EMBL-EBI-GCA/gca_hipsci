@@ -24,8 +24,7 @@ our $cgap_report_suffix = '.hipsci_progress.csv';
 
 sub read_cgap_report {
   my (%args) = @_;
-  my $file = $args{file} || get_latest_file();
-  print STDERR "File: $file\n";
+  my $file = $args{file} || get_latest_file(days_old => $args{days_old});
     
   my $sanger_file = new Text::Delimited;
   $sanger_file->delimiter(';');
@@ -66,15 +65,20 @@ sub read_cgap_report {
   }
   $sanger_file->close;
 
-  return {donors => [values %donors], tissues => [values %tissues], ips_lines => [values %ips_lines]};
+  return {donors => [values %donors], tissues => [values %tissues], ips_lines => [values %ips_lines], file => $file};
 }
 
 sub get_latest_file {
-  my ($year, $month, $day) = (localtime())[5,4,3];
+  my (%args) = @_;
+  my $time = time();
+  if (my $days_old = $args{days_old}) {
+    $time -= 86400*$days_old;
+  }
+  my ($year, $month, $day) = (localtime($time))[5,4,3];
   my $date = sprintf("%04d%02d%02d", $year+1900, $month+1, $day);
   my $file = "$cgap_report_dir/$date$cgap_report_suffix";
   if (! -f $file) {
-    ($year, $month, $day) = (localtime(time() - 86400))[5,4,3];
+    ($year, $month, $day) = (localtime($time - 86400))[5,4,3];
     $date = sprintf("%04d%02d%02d", $year+1900, $month+1, $day);
     $file = "$cgap_report_dir/$date$cgap_report_suffix";
   }

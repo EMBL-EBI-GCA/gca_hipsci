@@ -6,7 +6,7 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
-my @hipsci_group_ids = ('SAMEG120702');
+my @hipsci_group_ids = @ARGV;
 
 my %allowed_ids;
 my ($ips_lines, $tissues, $donors) = @{read_cgap_report()}{qw(ips_lines tissues donors)};
