@@ -9,7 +9,7 @@ use BioSD;
 my @hipsci_group_ids = @ARGV;
 
 my %allowed_ids;
-my ($ips_lines, $tissues, $donors) = @{read_cgap_report()}{qw(ips_lines tissues donors)};
+my ($ips_lines, $tissues, $donors) = @{read_cgap_report(days_old=>1)}{qw(ips_lines tissues donors)};
 SAMPLE:
 foreach my $sample (@$ips_lines, @$tissues, @$donors) {
   next SAMPLE if ! $sample->biosample_id;
