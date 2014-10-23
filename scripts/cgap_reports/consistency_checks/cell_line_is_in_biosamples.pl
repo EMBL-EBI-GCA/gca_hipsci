@@ -6,7 +6,7 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
-my $ips_lines = read_cgap_report()->{ips_lines};
+my $ips_lines = read_cgap_report(days_old=>1)->{ips_lines};
 
 IPS_LINE:
 foreach my $ips_line (@$ips_lines) {
