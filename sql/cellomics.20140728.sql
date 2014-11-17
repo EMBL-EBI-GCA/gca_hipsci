@@ -21,6 +21,7 @@ CREATE TABLE cell_line(
 CREATE TABLE experiment(
        experiment_id int unsigned NOT NULL AUTO_INCREMENT,
        cell_line_id int unsigned NOT NULL,
+       layer char(5) NOT NULL,
        w_field_id smallint unsigned not NULL,
        cell_file_name varchar(255) NOT NULL,
        platform varchar(255) NOT NULL,

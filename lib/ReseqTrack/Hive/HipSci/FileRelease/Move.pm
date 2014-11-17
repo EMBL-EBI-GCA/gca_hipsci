@@ -82,7 +82,7 @@ sub derive_path {
 # Use BioSD API to decide if sample is managed access
 sub derive_is_controlled {
   my ($self, $donor) = @_;
-  return 0;
+  return 1;
 }
 
 # Use BioSD API when BioSamples records are accurate
@@ -213,13 +213,10 @@ sub derive_keane_txt {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
-  my ($chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci_(\S+)_(\d+)samples_(\d{8})(?:_(\w+))?.(\w{3})$/;
+  my ($assay, $chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci\.(\w+)\.(\w+)\.(\d+)samples_(\d{8})(?:\.(\w+))?.(\w{3})$/;
+  return undef if !$assay;
   if ($date) {
     my $group_name = "${date}_${num_samples}samples";
-    my $assay = $chip_name =~ /HumanHT/ ? 'gexarray'
-              : $chip_name =~ /HumanMethylation/ ? 'mtarray'
-              : '';
-    return undef if !$assay;
     my $parent_dir = $assay eq 'gexarray' ? 'genome_studio_files'
                   : $assay eq 'mtarray' ? 'txt_files'
                   : '';

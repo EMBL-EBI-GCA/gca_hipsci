@@ -32,7 +32,7 @@ my $dbh = DBI->connect(
 
 my $sql1 = <<"SQL";
   INSERT INTO experiment (
-    cell_line_id, w_field_id, cell_file_name,
+    cell_line_id, layer, w_field_id, cell_file_name,
     platform, form_factor, p_col,
     p_row, channel, dye, composite_color, name_measure,
     w_field_x, w_field_y, z, z_offset, pixel_size,
@@ -41,7 +41,7 @@ my $sql1 = <<"SQL";
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -52,27 +52,28 @@ $experiment_file->open($file) or die "could not open $file $!";
 LINE:
 while (my $line_data = $experiment_file->read) {
   $sth1->bind_param(1, $line_data->{'line'}),
-  $sth1->bind_param(2, $line_data->{'wFieldID'}),
-  $sth1->bind_param(3, $line_data->{'CellFileName'}),
-  $sth1->bind_param(4, $line_data->{'platform'}),
-  $sth1->bind_param(5, $line_data->{'formFactor'}),
-  $sth1->bind_param(6, $line_data->{'pCol'}),
-  $sth1->bind_param(7, $line_data->{'pRow'}),
-  $sth1->bind_param(8, $line_data->{'channel'}),
-  $sth1->bind_param(9, $line_data->{'Dye'}),
-  $sth1->bind_param(10, $line_data->{'CompositeColor'}),
-  $sth1->bind_param(11, $line_data->{'nameMeasure'}),
-  $sth1->bind_param(12, $line_data->{'wFieldX'}),
-  $sth1->bind_param(13, $line_data->{'wFieldY'}),
-  $sth1->bind_param(14, $line_data->{'Z'}),
-  $sth1->bind_param(15, $line_data->{'ZOffset'}),
-  $sth1->bind_param(16, $line_data->{'pixelSize'}),
-  $sth1->bind_param(17, $line_data->{'marker'}),
-  $sth1->bind_param(18, $line_data->{'barcode'}),
-  $sth1->bind_param(19, $line_data->{'date_stained'}),
-  $sth1->bind_param(20, $line_data->{'date_read'}),
-  $sth1->bind_param(21, $line_data->{'AvgIntenLevelHigh'}),
-  $sth1->bind_param(22, $line_data->{'technician'}),
+  $sth1->bind_param(2, $line_data->{'layer'}),
+  $sth1->bind_param(3, $line_data->{'wFieldID'}),
+  $sth1->bind_param(4, $line_data->{'CellFileName'}),
+  $sth1->bind_param(5, $line_data->{'platform'}),
+  $sth1->bind_param(6, $line_data->{'formFactor'}),
+  $sth1->bind_param(7, $line_data->{'pCol'}),
+  $sth1->bind_param(8, $line_data->{'pRow'}),
+  $sth1->bind_param(9, $line_data->{'channel'}),
+  $sth1->bind_param(10, $line_data->{'Dye'}),
+  $sth1->bind_param(11, $line_data->{'CompositeColor'}),
+  $sth1->bind_param(12, $line_data->{'nameMeasure'}),
+  $sth1->bind_param(13, $line_data->{'wFieldX'}),
+  $sth1->bind_param(14, $line_data->{'wFieldY'}),
+  $sth1->bind_param(15, $line_data->{'Z'}),
+  $sth1->bind_param(16, $line_data->{'ZOffset'}),
+  $sth1->bind_param(17, $line_data->{'pixelSize'}),
+  $sth1->bind_param(18, $line_data->{'marker'}),
+  $sth1->bind_param(19, $line_data->{'barcode'}),
+  $sth1->bind_param(20, $line_data->{'date_stained'}),
+  $sth1->bind_param(21, $line_data->{'date_read'}),
+  $sth1->bind_param(22, $line_data->{'AvgIntenLevelHigh'}),
+  $sth1->bind_param(23, $line_data->{'technician'}),
   $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
 }
 $experiment_file->close;
