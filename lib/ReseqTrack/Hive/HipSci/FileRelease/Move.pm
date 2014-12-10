@@ -65,6 +65,14 @@ sub derive_path {
       $destination = $self->derive_watt_txt_file(filename => $filename, destination_base_dir => $destination_base_dir);
     }
   }
+  elsif ($incoming_dirname =~ m{/incoming/stegle} ){
+    if ($filename =~ /\.featureXML$/) {
+      $destination = $self->derive_featurexml_file(filename => $filename, destination_base_dir => $destination_base_dir);
+    }
+  }
+  elsif ($incoming_dirname =~ m{/incoming/cellomics} ){
+      $destination = $self->derive_cellomics_file(filename => $filename, destination_base_dir => $destination_base_dir);
+  }
   else {
     my $dirname = $incoming_dirname;
     if (my $trim = $derive_path_options->{trim_dir}) {
@@ -291,6 +299,29 @@ sub derive_lamond_processed_file {
 
   return "$destination_base_dir/proteomics/maxquant/$donor_name/$cell_line_name/$cell_line_name.proteomics.$analysis.$date.$type.$ext";
 }
+
+sub derive_featurexml_file {
+  my ($self, %options) = @_;
+  my $filename = $options{filename} or throw("missing filename");
+  my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
+  my $file_details = $self->param('file');
+  my $cell_line_name = $file_details->{'cell_line'};
+  my $donor_name = $self->derive_donor($cell_line_name);
+  return "$destination_base_dir/proteomics/openMS/$donor_name/$cell_line_name/features/$filename";
+}
+
+sub derive_cellomics_file {
+  my ($self, %options) = @_;
+  my $filename = $options{filename} or throw("missing filename");
+  my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
+  my ($cell_line_name) = $filename =~ /([\w-]+)/;
+  die "no cell line name for $filename" if !$cell_line_name;
+  my $tissue_name = $cell_line_name;
+  $tissue_name =~ s/_\d+$//;
+  die "no tissue name for $filename" if !$tissue_name;
+  return "$destination_base_dir/cellomics/raw_data/$tissue_name/$cell_line_name/$filename";
+}
+
 
 #sub derive_index_file {
 #  my ($self, %options) = @_;

@@ -20,7 +20,7 @@ sub create_seed_params {
     my $replicate = 0;
     ID:
     foreach my $dundee_id (split(/;\s*/, $line)) {
-      my ($ID, $num_parts) = $dundee_id =~ /(PTSS\d+)\s*\((\d+)\)/;
+      my ($ID, $num_parts) = $dundee_id =~ /PTSS(\d+)\s*\((\d+)\)/;
       next ID if !$ID;
       $replicate += 1;
       $dundee_conversions{$ID} = {cell_line => $cell_line, num_parts => $num_parts, replicate => $replicate};
@@ -54,9 +54,9 @@ sub create_seed_params {
   foreach my $seed_params (@{$self->seed_params}) {
     my ($file, $output_hash) = @$seed_params;
     my $path = $file->name;
-    if ($path =~ m{/lamond/.*raw$}) {
+    if ($path =~ m{/lamond/.*raw$} || $path =~ m{/stegle/.*featureXML}) {
       my $filename = fileparse($path);
-      my ($dundee_id) = $filename =~ /(^PTSS\d+)/;
+      my ($dundee_id) = $filename =~ /^PT(?:SS)?(\d+)/;
       push(@{$dundee_conversions{$dundee_id}->{seed_params}}, $seed_params);
     }
     else {

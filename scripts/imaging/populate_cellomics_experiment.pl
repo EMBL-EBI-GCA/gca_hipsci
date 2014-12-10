@@ -37,11 +37,11 @@ my $sql1 = <<"SQL";
     p_row, channel, dye, composite_color, name_measure,
     w_field_x, w_field_y, z, z_offset, pixel_size,
     marker, barcode, date_stained, date_read, avg_inten_level_high,
-    technician_id
+    technician_id, passage_number
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -74,6 +74,7 @@ while (my $line_data = $experiment_file->read) {
   $sth1->bind_param(21, $line_data->{'date_read'}),
   $sth1->bind_param(22, $line_data->{'AvgIntenLevelHigh'}),
   $sth1->bind_param(23, $line_data->{'technician'}),
+  $sth1->bind_param(24, $line_data->{'passage_number'}),
   $sth1->execute or die "could not process ".$line_data->{'__LINE__'};
 }
 $experiment_file->close;

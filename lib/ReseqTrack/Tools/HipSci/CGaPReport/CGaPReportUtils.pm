@@ -9,6 +9,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::Donor;
 use ReseqTrack::Tools::HipSci::CGaPReport::Tissue;
 use ReseqTrack::Tools::HipSci::CGaPReport::IPSLine;
 use ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape;
+use DateTime::Format::ISO8601;
 
 use Exporter 'import';
 use vars qw(@EXPORT_OK);
@@ -24,7 +25,11 @@ our $cgap_report_suffix = '.hipsci_progress.csv';
 
 sub read_cgap_report {
   my (%args) = @_;
-  my $file = $args{file} || get_latest_file(days_old => $args{days_old});
+  my $file = $args{file}
+      || get_latest_file(
+              days_old => $args{days_old},
+              date_iso => $args{date_iso},
+          );
     
   my $sanger_file = new Text::Delimited;
   $sanger_file->delimiter(';');
@@ -71,6 +76,9 @@ sub read_cgap_report {
 sub get_latest_file {
   my (%args) = @_;
   my $time = time();
+  if (my $date_iso = $args{date_iso}) {
+    $time = DateTime::Format::ISO8601->parse_datetime($date_iso)->epoch();
+  }
   if (my $days_old = $args{days_old}) {
     $time -= 86400*$days_old;
   }

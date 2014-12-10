@@ -43,6 +43,7 @@ CREATE TABLE experiment(
        date_read date NOT NULL,
        avg_inten_level_high smallint NOT NULL,
        technician_id smallint unsigned,
+       passage_number smallint unsigned NOT NULL,
        PRIMARY KEY (experiment_id),
        UNIQUE INDEX (w_field_id, channel, barcode),
        FOREIGN KEY fk_experiment_line_line_id (cell_line_id) REFERENCES cell_line(cell_line_id)

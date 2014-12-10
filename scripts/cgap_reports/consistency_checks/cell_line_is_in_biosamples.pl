@@ -6,7 +6,11 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
-my $ips_lines = read_cgap_report(days_old=>7)->{ips_lines};
+my ($main_hipsci_group_id) = @ARGV;
+my $main_hipsci_group = BioSD::fetch_group($main_hipsci_group_id);
+my ($update_date) = @{$main_hipsci_group->property('Submission Update Date')->values()};
+
+my $ips_lines = read_cgap_report(date_iso=>$update_date)->{ips_lines};
 
 IPS_LINE:
 foreach my $ips_line (@$ips_lines) {
