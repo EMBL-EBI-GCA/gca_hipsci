@@ -9,6 +9,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils;
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::Donor;
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::IPSLine;
 use List::Util qw();
+use List::MoreUtils qw();
 
 use Exporter 'import';
 use vars qw(@EXPORT_OK);
@@ -55,7 +56,13 @@ sub improve_donors {
     $donor_demographics //= {};
 
     # Fix gender
-    my $gender = List::Util::first {$_ && $_ =~ /ale/} map {$_->gender} map {@{$_->sequencescape}} map {@{$_->ips_lines}} @{$donor->tissues};
+    my @genders = grep {$_ && $_ =~ /ale/} map {$_->gender} map {@{$_->sequencescape}} map {@{$_->ips_lines}} @{$donor->tissues};
+    my $is_female = List::MoreUtils::any { /female/i } @genders;
+    my $is_male = List::MoreUtils::any { ! /female/i } @genders;
+    my $gender = ($is_male && $is_female) ? ''
+              : $is_male ? 'male'
+              : $is_female ? 'female'
+              : undef;
     $gender //= $donor_demographics->{'Gender'} // '';
     $gender = lc($gender);
     $gender =~ s/[^\w]//g;

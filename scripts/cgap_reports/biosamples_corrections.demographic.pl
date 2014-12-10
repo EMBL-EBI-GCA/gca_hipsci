@@ -4,22 +4,18 @@ use strict;
 use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
+use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use BioSD;
 use Text::Delimited;
 
 my $file = $ARGV[0] || die "did not get a file on the command line";
 
 my $donors = read_cgap_report()->{donors};
+improve_donors(donors=>$donors, demographic_file=>$file);
 print join("\t", qw(SAMPLE_ID  ATTR_KEY  ATTR_VALUE  TERM_SOURCE_REF TERM_SOURCE_ID  TERM_SOURCE_URI TERM_SOURCE_VERSION UNIT)), "\n";
 
-my $demographic_file = new Text::Delimited;
-$demographic_file->delimiter(";");
-$demographic_file->open($file) or die "could not open $file $!";
-LINE:
-while (my $line_data = $demographic_file->read) {
-  my $donor_name = $line_data->{DonorID};
-  my ($donor) = grep {$_->supplier_name eq $donor_name} @$donors;
-  next LINE if !$donor;
+DONOR:
+foreach my $donor (@$donors) {
 
   my @biosd_ids;
   if (my $donor_id = $donor->biosample_id) {
@@ -36,30 +32,22 @@ while (my $line_data = $demographic_file->read) {
     }
   }
 
-  my $disease = $line_data->{'Disease phenotype'};
-  my $gender = $line_data->{'Gender'};
-  my $age_band = $line_data->{'Age-band'};
-  my $ethnicity = $line_data->{'Ethnicity'};
-
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
-    if ($disease) {
-      $disease = lc($disease);
-      my ($disease_name, $efo_term) = $disease eq 'normal' ? ('normal', 'http://www.ebi.ac.uk/efo/EFO_0000761')
-                  : $disease eq 'bbs' ? ('bardet-biedl syndrome', 'http://www.orpha.net/ORDO/Orphanet_110')
-                  : $disease eq 'nd' ? ('neonatal diabetes', 'http://www.orpha.net/ORDO/Orphanet_224')
+    if (my $disease = $donor->disease) {
+      my $efo_term = $disease eq 'normal' ? 'http://www.ebi.ac.uk/efo/EFO_0000761'
+                  : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
+                  : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
                   : die "did not recognise disease $disease";
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
       if (!$biosd_disease) {
-        print join("\t", $biosample->id, 'characteristic[disease state]', $disease_name, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
+        print join("\t", $biosample->id, 'characteristic[disease state]', $disease, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
       }
-      elsif (! grep { /$disease_name/i } @{$biosd_disease->values}) {
+      elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
         die "disagreement for disease $disease ".$biosample->id;
       }
     }
-    if ($gender && $gender !~ /unknown/i) {
-      $gender = lc($gender);
-      $gender =~ s/[^\w]//g;
+    if (my $gender = $donor->gender) {
       my $efo_term = $gender eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
                   : $gender eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
                   : die "did not recognise gender $gender";
@@ -72,17 +60,17 @@ while (my $line_data = $demographic_file->read) {
         die "disagreement for gender $gender ".$biosample->id;
       }
     }
-    if ($age_band && $age_band !~ /unknown/i) {
+    if (my $age = $donor->age) {
       my $biosd_age = $biosample->property('age');
       #if (!$biosd_age || ! grep { $_ eq $age_band } @{$biosd_age->values}) {
       if (!$biosd_age) {
-        print join("\t", $biosample->id, 'characteristic[age]', $age_band, 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0001725',  'http://www.ebi.ac.uk/efo', 'NULL', 'year'), "\n";
+        print join("\t", $biosample->id, 'characteristic[age]', $age, 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0001725',  'http://www.ebi.ac.uk/efo', 'NULL', 'year'), "\n";
       }
-      elsif (! grep { $_ eq $age_band } @{$biosd_age->values}) {
-        die "disagreement for age $age_band ".$biosample->id;
+      elsif (! grep { $_ eq $age} @{$biosd_age->values}) {
+        die "disagreement for age $age".$biosample->id;
       }
     }
-    if ($ethnicity && $ethnicity !~ /unknown/i) {
+    if (my $ethnicity = $donor->ethnicity) {
       my $biosd_ethnicity = $biosample->property('ethnicity');
       #if (!$biosd_ethnicity || ! grep { lc($_) eq lc($ethnicity) } @{$biosd_ethnicity->values}) {
       if (!$biosd_ethnicity) {
@@ -95,4 +83,3 @@ while (my $line_data = $demographic_file->read) {
   }
 
 }
-$demographic_file->close;
