@@ -78,12 +78,13 @@ foreach my $file (sort {$a->name cmp $b->name} @$files) {
           : $file_name =~ /\.featureXML$/ ? 'featureXML'
           : $file_name =~ /\.csv$/ ? 'csv'
           : $file_name =~ /\.idXML$/ ? 'idXML'
+          : $file_name =~ /\.mzid$/ ? 'mzid'
           : die "did not recognise $file_name\n";
   next FILE if $type eq 'maxquant' && $file_name !~ /\.zip$/;
   push(@{$files{$type}}, {file_object=>$file});
 }
 my $current_file_id=0;
-foreach my $type (qw( raw mzML maxquant featureXML csv idXML)) {
+foreach my $type (qw( raw mzML maxquant featureXML csv mzid)) {
   foreach my $file (@{$files{$type}}) {
     $current_file_id += 1;
     $file->{pride_file_id} = $current_file_id;
@@ -106,7 +107,7 @@ foreach my $file (@{$files{featureXML}}) {
   my ($mzml_file) = grep {$_->{file_object}->name =~ /$fraction.mzML$/} @{$files{mzML}};
   push(@{$file->{mapping}}, $mzml_file->{pride_file_id});
 }
-foreach my $file (@{$files{idXML}}) {
+foreach my $file (@{$files{mzid}}) {
   my ($fraction) = $file->{file_object}->name =~ /\.(PTS\w+)\./;
   my ($featurexml_file) = grep {$_->{file_object}->name =~ /$fraction.featureXML$/} @{$files{featureXML}};
   push(@{$file->{mapping}}, $featurexml_file->{pride_file_id});
@@ -183,8 +184,8 @@ foreach my $modification (@modifications) {
 print "\n";
 print join("\t", 'FMH', 'file_id', 'file_type', 'file_path', 'file_mapping'), "\n";
 
-foreach my $type (qw( raw mzML maxquant featureXML csv idXML)) {
-  my $output_type = {raw=>'raw', mzML=>'raw', maxquant=>'search', featureXML=>'peak', csv=>'quant', idXML=>'result'}->{$type};
+foreach my $type (qw( raw mzML maxquant featureXML csv mzid)) {
+  my $output_type = {raw=>'raw', mzML=>'raw', maxquant=>'search', featureXML=>'peak', csv=>'quant', mzid=>'result'}->{$type};
   foreach my $file (@{$files{$type}}) {
     $file->{mapping} //= [];
     print join("\t", 'FME', $file->{pride_file_id}, $output_type, $file->{file_object}->filename, join(',', @{$file->{mapping}})), "\n";
@@ -197,7 +198,7 @@ foreach my $fasta_id (sort {$a <=> $b} keys %fasta_pride_ids) {
 print "\n";
 print join("\t", qw(SMH file_id species tissue cell_type instrument),
  (map {'modification'} @modifications)), "\n";
-foreach my $file (@{$files{idXML}}) {
+foreach my $file (@{$files{mzid}}) {
   print join("\t", 'SME', $file->{pride_file_id}, '[NEWT, 9606, Homo sapiens (Human),]',
       '[PRIDE, PRIDE:0000442, Tissue not applicable to dataset,]',
       '[CL, CL:0001034, cell in vitro,]',
