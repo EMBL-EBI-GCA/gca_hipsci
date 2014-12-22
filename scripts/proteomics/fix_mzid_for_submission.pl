@@ -23,12 +23,12 @@ $xc->registerNs('mzid', $mzid_nsuri);
 # Fix pre="[" to pre="."
 my $doc = XML::LibXML->load_xml( location => $mzid);
 foreach my $node ($xc->findnodes('./mzid:MzIdentML/mzid:SequenceCollection/mzid:PeptideEvidence[@pre="["]', $doc)) {
-  $node->setAttribute('pre' => '.');
+  $node->setAttribute('pre' => '-');
 }
 
 # Fix post="]" to post="."
 foreach my $node ($xc->findnodes('./mzid:MzIdentML/mzid:SequenceCollection/mzid:PeptideEvidence[@post="]"]', $doc)) {
-  $node->setAttribute('post' => '.');
+  $node->setAttribute('post' => '-');
 }
 
 # Fix database name so it is not a system-specific file path
@@ -52,6 +52,17 @@ foreach my $db ($xc->findnodes('./mzid:MzIdentML/mzid:DataCollection/mzid:Inputs
 # Fix residues='N-term' to residues='.'
 foreach my $modification ($xc->findnodes('./mzid:MzIdentML/mzid:AnalysisProtocolCollection/mzid:SpectrumIdentificationProtocol/mzid:ModificationParams/mzid:SearchModification[@residues="N-term"]', $doc)) {
   $modification->setAttribute('residues' => '.');
+}
+
+# Fix the sequence order of elements under SpectrumIdentificationProtocol
+foreach my $sidp ($xc->findnodes('./mzid:MzIdentML/mzid:AnalysisProtocolCollection/mzid:SpectrumIdentificationProtocol', $doc)) {
+  my @child_nodes = $sidp->childNodes();
+  $sidp->removeChildNodes;
+  foreach my $node_name (qw(SearchType AdditionalSearchParams ModificationParams Enzymes MassTable FragmentTolerance ParentTolerance Threshold DatabaseFilters DatabaseTranslation)) {
+    foreach my $child ( grep {$_->nodeName eq $node_name} @child_nodes) {
+      $sidp->appendChild($child);
+    }
+  }
 }
 
 print $doc->toString;
