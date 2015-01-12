@@ -26,6 +26,11 @@ foreach my $ips_line (@$ips_lines) {
   next IPS_LINE if !$biosample->is_valid;
 
   $growing_conditions =~ s/^feeder$/on feeder cells/;
+  if ($growing_conditions eq 'transferred') {
+    my $transfer_date = $ips_line->transfer_to_feeder_free;
+    $transfer_date =~ s/ .*//;
+    $growing_conditions = "grown on feeder cells until $transfer_date and is now maintained in E8 media";
+  }
   my $biosd_growing_conditions = $biosample->property('growing conditions');
   if (!$biosd_growing_conditions) {
     print join("\t", $biosample->id, 'comment[growing conditions]', $growing_conditions, 'NULL', 'NULL',  'NULL', 'NULL', 'NULL'), "\n";

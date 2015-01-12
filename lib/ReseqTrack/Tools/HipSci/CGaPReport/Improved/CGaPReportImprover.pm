@@ -10,6 +10,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::Improved::Donor;
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::IPSLine;
 use List::Util qw();
 use List::MoreUtils qw();
+use BioSD;
 
 use Exporter 'import';
 use vars qw(@EXPORT_OK);
@@ -128,7 +129,10 @@ sub improve_ips_lines {
     bless $ips_line, 'ReseqTrack::Tools::HipSci::CGaPReport::Improved::IPSLine';
 
     # fix growing_conditions
-    if (my $is_feeder_free = $is_feeder_free{$ips_line->uuid}) {
+    if ($ips_line->is_transferred) {
+      $ips_line->growing_conditions('transferred');
+    }
+    elsif (my $is_feeder_free = $is_feeder_free{$ips_line->uuid}) {
       $is_feeder_free =~ s/\s+//g;
       $is_feeder_free = uc($is_feeder_free);
       $ips_line->growing_conditions($is_feeder_free eq 'Y' ? 'E8'
