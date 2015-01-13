@@ -26,9 +26,9 @@ $tissues = improve_tissues(tissues=>$tissues);
 $ips_lines = improve_ips_lines(ips_lines=>$ips_lines, growing_conditions_file =>$growing_conditions_filename);
 
 
-my @output_fields = qw( name derived_from biosample_id tissue_biosample_id
+my @output_fields = qw( name cell_type derived_from biosample_id tissue_biosample_id
     donor_biosample_id derived_from_cell_type reprogramming gender age disease
-    ethnicity growing_conditions);
+    ethnicity growing_conditions selected_for_genomics);
 print join("\t", @output_fields), "\n";
 
 my @output_lines;
@@ -36,15 +36,22 @@ DONOR:
 foreach my $donor (@$donors) {
   TISSUE:
   foreach my $tissue (@{$donor->tissues}) {
+    my $tissue_has_data = 0;
 
     IPS_LINE:
     foreach my $ips_line (@{$tissue->ips_lines}) {
       next IPS_LINE if !$ips_line->biosample_id;
       next IPS_LINE if !$ips_line->qc1;
+      next IPS_LINE if $ips_line->name !~ /HPSI/;
       my $reprogramming_tech = $ips_line->reprogramming_tech;
       $reprogramming_tech = $reprogramming_tech ? lc($reprogramming_tech) : undef;
 
-      my %output = (name => $ips_line->name, derived_from => $tissue->name,
+      my $selected_for_genomics = $ips_line->selected_for_genomics // '';
+      $selected_for_genomics =~ s/\s.*//;
+
+      my %output = (name => $ips_line->name,
+          cell_type => 'iPSC',
+          derived_from => $tissue->name,
           biosample_id => $ips_line->biosample_id,
           tissue_biosample_id => $tissue->biosample_id,
           donor_biosample_id => $donor->biosample_id,
@@ -55,10 +62,29 @@ foreach my $donor (@$donors) {
           disease => $donor->disease,
           ethnicity => $donor->ethnicity,
           growing_conditions => $ips_line->growing_conditions,
+          selected_for_genomics => $selected_for_genomics,
       );
-      push(@output_lines, [$ips_line->biosample_id, join("\t", map {$_ // ''} @output{@output_fields})]);
+      my (@sort_parts) = $ips_line->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)_(\d+)/;
+      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+      $tissue_has_data = 1;
 
     }
+    next TISSUE if !$tissue_has_data;
+    my %output = (name => $tissue->name,
+        cell_type => $tissue->type,
+        biosample_id => $tissue->biosample_id,
+        donor_biosample_id => $donor->biosample_id,
+        gender => $donor->gender,
+        age => $donor->age,
+        disease => $donor->disease,
+        ethnicity => $donor->ethnicity,
+    );
+    my (@sort_parts) = $tissue->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)/;
+    push(@sort_parts, 0);
+    push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
   }
 }
-print map {$_->[1], "\n"} sort {$a->[0] cmp $b->[0]} @output_lines;
+print map {$_->[1], "\n"} sort {$a->[0][1] <=> $b->[0][1]
+                            || $a->[0][0] <=> $b->[0][0]
+                            || $a->[0][2] cmp $b->[0][2]
+                            || $a->[0][3] <=> $b->[0][3]} @output_lines;
