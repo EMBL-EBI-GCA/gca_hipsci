@@ -17,14 +17,20 @@ my $ssh_password;
 my $ssh_user = 'is6';
 my $ssh_host = 'ssh.sanger.ac.uk';
 my $output = 'hipsci.qc1';
+<<<<<<< HEAD
 my $filesystem_password;
 my $plot_directory;
+=======
+>>>>>>> 9fa53c2be4f3001a0d1ec684acab8bb681460e02
 GetOptions('ssh_user=s' => \$ssh_user,
           'ssh_host=s' => \$ssh_host,
           'ssh_password=s' => \$ssh_password,
           'output=s' => \$output,
+<<<<<<< HEAD
           'filesystem_password=s' => \$filesystem_password,
           'plot_directory=s' => \$plot_directory,
+=======
+>>>>>>> 9fa53c2be4f3001a0d1ec684acab8bb681460e02
           );
 
 my $ssh = Net::OpenSSH->new($ssh_host, user => $ssh_user, password=>$ssh_password);
@@ -76,6 +82,7 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
       Content => $json->encode({donor => $donor_id}),
     );
   my $donor_qc = $json->decode($response->content);
+<<<<<<< HEAD
 
   my $donor_name;
 
@@ -84,6 +91,10 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
     print $gender_fh join("\t", @{$gender_qc}{qw(sample_public_name sample_name expected_gender actual_gender)}), "\n";
     my ($donor_name_part1, $donor_name_part2) = $gender_qc->{sample_public_name} =~ /^(\w+\d+)\w+-([a-z]+)/;
     $donor_name = $donor_name_part1 . '-' . $donor_name_part2;
+=======
+  foreach my $gender_qc (grep {$_->{type} eq 'gender'} @$donor_qc) {
+    print $gender_fh join("\t", @{$gender_qc}{qw(sample_public_name sample_name expected_gender actual_gender)}), "\n";
+>>>>>>> 9fa53c2be4f3001a0d1ec684acab8bb681460e02
   }
   foreach my $discordance_qc (grep {$_->{type} eq 'discordance_genotyping'} @$donor_qc) {
     print $discordance_genotyping_fh join("\t", @{$discordance_qc}{qw(sample1_public_name sample2_public_name sample1_control sample2_control discordance num_of_sites avg_min_depth)}), "\n";
@@ -99,6 +110,7 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
   }
   foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_regions'} @$donor_qc) {
     print $cnv_aberrant_region_fh join("\t", @{$cnv_qc}{qw(sample cn chr start end length quality)}), "\n";
+<<<<<<< HEAD
     my $remote_file = $cnv_qc->{graph};
     my ($remote_name, $remote_dir) = fileparse($remote_path);
     my $remote_details = List::Util::first {$_->{filename} eq $remote_name} @{$sftp->ls($remote_dir)};
@@ -110,6 +122,8 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
     my $local_path = $local_dir . '/' . join('.', $sample, 'cnv_aberrant_regions', $date, $suffix);
     check_directory_exists($local_dir);
     $sftp->get($remote_path, $local_path);
+=======
+>>>>>>> 9fa53c2be4f3001a0d1ec684acab8bb681460e02
   }
   foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_polysomy'} @$donor_qc) {
     print $cnv_polysomy_fh join("\t", @{$cnv_qc}{qw(sample chr)}), "\n";
@@ -117,6 +131,7 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
   foreach my $loh_qc (grep {$_->{type} eq 'loh_calls'} @$donor_qc) {
     print $loh_fh join("\t", @{$loh_qc}{qw(control_sample sample chr start end count)}), "\n";
   }
+<<<<<<< HEAD
 
   foreach my $pluri_plot (grep {$_->{type} eq 'pluritest_plot' && $_->{display_size} eq 'big'} @$donor_qc) {
     my $remote_path = $pluri_plot->{path};
@@ -133,6 +148,8 @@ foreach my $donor_id (map {$_->{id}} @$donors) {
   }
   
 
+=======
+>>>>>>> 9fa53c2be4f3001a0d1ec684acab8bb681460e02
 }
 
 close $gender_fh;
