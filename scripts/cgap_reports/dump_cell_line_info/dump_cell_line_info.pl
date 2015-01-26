@@ -11,6 +11,10 @@ use Getopt::Long;
 use BioSD;
 use List::Util qw();
 
+my @feeder_free_temp_override = (
+  qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
+);
+
 my $demographic_filename;
 my $growing_conditions_filename;
 &GetOptions(
@@ -49,6 +53,11 @@ foreach my $donor (@$donors) {
       my $selected_for_genomics = $ips_line->selected_for_genomics // '';
       $selected_for_genomics =~ s/\s.*//;
 
+      my $growing_conditions = $ips_line->growing_conditions;
+      if (scalar grep { $ips_line->name =~ m/$_$/ } @feeder_free_temp_override) {
+        $growing_conditions = 'E8';
+      }
+
       my %output = (name => $ips_line->name,
           cell_type => 'iPSC',
           derived_from => $tissue->name,
@@ -61,7 +70,7 @@ foreach my $donor (@$donors) {
           age => $donor->age,
           disease => $donor->disease,
           ethnicity => $donor->ethnicity,
-          growing_conditions => $ips_line->growing_conditions,
+          growing_conditions => $growing_conditions,
           selected_for_genomics => $selected_for_genomics,
       );
       my (@sort_parts) = $ips_line->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)_(\d+)/;

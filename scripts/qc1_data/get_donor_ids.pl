@@ -22,7 +22,7 @@ GetOptions('ssh_user=s' => \$ssh_user,
           );
 
 my $ssh = Net::OpenSSH->new($ssh_host, user => $ssh_user, password=>$ssh_password,
-    master_opts => [-F => $ssh_config_file, -o => "UserKnownHostsFile $ssh_known_hosts_file"],
+    master_opts => [-F => $ssh_config_file, -o => "UserKnownHostsFile $ssh_known_hosts_file"]
 );
 
 my $ua = LWP::UserAgent->new(ssl_opts => {verify_hostname => 0});

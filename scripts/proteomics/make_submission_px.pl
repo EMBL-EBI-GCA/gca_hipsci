@@ -30,9 +30,15 @@ my $peptracker_id;
 	    'peptracker_id=s'      => \$peptracker_id,
     );
 
-my %fasta_map = (contaminant => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/contaminant_proteins.fasta',
-              uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_human_120712.fasta',
+my %fasta_map = (
+              #contaminant => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/contaminant_proteins.fasta',
+              #uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_human_120712.fasta',
+              uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_sp_human_120712.contam.rev-nonsense.decoy.fasta',
               );
+my %disease_map = (
+  'neonatal diabetes' => 'DOID:11717',
+  'bardet-biedl syndrome' => 'DOID:1935',
+);
 
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
@@ -100,7 +106,7 @@ foreach my $file (@{$files{maxquant}}) {
   my $fasta_label = (split('\.', $file->{file_object}->filename()))[3];
   my $fasta = $fasta_map{$fasta_label} or die "did not recognise label $fasta_label";
   push(@{$used_fasta{$fasta}}, $file);
-  push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
+  #push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
 }
 foreach my $file (@{$files{featureXML}}) {
   my ($fraction) = $file->{file_object}->name =~ /(PTS\w+)\.featureXML$/;
@@ -109,13 +115,15 @@ foreach my $file (@{$files{featureXML}}) {
 }
 foreach my $file (@{$files{mzid}}) {
   my ($fraction) = $file->{file_object}->name =~ /\.(PTS\w+)\./;
-  my ($featurexml_file) = grep {$_->{file_object}->name =~ /$fraction.featureXML$/} @{$files{featureXML}};
-  push(@{$file->{mapping}}, $featurexml_file->{pride_file_id});
-  push(@{$file->{mapping}}, @{$featurexml_file->{mapping}});
+  my ($mzml_file) = grep {$_->{file_object}->name =~ /$fraction.mzML$/} @{$files{mzML}};
+  push(@{$file->{mapping}}, $mzml_file->{pride_file_id});
+  #my ($featurexml_file) = grep {$_->{file_object}->name =~ /$fraction.featureXML$/} @{$files{featureXML}};
+  #push(@{$file->{mapping}}, $featurexml_file->{pride_file_id});
+  #push(@{$file->{mapping}}, @{$featurexml_file->{mapping}});
   my $fasta_label = (split('\.', $file->{file_object}->filename))[3];
   my $fasta = $fasta_map{$fasta_label} or die "did not recognise label $fasta_label";
   push(@{$used_fasta{$fasta}}, $file);
-  push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
+  #push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
 }
 foreach my $file (@{$files{csv}}) {
   my ($fraction) = $file->{file_object}->name =~ /\.(PTS\w+)\./;
@@ -125,7 +133,7 @@ foreach my $file (@{$files{csv}}) {
   my $fasta_label = (split('\.', $file->{file_object}->filename))[3];
   my $fasta = $fasta_map{$fasta_label} or die "did not recognise label $fasta_label";
   push(@{$used_fasta{$fasta}}, $file);
-  push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
+  #push(@{$used_fasta{$fasta_map{contaminant}}}, $file);
 }
 
 my %fasta_pride_ids;
@@ -140,29 +148,32 @@ while (my ($fasta, $file_list) = each %used_fasta) {
 
 
 
-print join("\t", 'MTD', 'submitter_name', 'Ian Streeter'), "\n";
-print join("\t", 'MTD', 'submitter_mail', 'streeter@ebi.ac.uk'), "\n";
-print join("\t", 'MTD', 'submitter_affiliation', 'EMBL-EBI'), "\n";
+print join("\t", 'MTD', 'submitter_name', 'HipSci Project'), "\n";
+print join("\t", 'MTD', 'submitter_mail', 'hipsci@ebi.ac.uk'), "\n";
+print join("\t", 'MTD', 'submitter_affiliation', 'Human Induced Pluripotent Stem Cells Initiative'), "\n";
 print join("\t", 'MTD', 'lab_head_name', 'Angus Lamond'), "\n";
 print join("\t", 'MTD', 'lab_head_email', 'a.i.lamond@dundee.ac.uk'), "\n";
 print join("\t", 'MTD', 'lab_head_affiliation', 'College of Life Sciences, University of Dundee'), "\n";
-print join("\t", 'MTD', 'submitter_pride_login', 'streeter@ebi.ac.uk'), "\n";
+print join("\t", 'MTD', 'submitter_pride_login', 'hipsci@ebi.ac.uk'), "\n";
 print join("\t", 'MTD', 'project_title', "$cell_line_name IPS cell line from HipSci"), "\n";
-#print join("\t", 'MTD', 'project_description', 'HipSci brings together diverse constitutents in genomics, proteomics, cell biology and clinical genetics to create a UK national iPS cell resource and use it to carry out cellular genetic studies.'), "\n";
 print join("\t", 'MTD', 'project_description', return_project_description(biosample => $ips_biosample)), "\n";
 print join("\t", 'MTD', 'project_tag', 'HipSci'), "\n";
 print join("\t", 'MTD', 'sample_processing_protocol', return_sample_procesesing_protocol(num_raw_files=>scalar @{$files{raw}})), "\n";
 print join("\t", 'MTD', 'data_processing_protocol', return_data_procesesing_protocol()), "\n";
 print join("\t", 'MTD', 'other_omics_link', 'http://www.ebi.ac.uk/biosamples/sample/'.$ips_line->biosample_id), "\n";
-print join("\t", 'MTD', 'keywords', 'Human, IPS cells, pluripotent'), "\n";
-print join("\t", 'MTD', 'submission_type', 'PARTIAL'), "\n";
-print join("\t", 'MTD', 'reason_for_partial', 'no mzidentml files yet'), "\n";
+print join("\t", 'MTD', 'keywords', 'Human, IPS cells, pluripotent, HPLC fractionation (SAX), label free quantitative proteomics'), "\n";
+print join("\t", 'MTD', 'submission_type', 'COMPLETE'), "\n";
 print join("\t", 'MTD', 'experiment_type', '[PRIDE, PRIDE:0000429, Shotgun proteomics,]'), "\n";
 print join("\t", 'MTD', 'species', '[NEWT, 9606, Homo sapiens (Human),]'), "\n";
 print join("\t", 'MTD', 'tissue', '[PRIDE, PRIDE:0000442, Tissue not applicable to dataset,]'), "\n";
 print join("\t", 'MTD', 'cell_type', '[CL, CL:0001034, cell in vitro,]'), "\n";
 
-#print join("\t", 'MTD', 'disease', '??????????'), "\n";
+my $disease = $ips_biosample->property('disease state')->values()->[0];
+if ($disease ne 'normal') {
+  my $disease_id = $disease_map{$disease};
+  die "did not recognise disease $disease" if !$disease_id;
+  print join("\t", 'MTD', 'disease', sprintf('[DOID, %s, %s]', $disease_id, $disease)), "\n";
+}
 
 my @modifications = (
     '[MOD, MOD:00400, deamidated residue, ]',
@@ -171,11 +182,20 @@ my @modifications = (
     '[MOD, MOD:00057, Acetyl, ]',
     '[MOD, MOD:00663, methylated lysine, ]',
     '[MOD, MOD:00670, N-acylated residue, ]',
-    '[MOD, MOD:00658, methylated arginine, ]',
-    '[MOD, MOD:00040, 2-pyrrolidone-5-carboxylic acid (Gln), ]',
+    '[MOD, MOD:01060, S-carboxamidomethyl-L-cysteine, ]',
+    #'[MOD, MOD:00658, methylated arginine, ]',
+    #'[MOD, MOD:00040, 2-pyrrolidone-5-carboxylic acid (Gln), ]',
 );
 
-#print join("\t", 'MTD', 'quantification', '????'), "\n";
+my @quantifications = (
+    '[PRIDE, PRIDE:0000435, Peptide counting,]',
+    '[PRIDE, PRIDE:0000436, Spectral counting,]',
+    '[PRIDE, PRIDE:0000437, Protein Abundance Index ­ PAI,]',
+);
+
+foreach my $quantification (@quantifications) {
+  print join("\t", 'MTD', 'quantification', $quantification), "\n";
+}
 print join("\t", 'MTD', 'instrument', '[MS, MS:1001911, Q Exactive,]'), "\n";
 foreach my $modification (@modifications) {
   print join("\t", 'MTD', 'modification', $modification), "\n";
@@ -185,7 +205,7 @@ print "\n";
 print join("\t", 'FMH', 'file_id', 'file_type', 'file_path', 'file_mapping'), "\n";
 
 foreach my $type (qw( raw mzML maxquant featureXML csv mzid)) {
-  my $output_type = {raw=>'raw', mzML=>'raw', maxquant=>'search', featureXML=>'peak', csv=>'quant', mzid=>'result'}->{$type};
+  my $output_type = {raw=>'raw', mzML=>'raw', maxquant=>'search', featureXML=>'peak', csv=>'quantification', mzid=>'result'}->{$type};
   foreach my $file (@{$files{$type}}) {
     $file->{mapping} //= [];
     print join("\t", 'FME', $file->{pride_file_id}, $output_type, $file->{file_object}->filename, join(',', @{$file->{mapping}})), "\n";
@@ -196,15 +216,23 @@ foreach my $fasta_id (sort {$a <=> $b} keys %fasta_pride_ids) {
 }
 
 print "\n";
-print join("\t", qw(SMH file_id species tissue cell_type instrument),
- (map {'modification'} @modifications)), "\n";
+my @SMH_headers = qw(SMH file_id species tissue cell_type instrument);
+if ($disease ne 'normal') {
+  push(@SMH_headers, 'disease');
+}
+push(@SMH_headers, map {'modification'} @modifications);
+print join("\t", @SMH_headers), "\n";
+
 foreach my $file (@{$files{mzid}}) {
   print join("\t", 'SME', $file->{pride_file_id}, '[NEWT, 9606, Homo sapiens (Human),]',
       '[PRIDE, PRIDE:0000442, Tissue not applicable to dataset,]',
       '[CL, CL:0001034, cell in vitro,]',
-      '[MS, MS:1001911, Q Exactive,]',
-      @modifications,
-  ), "\n";
+      '[MS, MS:1001911, Q Exactive,]');
+      if ($disease ne 'normal') {
+        printf("\t[DOID, %s, %s,]", $disease, $disease_map{$disease})
+      }
+      print map {"\t$_"} @modifications;
+      print "\n";
 }
 
 

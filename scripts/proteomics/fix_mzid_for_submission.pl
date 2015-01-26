@@ -6,14 +6,20 @@ use File::Basename qw(dirname fileparse);
 use Getopt::Long;
 use XML::LibXML;
 
-my ($mzid, $mzML);
+my ($mzid, $mzML, $fasta);
 
 &GetOptions( 
 	    'mzid=s'      => \$mzid,
 	    'mzML=s'      => \$mzML,
+	    'fasta=s'      => \$fasta,
     );
 
 die "no mzid file" if !$mzid;
+
+if ($fasta) {
+  $fasta = fileparse($fasta);
+}
+$mzML = fileparse($mzML);
 
 my $mzid_nsuri = 'http://psidev.info/psi/pi/mzIdentML/1.1';
 my $xc = XML::LibXML::XPathContext->new();
@@ -33,20 +39,29 @@ foreach my $node ($xc->findnodes('./mzid:MzIdentML/mzid:SequenceCollection/mzid:
 
 # Fix database name so it is not a system-specific file path
 foreach my $db ($xc->findnodes('./mzid:MzIdentML/mzid:DataCollection/mzid:Inputs/mzid:SearchDatabase', $doc)) {
-  my $location = $db->getAttribute('location');
-  $location =~ s{.*/}{};
-  $db->setAttribute('location' => "file://$location");
+  if ($fasta) {
+    $db->setAttribute('location' => "file://$fasta");
+  }
+  else {
+    my $location = $db->getAttribute('location');
+    $location =~ s{.*/}{};
+    $db->setAttribute('location' => "file://$location");
+  }
   foreach my $db_user_param ($xc->findnodes('./mzid:DatabaseName/mzid:userParam', $db)) {
-    my $db_name = $db_user_param->getAttribute('name');
-    $db_name =~ s{.*/}{};
-    $db_user_param->setAttribute('name' => $db_name);
+    if ($fasta) {
+      $db_user_param->setAttribute('name' => $fasta);
+    }
+    else {
+      my $db_name = $db_user_param->getAttribute('name');
+      $db_name =~ s{.*/}{};
+      $db_user_param->setAttribute('name' => $db_name);
+    }
   }
 }
 
 # Fix input mzml filename
 foreach my $db ($xc->findnodes('./mzid:MzIdentML/mzid:DataCollection/mzid:Inputs/mzid:SpectraData', $doc)) {
-  my $location = fileparse($mzML);
-  $db->setAttribute('location' => "file://$location");
+  $db->setAttribute('location' => "file://$mzML");
 }
 
 # Fix residues='N-term' to residues='.'

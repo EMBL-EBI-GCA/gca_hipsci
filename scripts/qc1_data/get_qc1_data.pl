@@ -36,7 +36,7 @@ GetOptions('ssh_user=s' => \$ssh_user,
 die "no donor id" if !$donor_id;
 
 my $ssh = Net::OpenSSH->new($ssh_host, user => $ssh_user, password=>$ssh_password,
-    master_opts => [-F => $ssh_config_file, -o => "UserKnownHostsFile $ssh_known_hosts_file"],
+    master_opts => [-F => $ssh_config_file, -o => "UserKnownHostsFile $ssh_known_hosts_file"]
 );
 my $sftp = Net::SFTP::Foreign->new(host => 'localhost', user => $ssh_user, port => 9091, password => $filesystem_password, autodie => 1);
 
