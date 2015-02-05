@@ -26,6 +26,12 @@ foreach my $ips_line (@$ips_lines) {
     print join("\t", $ips_id, 'comment[synonym]', $cgap_name, 'NULL', 'NULL', 'NULL', 'NULL', 'NULL'), "\n";
   }
 
+  my $biosd_description = $biosd_ips_line->property('Sample Description');
+  if (!$biosd_description) {
+    my $name = $biosd_ips_line->property('Sample Name')->values->[0];
+    print join("\t", $ips_id, 'Sample Description', "Induced pluripotent stem cell $name from HipSci project", 'NULL', 'NULL', 'NULL', 'NULL', 'NULL'), "\n";
+  }
+
   my $biosd_material = $biosd_ips_line->property('Material');
   if (!$biosd_material) {
     print join("\t", $ips_id, 'Material', 'cell line', 'EFO', 'http://www.ebi.ac.uk/efo/EFO_0000322', 'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";

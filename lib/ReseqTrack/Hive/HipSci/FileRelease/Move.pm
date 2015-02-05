@@ -31,8 +31,8 @@ sub derive_path {
   my ($filename, $incoming_dirname) = fileparse($dropbox_path);
 
   my $destination;
-  my $destination_base_dir = $free_base_dir;
-  #my $destination_base_dir = $controlled_base_dir;
+  #my $destination_base_dir = $free_base_dir;
+  my $destination_base_dir = $controlled_base_dir;
 
   if ($incoming_dirname =~ m{/incoming/keane}) {
     if ($filename =~ /\.vcf(\.gz)?$/) {
@@ -221,7 +221,7 @@ sub derive_keane_txt {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
-  my ($assay, $chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci\.(\w+)\.(\w+)\.(\d+)samples_(\d{8})(?:\.(\w+))?.(\w{3})$/;
+  my ($assay, $chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci\.(\w+)\.([\w-]+)\.(\d+)samples_(\d{8})(?:\.(\w+))?.(\w{3})$/;
   return undef if !$assay;
   if ($date) {
     my $group_name = "${date}_${num_samples}samples";

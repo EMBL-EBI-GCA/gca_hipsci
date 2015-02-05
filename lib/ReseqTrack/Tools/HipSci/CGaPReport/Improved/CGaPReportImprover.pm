@@ -57,14 +57,17 @@ sub improve_donors {
     $donor_demographics //= {};
 
     # Fix gender
-    my @genders = grep {$_ && $_ =~ /ale/} map {$_->gender} map {@{$_->sequencescape}} map {@{$_->ips_lines}} @{$donor->tissues};
-    my $is_female = List::MoreUtils::any { /female/i } @genders;
-    my $is_male = List::MoreUtils::any { ! /female/i } @genders;
-    my $gender = ($is_male && $is_female) ? ''
-              : $is_male ? 'male'
-              : $is_female ? 'female'
-              : undef;
-    $gender //= $donor_demographics->{'Gender'} // '';
+    my $gender = $donor_demographics->{'Gender'};
+    if (!$gender || $gender =~ /unknown/i) {
+      my @genders = grep {$_ && $_ =~ /ale/} map {$_->gender} map {@{$_->sequencescape}} map {@{$_->ips_lines}} @{$donor->tissues};
+      my $is_female = List::MoreUtils::any { /female/i } @genders;
+      my $is_male = List::MoreUtils::any { ! /female/i } @genders;
+      $gender = ($is_male && $is_female) ? ''
+                : $is_male ? 'male'
+                : $is_female ? 'female'
+                : undef;
+      $gender //= '';
+    }
     $gender = lc($gender);
     $gender =~ s/[^\w]//g;
     $gender = $gender =~ /unknown/ ? '' : $gender;

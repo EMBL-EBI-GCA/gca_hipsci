@@ -45,7 +45,7 @@ foreach my $donor (@$donors) {
     IPS_LINE:
     foreach my $ips_line (@{$tissue->ips_lines}) {
       next IPS_LINE if !$ips_line->biosample_id;
-      next IPS_LINE if !$ips_line->qc1;
+      #next IPS_LINE if !$ips_line->qc1;
       next IPS_LINE if $ips_line->name !~ /HPSI/;
       my $reprogramming_tech = $ips_line->reprogramming_tech;
       $reprogramming_tech = $reprogramming_tech ? lc($reprogramming_tech) : undef;
