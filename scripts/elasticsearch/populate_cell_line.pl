@@ -175,7 +175,6 @@ while (my ($biosample_id, $sample_index) = each %sample_details) {
   
 }
 while (my ($donor_name, $donor_index) = each %donors) {
-  print $donor_name, "\n";
   $elasticsearch->index(
     index => 'hipsci',
     type => 'donor',
