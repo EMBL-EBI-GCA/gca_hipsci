@@ -37,9 +37,13 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
 my $fa = $db->get_FileAdaptor;
 my %num_raw;
 my %cell_line_raw;
+FILE:
 foreach my $file (@{$fa->fetch_by_type($type)}) {
   my ($filename, $dir) = fileparse($file->name);
-  my ($raw_id) = $filename =~ /(^PTSS\d+)/;
+  next FILE if $dir =~ /\/withdrawn\//;
+  next FILE if $dir =~ /\/incoming\//;
+  next FILE if $dir =~ /\/analysis\//;
+  my ($raw_id) = $filename =~ /(^PT[SS]*-?\d+)/;
   die $file->name if !$raw_id;
   $num_raw{$raw_id} +=1;
   if ($num_raw{$raw_id} ==1) {

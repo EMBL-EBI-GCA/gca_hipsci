@@ -21,6 +21,8 @@ my $filesystem_password;
 my $plot_directory;
 my $ssh_config_file = '/homes/streeter/.ssh/config';
 my $ssh_known_hosts_file = '/homes/streeter/.ssh/known_hosts';
+my $allowed_gtarray_samples_file;
+my $allowed_gexarray_samples_file;
 my $donor_id;
 GetOptions('ssh_user=s' => \$ssh_user,
           'ssh_host=s' => \$ssh_host,
@@ -31,9 +33,39 @@ GetOptions('ssh_user=s' => \$ssh_user,
           'filesystem_password=s' => \$filesystem_password,
           'plot_directory=s' => \$plot_directory,
           'donor_id=s' => \$donor_id,
+          'allowed_gtarray_samples_file=s' => \$allowed_gtarray_samples_file,
+          'allowed_gexarray_samples_file=s' => \$allowed_gexarray_samples_file,
           );
 
 die "no donor id" if !$donor_id;
+
+my %allowed_gtarray_samples;
+my %allowed_gtarray_samples_v2;
+if ($allowed_gtarray_samples_file) {
+  open my $fh_gt, '<', $allowed_gtarray_samples_file or die "could not open $allowed_gtarray_samples_file $!";
+  <$fh_gt>;
+  while (my $line = <$fh_gt>) {
+    chomp $line;
+    my ($name, $id) = split("\t", $line);
+    $allowed_gtarray_samples{$name} = $id;
+    $allowed_gtarray_samples_v2{sprintf('%s_%s', $name, $id)} = $name;
+  }
+  close $fh_gt;
+}
+
+my %allowed_gexarray_samples;
+my %allowed_gexarray_samples_v2;
+if ($allowed_gexarray_samples_file) {
+  open my $fh_gex, '<', $allowed_gexarray_samples_file or die "could not open $allowed_gexarray_samples_file $!";
+  <$fh_gex>;
+  while (my $line = <$fh_gex>) {
+    chomp $line;
+    my ($name, $id) = split("\t", $line);
+    $allowed_gexarray_samples{$name} = $id;
+    $allowed_gexarray_samples_v2{sprintf('%s_%s', $name, $id)} = $name;
+  }
+  close $fh_gex;
+}
 
 my $ssh = Net::OpenSSH->new($ssh_host, user => $ssh_user, password=>$ssh_password,
     master_opts => [-F => $ssh_config_file, -o => "UserKnownHostsFile $ssh_known_hosts_file"]
@@ -90,25 +122,54 @@ exit if !$donor_name;
 QC:
 foreach my $gender_qc (grep {$_->{type} eq 'gender'} @$donor_qc) {
   next QC if !$gender_qc->{sample_public_name};
+  if ($allowed_gtarray_samples_file) {
+    next QC if $gender_qc->{sample_name} ne $allowed_gtarray_samples{$gender_qc->{sample_public_name}};
+  }
   print $gender_fh join("\t", @{$gender_qc}{qw(sample_public_name sample_name expected_gender actual_gender)}), "\n";
 }
 QC:
 foreach my $discordance_qc (grep {$_->{type} eq 'discordance_genotyping'} @$donor_qc) {
   next QC if !$discordance_qc->{sample1_public_name} || !$discordance_qc->{sample2_public_name};
+  if ($allowed_gtarray_samples_file) {
+    next QC if $discordance_qc->{sample1_name} ne $allowed_gtarray_samples{$discordance_qc->{sample1_public_name}};
+    next QC if $discordance_qc->{sample2_name} ne $allowed_gtarray_samples{$discordance_qc->{sample2_public_name}};
+  }
   print $discordance_genotyping_fh join("\t", @{$discordance_qc}{qw(sample1_public_name sample2_public_name sample1_control sample2_control discordance num_of_sites avg_min_depth)}), "\n";
 }
 QC:
 foreach my $discordance_qc (grep {$_->{type} eq 'discordance_fluidigm'} @$donor_qc) {
   next QC if !$discordance_qc->{sample1_public_name} || !$discordance_qc->{sample2_public_name};
+  if ($allowed_gtarray_samples_file) {
+    next QC if $discordance_qc->{sample1_name} ne $allowed_gtarray_samples{$discordance_qc->{sample1_public_name}};
+    next QC if $discordance_qc->{sample2_name} ne $allowed_gtarray_samples{$discordance_qc->{sample2_public_name}};
+  }
   print $discordance_fluidigm_fh join("\t", @{$discordance_qc}{qw(sample1_public_name sample2_public_name sample1_control sample2_control discordance num_of_sites avg_min_depth)}), "\n";
 }
+QC:
 foreach my $pluritest_qc (grep {$_->{type} eq 'pluritest_summary'} @$donor_qc) {
+  if ($allowed_gexarray_samples_file) {
+    my $sample_name = $allowed_gexarray_samples_v2{$pluritest_qc->{sample}}; 
+    next QC if ! $sample_name;
+    $pluritest_qc->{sample} = $sample_name;
+  }
   print $pluritest_fh join("\t", @{$pluritest_qc}{qw(sample pluri_raw pluri_logit_p novelty novelty_logit_p rmsd)}), "\n";
 }
+QC:
 foreach my $cnv_qc (grep {$_->{type} eq 'copy_number_summary'} @$donor_qc) {
+  if ($allowed_gtarray_samples_file) {
+    my $sample_name = $allowed_gtarray_samples_v2{$cnv_qc->{sample}}; 
+    next QC if ! $sample_name;
+    $cnv_qc->{sample} = $sample_name;
+  }
   print $cnv_fh join("\t", @{$cnv_qc}{qw(sample ND LD SD)}), "\n";
 }
+QC:
 foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_regions'} @$donor_qc) {
+  if ($allowed_gtarray_samples_file) {
+    my $sample_name = $allowed_gtarray_samples_v2{$cnv_qc->{sample}}; 
+    next QC if ! $sample_name;
+    $cnv_qc->{sample} = $sample_name;
+  }
   print $cnv_aberrant_region_fh join("\t", @{$cnv_qc}{qw(sample cn chr start end length quality)}), "\n";
   if (my $remote_path = $cnv_qc->{graph}) {
     my ($remote_name, $remote_dir) = fileparse($remote_path);
@@ -125,7 +186,13 @@ foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_regions'} @$donor_qc) {
     }
   }
 }
+QC:
 foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_polysomy'} @$donor_qc) {
+  if ($allowed_gtarray_samples_file) {
+    my $sample_name = $allowed_gtarray_samples_v2{$cnv_qc->{sample}}; 
+    next QC if ! $sample_name;
+    $cnv_qc->{sample} = $sample_name;
+  }
   print $cnv_polysomy_fh join("\t", @{$cnv_qc}{qw(sample chr)}), "\n";
   if (my $remote_path = $cnv_qc->{graph}) {
     my ($remote_name, $remote_dir) = fileparse($remote_path);
@@ -142,7 +209,13 @@ foreach my $cnv_qc (grep {$_->{type} eq 'aberrant_polysomy'} @$donor_qc) {
     }
   }
 }
+QC:
 foreach my $loh_qc (grep {$_->{type} eq 'loh_calls'} @$donor_qc) {
+  if ($allowed_gtarray_samples_file) {
+    my $sample_name = $allowed_gtarray_samples_v2{$loh_qc->{sample}}; 
+    next QC if ! $sample_name;
+    $loh_qc->{sample} = $sample_name;
+  }
   print $loh_fh join("\t", @{$loh_qc}{qw(control_sample sample chr start end count)}), "\n";
 }
 

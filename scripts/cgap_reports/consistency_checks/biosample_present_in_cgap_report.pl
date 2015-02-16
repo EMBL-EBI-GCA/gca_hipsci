@@ -6,13 +6,12 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
-my ($main_hipsci_group_id, $additional_hipsci_id) = @ARGV;
+my ($hipsci_group_id) = @ARGV;
 
 my %allowed_ids;
 
-my $main_hipsci_group = BioSD::fetch_group($main_hipsci_group_id);
-my $additional_hipsci_group = BioSD::fetch_group($additional_hipsci_id);
-my ($update_date) = @{$main_hipsci_group->property('Submission Update Date')->values()};
+my $hipsci_group = BioSD::fetch_group($hipsci_group_id);
+my ($update_date) = @{$hipsci_group->property('Submission Update Date')->values()};
 
 my ($ips_lines, $tissues, $donors) = @{read_cgap_report(date_iso=>$update_date)}{qw(ips_lines tissues donors)};
 
@@ -24,12 +23,10 @@ foreach my $sample (@$ips_lines, @$tissues, @$donors) {
 
 
 my %biosamples_in_group;
-foreach my $hipsci_group ($main_hipsci_group, $additional_hipsci_group) {
-  foreach my $biosample (@{$hipsci_group->samples}) {
-    $biosamples_in_group{$biosample->id} = 1;
-    if (! $allowed_ids{$biosample->id}) {
-      printf "%s is not in CGaP report\n", $biosample->id;
-    }
+foreach my $biosample (@{$hipsci_group->samples}) {
+  $biosamples_in_group{$biosample->id} = 1;
+  if (! $allowed_ids{$biosample->id}) {
+    printf "%s is not in CGaP report\n", $biosample->id;
   }
 }
 
