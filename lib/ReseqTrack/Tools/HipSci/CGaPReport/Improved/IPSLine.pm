@@ -14,7 +14,7 @@ use Moose;
 use MooseX::Aliases;
 extends 'ReseqTrack::Tools::HipSci::CGaPReport::IPSLine';
 
-foreach my $attr (qw(growing_conditions)) {
+foreach my $attr (qw(growing_conditions_qc1 growing_conditions_qc2)) {
   has $attr => (
     is => 'rw',
     isa => 'Maybe[Str]',

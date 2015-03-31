@@ -11,21 +11,23 @@ use Getopt::Long;
 use BioSD;
 use List::Util qw();
 
-my @feeder_free_temp_override = (
-  qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
-);
+#my @feeder_free_temp_override = (
+  #qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
+#);
 
 my $demographic_filename;
 my $growing_conditions_filename;
 my $cnv_filename;
 my $pluritest_filename;
 my $qc1_allowed_samples_filename;
+my $ag_lims_filename;
 &GetOptions(
   'demographic_file=s' => \$demographic_filename,
   'growing_conditions_file=s' => \$growing_conditions_filename,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
   'qc1_allowed_samples_filename=s' => \$qc1_allowed_samples_filename,
+  'ag_lims_fields=s' => \$ag_lims_filename,
 );
 
 die "did not get a demographic file on the command line" if !$demographic_filename;
@@ -64,12 +66,35 @@ while (my $line = <$pluri_fh>) {
 }
 close $pluri_fh;
 
+my $ag_lims_file = new Text::Delimited;
+$ag_lims_file->delimiter(';');
+my %ag_lims_fields;
+$ag_lims_file->open($ag_lims_filename) or die "could not open $demographic_filename $!";
+while (my $line_data = $ag_lims_file->read) {
+  $ag_lims_fields{$line_data->{'id_public.name'}} = $line_data;
+}
+$ag_lims_file->close;
+
 my @output_fields = qw( name cell_type derived_from biosample_id tissue_biosample_id
     donor_biosample_id derived_from_cell_type reprogramming gender age disease
-    ethnicity growing_conditions
+    ethnicity growing_conditions_qc1 growing_conditions_qc2
     cnv_num_different_regions cnv_length_different_regions_Mbp cnv_length_shared_differences_Mbp
     pluri_raw pluri_logit_p pluri_novelty pluri_novelty_logit_p pluri_rmsd);
-print join("\t", @output_fields), "\n";
+my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_purify.somatic
+    time_observed.outgrowths time_observed.fibroblasts time_sendai time_episomal time_retrovirus
+    time_colony.picking time_split.to.fates time_freeze.for.master.cell.bank time_stain.primary
+    time_stain.secondary time_ip.cells time_flow time_transfer.to.feederfree
+    phasetime_candidate.ips phasetime_transduction phasetime_confirm.ips phasetime_pipeline.time
+    assaytime_gex assaytime_gt assaytime_cellomics assaytime_rnaseq assaytime_methyl
+    assaytime_chip assaypassage_gex assaypassage_cellomics assaypassage_methyl
+    assaypassage_rnaseq assayuser_gex assayuser_gt assayuser_cellomics assayuser_rnaseq
+    assayuser_methyl assayuser_chip assaybatch_gex.beadchip.id assaybatch_gex.array
+    assaybatch_gex.plate assaybatch_gex.well assaybatch_gex.batch
+    assaybatch_methyl.sentrix.id assaybatch_methyl.sentrix.position assaybatch_methyl.plate
+    assaybatch_methyl.well checks_pluritest.raw checks_pluritest.novelty checks_gex.fail
+    checks_passage.rate checks_qc2.swap checks_cnvs study_blueprint
+    study_reprogramming.comparison study_media.comparison comment_qc1.decision comment_anja);
+print join("\t", @output_fields, @ag_lims_output_fields), "\n";
 
 my @output_lines;
 DONOR:
@@ -86,10 +111,9 @@ foreach my $donor (@$donors) {
       my $reprogramming_tech = $ips_line->reprogramming_tech;
       $reprogramming_tech = $reprogramming_tech ? lc($reprogramming_tech) : undef;
 
-      my $growing_conditions = $ips_line->growing_conditions;
-      if (scalar grep { $ips_line->name =~ m/$_$/ } @feeder_free_temp_override) {
-        $growing_conditions = 'E8';
-      }
+      #if (scalar grep { $ips_line->name =~ m/$_$/ } @feeder_free_temp_override) {
+        #$growing_conditions = 'E8';
+      #}
 
       my %output = (name => $ips_line->name,
           cell_type => 'iPSC',
@@ -103,7 +127,8 @@ foreach my $donor (@$donors) {
           age => $donor->age,
           disease => $donor->disease,
           ethnicity => $donor->ethnicity,
-          growing_conditions => $growing_conditions,
+          growing_conditions_qc1 => $ips_line->growing_conditions_qc1,
+          growing_conditions_qc2 => $ips_line->growing_conditions_qc2,
           cnv_num_different_regions => $cnv_details{$ips_line->name}->[1],
           cnv_length_different_regions_Mbp => $cnv_details{$ips_line->name}->[2],
           cnv_length_shared_differences_Mbp => $cnv_details{$ips_line->name}->[3],
@@ -113,8 +138,15 @@ foreach my $donor (@$donors) {
           pluri_novelty_logit_p => $pluritest_details{$ips_line->name}->[4],
           pluri_rmsd => $pluritest_details{$ips_line->name}->[5],
       );
+      if (my $ips_ag_lims_fields = $ag_lims_fields{$ips_line->name}) {
+        foreach my $output_field (@ag_lims_output_fields) {
+          if (my $field_val = $ips_ag_lims_fields->{$output_field}) {
+            $output{$output_field} = $field_val eq 'NA' ? '' : $field_val;
+          }
+        }
+      };
       my (@sort_parts) = $ips_line->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)_(\d+)/;
-      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
       $tissue_has_data = 1;
 
     }
@@ -128,9 +160,16 @@ foreach my $donor (@$donors) {
         disease => $donor->disease,
         ethnicity => $donor->ethnicity,
     );
+    if (my $tissue_ag_lims_fields = $ag_lims_fields{$tissue->name}) {
+      foreach my $output_field (@ag_lims_output_fields) {
+        if (my $field_val = $tissue_ag_lims_fields->{$output_field}) {
+          $output{$output_field} = $field_val eq 'NA' ? '' : $field_val;
+        }
+      }
+    };
     my (@sort_parts) = $tissue->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)/;
     push(@sort_parts, 0);
-    push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+    push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
   }
 }
 print map {$_->[1], "\n"} sort {

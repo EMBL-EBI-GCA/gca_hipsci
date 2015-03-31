@@ -114,7 +114,8 @@ sub improve_ips_lines {
   my $ips_lines = $args{ips_lines};
   my $growing_conditions_filename = $args{growing_conditions_file};
 
-  my %is_feeder_free;
+  my %is_feeder_free_qc1;
+  my %is_feeder_free_qc2;
   if ($growing_conditions_filename) {
     my $feeder_file = new Text::Delimited;
     $feeder_file->delimiter(";");
@@ -122,7 +123,8 @@ sub improve_ips_lines {
     LINE:
     while (my $line_data = $feeder_file->read) {
       next LINE if !$line_data->{sample} || !$line_data->{is_feeder_free};
-      $is_feeder_free{$line_data->{sample}} = $line_data->{is_feeder_free};
+      $is_feeder_free_qc1{$line_data->{sample}} = $line_data->{is_feeder_free};
+      $is_feeder_free_qc2{$line_data->{sample}} = $line_data->{QC2_is_feeder_free};
     }
     $feeder_file->close;
   }
@@ -132,14 +134,21 @@ sub improve_ips_lines {
     bless $ips_line, 'ReseqTrack::Tools::HipSci::CGaPReport::Improved::IPSLine';
 
     # fix growing_conditions
-    if ($ips_line->is_transferred) {
-      $ips_line->growing_conditions('transferred');
+    #if ($ips_line->is_transferred) {
+      #$ips_line->growing_conditions('transferred');
+    #}
+    if (my $is_feeder_free_qc1 = $is_feeder_free_qc1{$ips_line->uuid}) {
+      $is_feeder_free_qc1 =~ s/\s+//g;
+      $is_feeder_free_qc1 = uc($is_feeder_free_qc1);
+      $ips_line->growing_conditions_qc1($is_feeder_free_qc1 eq 'Y' ? 'E8'
+                                  : $is_feeder_free_qc1 eq 'N' ? 'feeder'
+                                  : '');
     }
-    elsif (my $is_feeder_free = $is_feeder_free{$ips_line->uuid}) {
-      $is_feeder_free =~ s/\s+//g;
-      $is_feeder_free = uc($is_feeder_free);
-      $ips_line->growing_conditions($is_feeder_free eq 'Y' ? 'E8'
-                                  : $is_feeder_free eq 'N' ? 'feeder'
+    if (my $is_feeder_free_qc2 = $is_feeder_free_qc2{$ips_line->uuid}) {
+      $is_feeder_free_qc2 =~ s/\s+//g;
+      $is_feeder_free_qc2 = uc($is_feeder_free_qc2);
+      $ips_line->growing_conditions_qc2($is_feeder_free_qc2 eq 'Y' ? 'E8'
+                                  : $is_feeder_free_qc2 eq 'N' ? 'feeder'
                                   : '');
     }
 
