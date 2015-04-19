@@ -4,6 +4,7 @@ package ReseqTrack::Hive::HipSci::FileRelease::Move;
 use strict;
 use File::Basename qw(fileparse dirname);
 use ReseqTrack::Tools::Exception qw(throw);
+use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 
 use base ('ReseqTrack::Hive::Process::FileRelease::Move');
 
@@ -22,6 +23,8 @@ sub param_defaults {
 sub derive_path {
   my ($self, $dropbox_path, $file_object) = @_;
 
+  my ($cgap_ips_lines, $cgap_tissues) = @{read_cgap_report()}{qw(ips_lines tissues)};
+
   my $derive_path_options = $self->param('derive_path_options');
   my $controlled_base_dir = $derive_path_options->{controlled_base_dir};
   my $free_base_dir = $derive_path_options->{free_base_dir};
@@ -32,7 +35,10 @@ sub derive_path {
 
   my $destination;
   #my $destination_base_dir = $free_base_dir;
-  my $destination_base_dir = $controlled_base_dir;
+  my $destination_base_dir = $self->derive_destination_base_dir(
+      filename =>$filename, 
+      controlled_base_dir => $controlled_base_dir, free_base_dir => $free_base_dir,
+      cgap_ips_lines => $cgap_ips_lines, cgap_tissues => $cgap_tissues);
 
   if ($incoming_dirname =~ m{/incoming/keane}) {
     if ($filename =~ /\.vcf(\.gz)?$/) {
@@ -54,15 +60,15 @@ sub derive_path {
   }
   elsif ($incoming_dirname =~ m{/incoming/lamond} ){
     if ($filename =~ /\.raw$/) {
-      $destination = $self->derive_lamond_raw_file(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_lamond_raw_file(filename => $filename, destination_base_dir => $free_base_dir);
     }
     if ($filename =~ /\.txt$/ || $filename =~ /\.pdf$/) {
-      $destination = $self->derive_lamond_processed_file(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_lamond_processed_file(filename => $filename, destination_base_dir => $free_base_dir);
     }
   }
   elsif ($incoming_dirname =~ m{/incoming/watt} ){
     if ($filename =~ /\.txt$/) {
-      $destination = $self->derive_watt_txt_file(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_watt_txt_file(filename => $filename, destination_base_dir => $free_base_dir);
     }
   }
   elsif ($incoming_dirname =~ m{/incoming/stegle} ){
@@ -71,7 +77,7 @@ sub derive_path {
     }
   }
   elsif ($incoming_dirname =~ m{/incoming/cellomics} ){
-      $destination = $self->derive_cellomics_file(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_cellomics_file(filename => $filename, destination_base_dir => $free_base_dir);
   }
   else {
     my $dirname = $incoming_dirname;
@@ -87,10 +93,25 @@ sub derive_path {
   return $destination;
 }
 
-# Use BioSD API to decide if sample is managed access
-sub derive_is_controlled {
-  my ($self, $donor) = @_;
-  return 1;
+sub derive_destination_base_dir {
+  my ($self, %options) = @_;
+  my $filename = $options{filename} or throw("missing filename");
+  my $controlled_base_dir = $options{controlled_base_dir} or throw("missing controlled_base_dir");
+  my $free_base_dir = $options{free_base_dir} or throw("missing free_base_dir");
+  my $cgap_ips_lines = $options{cgap_ips_lines} or throw("missing cgap_ips_lines");
+  my $cgap_tissues = $options{cgap_tissues} or throw("missing cgap_tissues");
+  my $donor = List::Util::first {$_} map {$_->donor} (
+        (grep {my $tissue_name = $_->name; $filename =~ /$tissue_name\./} @$cgap_tissues),
+        (map {$_->tissue} grep {my $line_name = $_->name; $filename =~ /$line_name\./} @$cgap_ips_lines)
+      );
+  my $hmdmc = $donor->hmdmc;
+  return $controlled_base_dir if $hmdmc eq 'H1288';
+  return $controlled_base_dir if $hmdmc eq '13_058';
+  return $controlled_base_dir if $hmdmc eq '14_001';
+  return $controlled_base_dir if $hmdmc eq '14_025';
+  
+  return $free_base_dir if $hmdmc eq '13_042';
+  throw("did not recognise hmdmc $hmdmc for filename $filename");
 }
 
 # Use BioSD API when BioSamples records are accurate
@@ -111,6 +132,18 @@ sub derive_keane_vcf {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
+
+  if ($filename =~ /HPSI\d{4}[a-z]+-[a-z]{4}(?:_\d+)?/) {
+    my $sample = $&;
+    if ($filename =~ /hipsci\..*\.$sample\./) {
+      $filename =~ s/$sample\.//;
+      $filename =~ s/^hipsci/$sample/;
+    }
+    if ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
+      return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+    }
+  }
+
   #my $assay = (split(/\./, $filename))[2] or throw("did not get assay for $filename");
   my $date = $self->derive_date($filename) or throw("could not derive date $filename");
   my ($num_samples) = $filename =~ /\.(\d+)_?samples/i;
@@ -274,6 +307,7 @@ sub derive_keane_txt {
 sub derive_lamond_raw_file {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
+  print "filename $filename\n";
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my $file_details = $self->param('file');
   my $cell_line_name = $file_details->{'cell_line'};

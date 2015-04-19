@@ -2,7 +2,7 @@
 package ReseqTrack::Hive::HipSci::FileRelease::Seed;
 
 use strict;
-use ReseqTrack::Tools::FileSystemUtils qw(get_lines_from_file);
+use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use File::Basename qw( fileparse );
 
 use base ('ReseqTrack::Hive::PipeSeed::ForeignFiles');
@@ -20,7 +20,8 @@ sub create_seed_params {
     my $replicate = 0;
     ID:
     foreach my $dundee_id (split(/;\s*/, $line)) {
-      my ($ID, $num_parts) = $dundee_id =~ /PTSS(\d+)\s*\((\d+)\)/;
+      my ($ID, $num_parts) = $dundee_id =~ /PT(?:SS)?(\d+)\s*(?:\((\d+)\))?/;
+      $num_parts //= 16;
       next ID if !$ID;
       $replicate += 1;
       $dundee_conversions{$ID} = {cell_line => $cell_line, num_parts => $num_parts, replicate => $replicate};
@@ -28,18 +29,11 @@ sub create_seed_params {
   }
   close $IN;
 
-  my $biosamples_file = $options->{'biosamples_file'} or throw("no biosamples_file");
+  my ($cgap_ips_lines) = @{read_cgap_report()}{ips_lines};
   my %cell_line_name_map;
-  open $IN, '<', $biosamples_file or throw("could not open $biosamples_file $_");
-  my $found_SCD = 0;
   CELL_LINE:
-  while (my $line = <$IN>) {
-    if (!$found_SCD) {
-      $found_SCD = $line =~ /^\[SCD\]/;
-      <$IN> if $found_SCD;
-      next CELL_LINE;
-    }
-    my $cell_line_name = (split("\t", $line))[2];
+  foreach my $line (@$cgap_ips_lines) {
+    my $cell_line_name = $line->name;
     next CELL_LINE if !$cell_line_name;
     my ($friendly_name) = $cell_line_name =~ /([a-z]{4}(?:_\d+)?)$/;
     next CELL_LINE if !$friendly_name;
@@ -79,7 +73,6 @@ sub create_seed_params {
       push(@seed_params, $seed_params);
     }
   }
-
 
   $self->seed_params(\@seed_params);
 };
