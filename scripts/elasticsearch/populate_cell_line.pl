@@ -8,17 +8,11 @@ use Getopt::Long;
 use BioSD;
 use Search::Elasticsearch;
 
-#This is temporary whilst I am tunnelling into Elasticsearch
-#use Net::OpenSSH;
-
 # start with this sql statement, create index for biosamples which match this:
 # select sa.biosample_id from sample sa, run r, run_sample rs, experiment e, study st
 # where sa.sample_id=rs.sample_id and rs.run_id=r.run_id and r.experiment_id=e.experiment_id and e.study_id=st.study_id
 # and st.ega_id='EGAS00001000593' group by sa.biosample_id order by sa.biosample_id;
 
-#my @feeder_free_temp_override = (
-  #qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
-#);
 
 my $demographic_filename;
 my $growing_conditions_filename;
@@ -28,25 +22,12 @@ my %study_ids;
 my @era_params = ('ops$laura', undef, 'ERAPRO');
 my $es_host='vg-rs-dev1:9200';
 
-#This is temporary whilst I am tunnelling into Elasticsearch
-#my $ssh_password;
-#my $ssh_user = 'streeter';
-#my $ssh_host = 'streeter.windows.ebi.ac.uk';
-#my $ssh_config_file = '/homes/streeter/.ssh/config';
-#my $ssh_known_hosts_file = '/homes/streeter/.ssh/known_hosts';
-##
-
 &GetOptions(
   'demographic_file=s' => \$demographic_filename,
   'growing_conditions_file=s' => \$growing_conditions_filename,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
   'era_password=s'              => \$era_params[1],
-          #'ssh_user=s' => \$ssh_user,
-          #'ssh_host=s' => \$ssh_host,
-          #'ssh_password=s' => \$ssh_password,
-          #'ssh_config_file=s' => \$ssh_config_file,
-          #'ssh_known_hosts_file=s' => \$ssh_known_hosts_file,
           'rnaseq=s' =>\&study_id_handler,
           'chipseq=s' =>\&study_id_handler,
           'exomeseq=s' =>\&study_id_handler,

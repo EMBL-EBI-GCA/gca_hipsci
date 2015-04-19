@@ -47,7 +47,9 @@ foreach my $file (@{$fa->fetch_by_type($type)}) {
   die $file->name if !$raw_id;
   $num_raw{$raw_id} +=1;
   if ($num_raw{$raw_id} ==1) {
-    my ($cell_line) = $dir =~ /(HPSI\d+i-\w+)/;
+    my $cell_line = ($dir =~ /HPSI\d+[a-z]*-\w+/) ? $&
+                  : ($dir =~ /HPSI_composite_\w+/) ? $&
+                  : undef;
     push(@{$cell_line_raw{$cell_line}}, $raw_id);
   }
 }
