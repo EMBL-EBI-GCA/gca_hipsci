@@ -75,9 +75,11 @@ while (my $line_data = $ag_lims_file->read) {
 }
 $ag_lims_file->close;
 
-my @output_fields = qw( name cell_type derived_from biosample_id tissue_biosample_id
+my @output_fields = qw( name cell_type derived_from donor biosample_id tissue_biosample_id
     donor_biosample_id derived_from_cell_type reprogramming gender age disease
-    ethnicity growing_conditions_qc1 growing_conditions_qc2
+    ethnicity
+    growing_conditions_gtarray growing_conditions_gexarray
+    growing_conditions_mtarray growing_conditions_rnaseq growing_conditions_exomeseq growing_conditions_proteomics
     cnv_num_different_regions cnv_length_different_regions_Mbp cnv_length_shared_differences_Mbp
     pluri_raw pluri_logit_p pluri_novelty pluri_novelty_logit_p pluri_rmsd);
 my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_purify.somatic
@@ -99,6 +101,11 @@ print join("\t", @output_fields, @ag_lims_output_fields), "\n";
 my @output_lines;
 DONOR:
 foreach my $donor (@$donors) {
+  my $donor_name = '';
+  if (my $donor_biosample_id = $donor->biosample_id) {
+    my $donor_biosample = BioSD::fetch_sample($donor_biosample_id);
+    $donor_name = $donor_biosample->property('Sample Name')->values->[0];
+  }
   TISSUE:
   foreach my $tissue (@{$donor->tissues}) {
     my $tissue_has_data = 0;
@@ -118,6 +125,7 @@ foreach my $donor (@$donors) {
       my %output = (name => $ips_line->name,
           cell_type => 'iPSC',
           derived_from => $tissue->name,
+          donor => $donor_name,
           biosample_id => $ips_line->biosample_id,
           tissue_biosample_id => $tissue->biosample_id,
           donor_biosample_id => $donor->biosample_id,
@@ -127,8 +135,12 @@ foreach my $donor (@$donors) {
           age => $donor->age,
           disease => $donor->disease,
           ethnicity => $donor->ethnicity,
-          growing_conditions_qc1 => $ips_line->growing_conditions_qc1,
-          growing_conditions_qc2 => $ips_line->growing_conditions_qc2,
+          growing_conditions_gtarray => $ips_line->growing_conditions_qc1,
+          growing_conditions_gexarray => $ips_line->growing_conditions_qc1,
+          growing_conditions_mtarray => $ips_line->growing_conditions_qc2,
+          growing_conditions_rnaseq => $ips_line->growing_conditions_qc2,
+          growing_conditions_exomeseq => $ips_line->growing_conditions_qc2,
+          growing_conditions_proteomics => $ips_line->growing_conditions_qc2,
           cnv_num_different_regions => $cnv_details{$ips_line->name}->[1],
           cnv_length_different_regions_Mbp => $cnv_details{$ips_line->name}->[2],
           cnv_length_shared_differences_Mbp => $cnv_details{$ips_line->name}->[3],

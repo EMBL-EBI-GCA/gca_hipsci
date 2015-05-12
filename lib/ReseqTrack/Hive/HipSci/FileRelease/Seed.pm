@@ -63,6 +63,7 @@ sub create_seed_params {
     next CELL_LINE if !$dundee_hash->{seed_params};
     next CELL_LINE if $dundee_hash->{num_parts} != scalar @{$dundee_hash->{seed_params}};
     throw("unexpected number of proteomics files") if ! grep {$dundee_hash->{num_parts} == $_} (16, 23);
+    next CELL_LINE if ! $cell_line_name_map{$dundee_hash->{cell_line}};
     my $part_num = 0;
     foreach my $seed_params (sort @{$dundee_hash->{seed_params}}) {
       $part_num += 1;

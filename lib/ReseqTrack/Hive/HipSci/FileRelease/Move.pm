@@ -34,11 +34,11 @@ sub derive_path {
   my ($filename, $incoming_dirname) = fileparse($dropbox_path);
 
   my $destination;
-  #my $destination_base_dir = $free_base_dir;
-  my $destination_base_dir = $self->derive_destination_base_dir(
-      filename =>$filename, 
-      controlled_base_dir => $controlled_base_dir, free_base_dir => $free_base_dir,
-      cgap_ips_lines => $cgap_ips_lines, cgap_tissues => $cgap_tissues);
+  my $destination_base_dir = $incoming_dirname =~ m{/incoming/lamond} ? $free_base_dir
+        : $self->derive_destination_base_dir(
+              filename =>$filename, 
+              controlled_base_dir => $controlled_base_dir, free_base_dir => $free_base_dir,
+              cgap_ips_lines => $cgap_ips_lines, cgap_tissues => $cgap_tissues);
 
   if ($incoming_dirname =~ m{/incoming/keane}) {
     if ($filename =~ /\.vcf(\.gz)?$/) {
@@ -100,6 +100,7 @@ sub derive_destination_base_dir {
   my $free_base_dir = $options{free_base_dir} or throw("missing free_base_dir");
   my $cgap_ips_lines = $options{cgap_ips_lines} or throw("missing cgap_ips_lines");
   my $cgap_tissues = $options{cgap_tissues} or throw("missing cgap_tissues");
+
   my $donor = List::Util::first {$_} map {$_->donor} (
         (grep {my $tissue_name = $_->name; $filename =~ /$tissue_name\./} @$cgap_tissues),
         (map {$_->tissue} grep {my $line_name = $_->name; $filename =~ /$line_name\./} @$cgap_ips_lines)
@@ -109,6 +110,7 @@ sub derive_destination_base_dir {
   return $controlled_base_dir if $hmdmc eq '13_058';
   return $controlled_base_dir if $hmdmc eq '14_001';
   return $controlled_base_dir if $hmdmc eq '14_025';
+  return $controlled_base_dir if $hmdmc eq '14_036';
   
   return $free_base_dir if $hmdmc eq '13_042';
   throw("did not recognise hmdmc $hmdmc for filename $filename");
@@ -254,7 +256,7 @@ sub derive_keane_txt {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
-  my ($assay, $chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci\.(\w+)\.([\w-]+)\.(\d+)samples_(\d{8})(?:\.(\w+))?.(\w{3})$/;
+  my ($assay, $chip_name, $num_samples, $date, $filetype, $ext) = $filename =~ /hipsci\.(\w+)\.([\w-]+)\.(\d+)samples\.(\d{8})(?:\.(\w+))?.(\w{3})$/;
   return undef if !$assay;
   if ($date) {
     my $group_name = "${date}_${num_samples}samples";
@@ -311,8 +313,9 @@ sub derive_lamond_raw_file {
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my $file_details = $self->param('file');
   my $cell_line_name = $file_details->{'cell_line'};
-  my $donor_name = $self->derive_donor($cell_line_name);
-  return "$destination_base_dir/proteomics/raw_data/$donor_name/$cell_line_name/$filename";
+  #my $donor_name = $self->derive_donor($cell_line_name);
+  #return "$destination_base_dir/proteomics/raw_data/$donor_name/$cell_line_name/$filename";
+  return "$destination_base_dir/proteomics/raw_data/$cell_line_name/$filename";
 }
 
 sub derive_lamond_processed_file {

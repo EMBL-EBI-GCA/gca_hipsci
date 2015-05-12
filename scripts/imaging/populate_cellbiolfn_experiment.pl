@@ -37,7 +37,7 @@ my $dbh = DBI->connect(
 my $sql1 = <<"SQL";
   INSERT INTO experiment (
     cell_line_id, evaluation_guid, p_col, p_row, is_production,
-    num_nuclei, num_cells,
+    num_cells,
     cell_nuc_area_mean, cell_nuc_area_sd, cell_nuc_area_sum, cell_nuc_area_max, cell_nuc_area_min, cell_nuc_area_median,
     edu_median_mean, edu_median_sd, edu_median_sum, edu_median_max, edu_median_min, edu_median_median,
     oct4_median_mean, oct4_median_sd, oct4_median_sum, oct4_median_max, oct4_median_min, oct4_median_median,
@@ -46,7 +46,7 @@ my $sql1 = <<"SQL";
     area_mean, area_sd, area_sum, area_max, area_min, area_median,
     roundness_mean, roundness_sd, roundness_sum, roundness_max, roundness_min, roundness_median,
     ratio_w2l_mean, ratio_w2l_sd, ratio_w2l_sum, ratio_w2l_max, ratio_w2l_min, ratio_w2l_median,
-    num_singles, compound, concentration, cell_count, num_fields
+    compound, concentration, cell_count, num_fields
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ? or name = ?),
@@ -93,7 +93,6 @@ while (my $line = <$IN>) {
   $sth1->bind_param(4, $split_line[$field_columns{'column'}]);
   $sth1->bind_param(5, $split_line[$field_columns{'row'}]);
   $sth1->bind_param(6, $is_production);
-  $sth1->bind_param(7, $split_line[$field_columns{'nucleinumberofobjects'}]);
   $sth1->bind_param(8, $split_line[$field_columns{'numberofobjects'}]);
   $sth1->bind_param(9, $split_line[$field_columns{'nucleusareammeanperwell'}]);
   $sth1->bind_param(10, $split_line[$field_columns{'nucleusareamstddevperwell'}]);
@@ -143,7 +142,6 @@ while (my $line = <$IN>) {
   $sth1->bind_param(54, $split_line[$field_columns{'cellratiowidthtolengthmaxperwell'}]);
   $sth1->bind_param(55, $split_line[$field_columns{'cellratiowidthtolengthminperwell'}]);
   $sth1->bind_param(56, $split_line[$field_columns{'cellratiowidthtolengthmedianperw'}]);
-  $sth1->bind_param(57, $split_line[$field_columns{'singlesnumberofobjects'}]);
   $sth1->bind_param(58, $split_line[$field_columns{'compound'}]);
   $sth1->bind_param(59, $split_line[$field_columns{'concentration'}]);
   $sth1->bind_param(60, $split_line[$field_columns{'count'}]);
