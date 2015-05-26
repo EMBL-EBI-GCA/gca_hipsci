@@ -27,6 +27,7 @@ DONOR:
 foreach my $donor (@{$cgap_donors}) {
   next DONOR if !$donor->biosample_id;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
+  next DONOR if !$donor_biosample;
   my $donor_name = $donor_biosample->property('Sample Name')->values->[0];
   my $donor_exists = $elasticsearch->exists(
     index => 'hipsci',

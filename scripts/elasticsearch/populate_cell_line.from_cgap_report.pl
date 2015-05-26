@@ -18,6 +18,13 @@ my %biomaterial_provider_hash = (
   '14_001' => 'University College London',
   '14_025' => 'University of Exeter Medical School',
 );
+my %open_access_hash = (
+  'H1288' => 0,
+  '13_042' => 1,
+  '13_058' => 0,
+  '14_001' => 0,
+  '14_025' => 0,
+);
 
 &GetOptions(
     'es_host=s' =>\$es_host,
@@ -59,6 +66,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   if (my $biomaterial_provider = $biomaterial_provider_hash{$donor->hmdmc}) {
     $sample_index->{'tissueProvider'} = $biomaterial_provider;
   }
+  $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   $sample_index->{'bankingStatus'} =
           $ips_line->ecacc ? 'Banked'
