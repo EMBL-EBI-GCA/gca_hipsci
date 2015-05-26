@@ -32,15 +32,17 @@ my $dbh = DBI->connect(
 
 my $sql1 = <<"SQL";
   INSERT INTO cell (
-    experiment_id, field, i_cell, i_clump, i_nuc, i_nuc2,
+    experiment_id, field, i_cell, i_cell_unselected, i_clump_singles, i_nuc, i_nuc2,
     x_centroid, x_min, x_max,
     y_centroid, y_min, y_max,
     cell_area, nucleus_area, edu_median, oct4_median,
-    inten_nuc_dapi_median, roundness, ratio_w2l, clump_size
+    inten_nuc_dapi_median, roundness, ratio_w2l,
+    nucleus_roundness, nucleus_ratio_w2l,
+    clump_size
   )
   VALUES (
       (SELECT experiment_id FROM experiment WHERE p_row = ? AND p_col = ? AND evaluation_guid = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -80,23 +82,26 @@ while (my $line = <$IN>) {
   $sth1->bind_param(3, $evaluation_guid);
   $sth1->bind_param(4, $split_line[$field_columns{'field'}]);
   $sth1->bind_param(5, $split_line[$field_columns{'objectno'}]);
-  $sth1->bind_param(6, $split_line[$field_columns{'cellobjectnoinclumpssingles'}]);
-  $sth1->bind_param(7, $split_line[$field_columns{'cellobjectnoinnuclei'}]);
-  $sth1->bind_param(8, $split_line[$field_columns{'cellobjectnoinnuclei2'}]);
-  $sth1->bind_param(9, $split_line[$field_columns{'x'}]);
-  $sth1->bind_param(10, $x_min);
-  $sth1->bind_param(11, $x_max);
-  $sth1->bind_param(12, $split_line[$field_columns{'y'}]);
-  $sth1->bind_param(13, $y_min);
-  $sth1->bind_param(14, $y_max);
-  $sth1->bind_param(15, $split_line[$field_columns{'cellcellaream2'}]);
-  $sth1->bind_param(16, $split_line[$field_columns{'cellnucleusaream'}]);
-  $sth1->bind_param(17, $split_line[$field_columns{'celledumedian'}]);
-  $sth1->bind_param(18, $split_line[$field_columns{'celloct4median'}]);
-  $sth1->bind_param(19, $split_line[$field_columns{'cellintensitynucleusdapimedian'}]);
-  $sth1->bind_param(20, $split_line[$field_columns{'cellcellroundness'}]);
-  $sth1->bind_param(21, $split_line[$field_columns{'cellcellratiowidthtolength'}]);
-  $sth1->bind_param(22, $split_line[$field_columns{'cellnumberofcellperclumpsum'}]);
+  $sth1->bind_param(6, $split_line[$field_columns{'cellobjectnoincellunselected'}]);
+  $sth1->bind_param(7, $split_line[$field_columns{'cellobjectnoinclumpssingles'}]);
+  $sth1->bind_param(8, $split_line[$field_columns{'cellobjectnoinnuclei'}]);
+  $sth1->bind_param(9, $split_line[$field_columns{'cellobjectnoinnuclei2'}]);
+  $sth1->bind_param(10, $split_line[$field_columns{'x'}]);
+  $sth1->bind_param(11, $x_min);
+  $sth1->bind_param(12, $x_max);
+  $sth1->bind_param(13, $split_line[$field_columns{'y'}]);
+  $sth1->bind_param(14, $y_min);
+  $sth1->bind_param(15, $y_max);
+  $sth1->bind_param(16, $split_line[$field_columns{'cellcellaream'}]);
+  $sth1->bind_param(17, $split_line[$field_columns{'cellnucleusaream'}]);
+  $sth1->bind_param(18, $split_line[$field_columns{'celledumedian'}]);
+  $sth1->bind_param(19, $split_line[$field_columns{'celloct4median'}]);
+  $sth1->bind_param(20, $split_line[$field_columns{'celldapimedian'}]);
+  $sth1->bind_param(21, $split_line[$field_columns{'cellcellroundness'}]);
+  $sth1->bind_param(22, $split_line[$field_columns{'cellcellratiowidthtolength'}]);
+  $sth1->bind_param(23, $split_line[$field_columns{'cellnucleusroundness'}]);
+  $sth1->bind_param(24, $split_line[$field_columns{'cellnucleusratiowidthtolength'}]);
+  $sth1->bind_param(25, $split_line[$field_columns{'cellnumberofcellperclumpsum'}]);
   $sth1->execute;
 }
 close $IN;
