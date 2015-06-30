@@ -22,6 +22,7 @@ CREATE TABLE experiment(
        experiment_id int unsigned NOT NULL AUTO_INCREMENT,
        cell_line_id int unsigned NOT NULL,
        evaluation_guid char(36) NOT NULL,
+       experiment_name varchar(255) NOT NULL,
        p_col tinyint unsigned NOT NULL,
        p_row tinyint unsigned NOT NULL,
        is_production boolean NOT NULL,

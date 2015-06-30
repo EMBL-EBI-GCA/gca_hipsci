@@ -29,6 +29,10 @@ if (!defined $is_production) {
   $is_production = $file =~ m{/pipeline_testing_experiments/} ? 0 : 1;
 }
 
+my ($experiment_name) = $file =~ /hipsci\.cellbiol-fn\.(\w+)\.\d{8}/;
+die "could not parse file name" if !$experiment_name;
+
+
 my $dbh = DBI->connect(
   "dbi:mysql:dbname=$dbname;host=$dbhost;port=$dbport",
   $dbuser, $dbpass,
@@ -48,11 +52,12 @@ my $sql1 = <<"SQL";
     area_mean, area_sd, area_sum, area_max, area_min, area_median,
     roundness_mean, roundness_sd, roundness_sum, roundness_max, roundness_min, roundness_median,
     ratio_w2l_mean, ratio_w2l_sd, ratio_w2l_sum, ratio_w2l_max, ratio_w2l_min, ratio_w2l_median,
-    compound, concentration, cell_count, num_fields
+    compound, concentration, cell_count, num_fields,
+    experiment_name
   )
   VALUES (
       (SELECT cell_line_id FROM cell_line WHERE short_name = ? or name = ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
   )
 SQL
 my $sth1 = $dbh->prepare($sql1);
@@ -160,6 +165,7 @@ while (my $line = <$IN>) {
   $sth1->bind_param(69, $split_line[$field_columns{'concentration'}]);
   $sth1->bind_param(70, $split_line[$field_columns{'count'}]);
   $sth1->bind_param(71, $split_line[$field_columns{'numberofanalyzedfields'}]);
+  $sth1->bind_param(72, $experiment_name);
   $sth1->execute;
 }
 close $IN;
