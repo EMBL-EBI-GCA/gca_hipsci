@@ -10,6 +10,7 @@ use DBI;
 use Getopt::Long;
 use BioSD;
 use List::Util qw();
+use File::Find qw();
 
 #my @feeder_free_temp_override = (
   #qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
@@ -21,6 +22,7 @@ my $cnv_filename;
 my $pluritest_filename;
 my $qc1_allowed_samples_filename;
 my $ag_lims_filename;
+my $sendai_counts_dir;
 &GetOptions(
   'demographic_file=s' => \$demographic_filename,
   'growing_conditions_file=s' => \$growing_conditions_filename,
@@ -28,9 +30,11 @@ my $ag_lims_filename;
   'cnv_filename=s' => \$cnv_filename,
   'qc1_allowed_samples_filename=s' => \$qc1_allowed_samples_filename,
   'ag_lims_fields=s' => \$ag_lims_filename,
+  'sendai_counts_dir=s' => \$sendai_counts_dir,
 );
 
 die "did not get a demographic file on the command line" if !$demographic_filename;
+die "did not get a sendai_counts_dir on the command line" if !$sendai_counts_dir;
 
 my ($donors, $tissues, $ips_lines) = @{read_cgap_report(days_old=>7)}{qw(donors tissues ips_lines)};
 $donors = improve_donors(donors=>$donors, demographic_file=>$demographic_filename);
@@ -75,13 +79,24 @@ while (my $line_data = $ag_lims_file->read) {
 }
 $ag_lims_file->close;
 
+my %rna_sendai_reads;
+File::Find::find(sub {
+  return if ! -f $_;
+  return if $_ !~ /\.bam$/;
+  my ($sample) = split(/\./, $_);
+  my $count = `samtools view -c $_`;
+  chomp $count;
+  $rna_sendai_reads{$sample} = $count;
+
+}, $sendai_counts_dir);
+
 my @output_fields = qw( name cell_type derived_from donor biosample_id tissue_biosample_id
     donor_biosample_id derived_from_cell_type reprogramming gender age disease
     ethnicity
     growing_conditions_gtarray growing_conditions_gexarray
     growing_conditions_mtarray growing_conditions_rnaseq growing_conditions_exomeseq growing_conditions_proteomics
     cnv_num_different_regions cnv_length_different_regions_Mbp cnv_length_shared_differences_Mbp
-    pluri_raw pluri_logit_p pluri_novelty pluri_novelty_logit_p pluri_rmsd);
+    pluri_raw pluri_logit_p pluri_novelty pluri_novelty_logit_p pluri_rmsd rnaseq.sendai_reads);
 my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_purify.somatic
     time_observed.outgrowths time_observed.fibroblasts time_sendai time_episomal time_retrovirus
     time_colony.picking time_split.to.fates time_freeze.for.master.cell.bank time_stain.primary
@@ -103,8 +118,9 @@ DONOR:
 foreach my $donor (@$donors) {
   my $donor_name = '';
   if (my $donor_biosample_id = $donor->biosample_id) {
-    my $donor_biosample = BioSD::fetch_sample($donor_biosample_id);
-    $donor_name = $donor_biosample->property('Sample Name')->values->[0];
+    if (my $donor_biosample = BioSD::fetch_sample($donor_biosample_id)) {
+      $donor_name = $donor_biosample->property('Sample Name')->values->[0];
+    }
   }
   TISSUE:
   foreach my $tissue (@{$donor->tissues}) {
@@ -149,6 +165,7 @@ foreach my $donor (@$donors) {
           pluri_novelty => $pluritest_details{$ips_line->name}->[3],
           pluri_novelty_logit_p => $pluritest_details{$ips_line->name}->[4],
           pluri_rmsd => $pluritest_details{$ips_line->name}->[5],
+          'rnaseq.sendai_reads' => $rna_sendai_reads{$ips_line->name},
       );
       if (my $ips_ag_lims_fields = $ag_lims_fields{$ips_line->name}) {
         foreach my $output_field (@ag_lims_output_fields) {
@@ -171,6 +188,7 @@ foreach my $donor (@$donors) {
         age => $donor->age,
         disease => $donor->disease,
         ethnicity => $donor->ethnicity,
+        'rnaseq.sendai_reads' => $rna_sendai_reads{$tissue->name},
     );
     if (my $tissue_ag_lims_fields = $ag_lims_fields{$tissue->name}) {
       foreach my $output_field (@ag_lims_output_fields) {
