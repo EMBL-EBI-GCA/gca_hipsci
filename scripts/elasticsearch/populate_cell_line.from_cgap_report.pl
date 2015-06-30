@@ -69,7 +69,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   $sample_index->{'bankingStatus'} =
-          $ips_line->ecacc ? 'Banked'
+          $ips_line->ecacc && $sample_index->{'openAccess'} ? 'Banked'
         : $ips_line->selected_for_genomics ? 'Selected'
         : (List::Util::any {$_->selected_for_genomics} @{$tissue->ips_lines}) ? 'Not selected'
         : 'Pending';
@@ -85,7 +85,9 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my $donor_index = $donors{$sample_index->{donor}};
   $donor_index->{name} = $sample_index->{donor};
   $donor_index->{'bioSamplesAccession'} = $donor->biosample_id;
-  push(@{$donor_index->{'cellLines'}}, $sample_index->{'name'});
+  if (!$donor_index->{'cellLines'} || ! grep {$_ eq $sample_index->{'name'}} @{$donor_index->{'cellLines'}}) {
+    push(@{$donor_index->{'cellLines'}}, $sample_index->{'name'});
+  }
   $donor_index->{'tissueProvider'} = $sample_index->{tissueProvider};
   
 }
