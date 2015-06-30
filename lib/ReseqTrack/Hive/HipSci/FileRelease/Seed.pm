@@ -48,7 +48,7 @@ sub create_seed_params {
   foreach my $seed_params (@{$self->seed_params}) {
     my ($file, $output_hash) = @$seed_params;
     my $path = $file->name;
-    if ($path =~ m{/lamond/.*raw$} || $path =~ m{/stegle/.*featureXML}) {
+    if ($path =~ m{/lamond/.*raw$} || $path =~ m{/lamond/.*mzML$} || $path =~ m{/stegle/.*featureXML}) {
       my $filename = fileparse($path);
       my ($dundee_id) = $filename =~ /^PT(?:SS)?(\d+)/;
       push(@{$dundee_conversions{$dundee_id}->{seed_params}}, $seed_params);
