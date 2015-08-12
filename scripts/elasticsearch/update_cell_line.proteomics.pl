@@ -49,6 +49,8 @@ foreach my $file (@{$fa->fetch_by_type($file_type)}) {
     assays => { proteomics => {
       archive => 'FTP',
       path => $dir,
+      name => 'Proteomics',
+      ontologyPURL => 'http://www.ebi.ac.uk/efo/EFO_0002766'
     }}
   };
 }

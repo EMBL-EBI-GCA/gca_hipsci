@@ -35,7 +35,7 @@ while (my $doc = $scroll->next) {
     id => $doc->{_id},
     body => {doc => {assays => $assays}},
   );
-  $donor_assays{$doc->{_source}{donor}} += $assay_count;
+  $donor_assays{$doc->{_source}{donor}{name}} += $assay_count;
 };
 
 DONOR:

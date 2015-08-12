@@ -50,6 +50,8 @@ foreach my $file (@{$fa->fetch_by_type($file_type)}) {
     assays => { 'cellbiol-fn' => {
       archive => 'FTP',
       path => $dir,
+      name => 'Cellular phenotyping',
+      ontologyPURL => 'http://www.ebi.ac.uk/efo/EFO_0005399'
     }}
   };
 }

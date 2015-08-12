@@ -25,6 +25,23 @@ sub study_id_handler {
           'exomeseq=s' =>\&study_id_handler,
 );
 
+my %assay_name_map = (
+  rnaseq => 'RNA-seq',
+  exomeseq => 'Exome-seq',
+  chipseq => 'ChIP-seq',
+  gexarray => 'Expression array',
+  gtarray => 'Genotyping array',
+  mtarray => 'Methylation array',
+);
+my %ontology_map = (
+  rnaseq => 'http://www.ebi.ac.uk/efoEFO_0002770',
+  exomeseq => 'http://www.ebi.ac.uk/efoEFO_0005396',
+  chipseq => 'http://www.ebi.ac.uk/efoEFO_0002692',
+  gexarray => 'http://www.ebi.ac.uk/efoEFO_0002770',
+  gtarray => 'http://www.ebi.ac.uk/efoEFO_0002767',
+  mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
+);
+
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
@@ -55,6 +72,8 @@ while (my ($assay, $study_ids) = each %study_ids) {
         $cell_line_updates{$row->[0]}{assays}{$assay} = {
           'archive' => 'EGA',
           'study' => $study_id,
+          'name' => $assay_name_map{$assay},
+          'ontologyPURL' => $ontology_map{$assay},
         };
       }
     }
@@ -65,6 +84,8 @@ while (my ($assay, $study_ids) = each %study_ids) {
         $cell_line_updates{$row->[0]}{assays}{$assay} = {
           'archive' => 'ENA',
           'study' => $study_id,
+          'name' => $assay_name_map{$assay},
+          'ontologyPURL' => $ontology_map{$assay},
         };
       }
     }

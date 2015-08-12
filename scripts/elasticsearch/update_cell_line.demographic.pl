@@ -7,6 +7,7 @@ use Getopt::Long;
 use Search::Elasticsearch;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
+use Text::Capitalize qw();
 
 my $es_host='vg-rs-dev1:9200';
 my $demographic_filename;
@@ -39,21 +40,43 @@ foreach my $donor (@{$cgap_donors}) {
 
   my $donor_update = {};
   my $cell_line_update = {};
-  if (my $disease = $donor->disease) {
-    $donor_update->{diseaseStatus} = $disease;
-    $cell_line_update->{diseaseStatus} = $disease;
+  if (my $disease_property = $donor_biosample->property('disease state')) {
+    my $term_source = $disease_property->qualified_values()->[0]->term_source();
+    my $purl = $term_source->term_source_id();
+    if ($purl !~ /^http:/) {
+      $purl = $term_source->uri() . '/' . $purl;
+    }
+    if ($purl =~ /EFO_0000761/) {
+      $purl = 'http://purl.obolibrary.org/obo/PATO_0000461';
+    }
+    my $disease_value = $purl =~ /PATO_0000461/ ? 'Normal'
+                      : $purl =~ /Orphanet_224/ ? 'Neonatal diabetes mellitus'
+                      : $purl =~ /Orphanet_110/ ? 'Bardet-Biedl syndrome'
+                      : $disease_property->values->[0];
+    $donor_update->{diseaseStatus} = {
+      value => $disease_value,
+      ontologyPURL => $purl,
+    };
+    $cell_line_update->{diseaseStatus} = $donor_update->{diseaseStatus};
   }
   if (my $sex = $donor->gender) {
-    $donor_update->{sex} = $sex;
-    $cell_line_update->{sex} = $sex;
+    my %sex_hash = (
+      value => ucfirst($sex),
+      ontologyPURL => $sex eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
+                      : $sex eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
+                      : undef,
+    );
+    $donor_update->{sex} = \%sex_hash;
+    $cell_line_update->{donor}{sex} = \%sex_hash;
   }
   if (my $age = $donor->age) {
     $donor_update->{age} = $age;
-    $cell_line_update->{donorAge} = $age;
+    $cell_line_update->{donor}{age} = $age;
   }
   if (my $ethnicity = $donor->ethnicity) {
+    $ethnicity = Text::Capitalize::capitalize($ethnicity);
     $donor_update->{ethnicity} = $ethnicity;
-    $cell_line_update->{ethnicity} = $ethnicity;
+    $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
 
   $elasticsearch->update(
