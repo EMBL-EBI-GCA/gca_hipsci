@@ -49,7 +49,7 @@ foreach my $file_type (@file_types) {
     my $filename = fileparse($filepath);
     my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
     next CELL_LINE if !$sample_name;
-    my $cell_line_names = [$sample_name];
+    my @cell_line_names = ($sample_name);
     if ($sample_name =~ /HPSI-/) {
       my $donor_exists = $elasticsearch->exists(
         index => 'hipsci',
@@ -62,11 +62,11 @@ foreach my $file_type (@file_types) {
         type => 'donor',
         id => $sample_name,
       );
-      $cell_line_names = $donor->{_source}{cellLines};
+      @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
     }
 
     $filepath =~ s{$trim}{};
-    foreach my $cell_line_name (@$cell_line_names) {
+    foreach my $cell_line_name (@cell_line_names) {
       if ($filename =~ /\.pluritest\.novelty_score\./) {
         $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
       }
