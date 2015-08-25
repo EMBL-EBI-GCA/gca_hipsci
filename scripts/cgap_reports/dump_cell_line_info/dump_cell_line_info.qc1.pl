@@ -20,7 +20,8 @@ my $demographic_filename;
 my $growing_conditions_filename;
 my $cnv_filename;
 my $pluritest_filename;
-my $qc1_allowed_samples_filename;
+my $gtarray_allowed_samples_filename;
+my $gexarray_allowed_samples_filename;
 my $ag_lims_filename;
 my $sendai_counts_dir;
 &GetOptions(
@@ -28,7 +29,8 @@ my $sendai_counts_dir;
   'growing_conditions_file=s' => \$growing_conditions_filename,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
-  'qc1_allowed_samples_filename=s' => \$qc1_allowed_samples_filename,
+  'gtarray_allowed_samples_filename=s' => \$gtarray_allowed_samples_filename,
+  'gexarray_allowed_samples_filename=s' => \$gexarray_allowed_samples_filename,
   'ag_lims_fields=s' => \$ag_lims_filename,
   'sendai_counts_dir=s' => \$sendai_counts_dir,
 );
@@ -36,37 +38,56 @@ my $sendai_counts_dir;
 die "did not get a demographic file on the command line" if !$demographic_filename;
 die "did not get a sendai_counts_dir on the command line" if !$sendai_counts_dir;
 
-my ($donors, $tissues, $ips_lines) = @{read_cgap_report(days_old=>7)}{qw(donors tissues ips_lines)};
+my ($donors, $tissues, $ips_lines) = @{read_cgap_report(days_old=>3)}{qw(donors tissues ips_lines)};
 $donors = improve_donors(donors=>$donors, demographic_file=>$demographic_filename);
 $tissues = improve_tissues(tissues=>$tissues);
 $ips_lines = improve_ips_lines(ips_lines=>$ips_lines, growing_conditions_file =>$growing_conditions_filename);
 
-my %allowed_samples;
-open my $qc1_fh, '<', $qc1_allowed_samples_filename or die "could not open $cnv_filename $!";
-<$qc1_fh>;
+my %gtarray_allowed_samples;
+open my $qc1_fh, '<', $gtarray_allowed_samples_filename or die "could not open $gtarray_allowed_samples_filename $!";
+LINE:
 while (my $line = <$qc1_fh>) {
   chomp $line;
-  $allowed_samples{$line} = 1;
+  my @split_line =split("\t", $line);
+  next LINE if !$split_line[0] || !$split_line[1];
+  $gtarray_allowed_samples{join('_', @split_line[0,1])} = $split_line[0];
+}
+close $qc1_fh;
+
+my %gexarray_allowed_samples;
+open $qc1_fh, '<', $gexarray_allowed_samples_filename or die "could not open $gexarray_allowed_samples_filename $!";
+LINE:
+while (my $line = <$qc1_fh>) {
+  chomp $line;
+  my @split_line =split("\t", $line);
+  next LINE if !$split_line[0] || !$split_line[1];
+  $gexarray_allowed_samples{join('_', @split_line[0,1])} = $split_line[0];
 }
 close $qc1_fh;
 
 my %cnv_details;
 open my $cnv_fh, '<', $cnv_filename or die "could not open $cnv_filename $!";
 <$cnv_fh>;
+LINE:
 while (my $line = <$cnv_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  $cnv_details{$split_line[0]} = \@split_line;
+  my $allowed_cell_line = $gtarray_allowed_samples{$split_line[0]};
+  next LINE if !$allowed_cell_line;
+  $cnv_details{$allowed_cell_line} = \@split_line;
 }
 close $cnv_fh;
 
 my %pluritest_details;
 open my $pluri_fh, '<', $pluritest_filename or die "could not open $pluritest_filename $!";
 <$pluri_fh>;
+LINE:
 while (my $line = <$pluri_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  $pluritest_details{$split_line[0]} = \@split_line;
+  my $allowed_cell_line = $gexarray_allowed_samples{$split_line[0]};
+  next LINE if !$allowed_cell_line;
+  $pluritest_details{$allowed_cell_line} = \@split_line;
 }
 close $pluri_fh;
 
@@ -133,6 +154,9 @@ foreach my $donor (@$donors) {
       next IPS_LINE if $ips_line->name !~ /HPSI/;
       my $reprogramming_tech = $ips_line->reprogramming_tech;
       $reprogramming_tech = $reprogramming_tech ? lc($reprogramming_tech) : undef;
+      if ($reprogramming_tech =~ /cytotune/) {
+        $reprogramming_tech = 'sendai';
+      }
 
       #if (scalar grep { $ips_line->name =~ m/$_$/ } @feeder_free_temp_override) {
         #$growing_conditions = 'E8';
