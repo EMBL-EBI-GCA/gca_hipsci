@@ -10,7 +10,7 @@ my ($main_hipsci_group_id) = @ARGV;
 my $main_hipsci_group = BioSD::fetch_group($main_hipsci_group_id);
 my ($update_date) = @{$main_hipsci_group->property('Submission Update Date')->values()};
 
-my $ips_lines = read_cgap_report(date_iso=>$update_date)->{ips_lines};
+my $ips_lines = read_cgap_report(date_iso=>$update_date, days_old=>8)->{ips_lines};
 
 IPS_LINE:
 foreach my $ips_line (@$ips_lines) {

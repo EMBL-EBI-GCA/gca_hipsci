@@ -30,8 +30,11 @@ foreach my $biosample (@{$hipsci_group->samples}) {
   }
 }
 
+SAMPLE:
 foreach my $allowed_id (keys %allowed_ids) {
     if (! $biosamples_in_group{$allowed_id}) {
+      my $biosample = BioSD::fetch_sample($allowed_id);
+      next SAMPLE if !$biosample;
       printf "%s is in CGaP report but not in HipSci group\n", $allowed_id;
     }
 }
