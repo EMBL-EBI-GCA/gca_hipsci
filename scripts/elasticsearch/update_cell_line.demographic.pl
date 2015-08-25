@@ -40,19 +40,16 @@ foreach my $donor (@{$cgap_donors}) {
 
   my $donor_update = {};
   my $cell_line_update = {};
-  if (my $disease_property = $donor_biosample->property('disease state')) {
-    my $term_source = $disease_property->qualified_values()->[0]->term_source();
-    my $purl = $term_source->term_source_id();
-    if ($purl !~ /^http:/) {
-      $purl = $term_source->uri() . '/' . $purl;
-    }
-    if ($purl =~ /EFO_0000761/) {
-      $purl = 'http://purl.obolibrary.org/obo/PATO_0000461';
-    }
-    my $disease_value = $purl =~ /PATO_0000461/ ? 'Normal'
-                      : $purl =~ /Orphanet_224/ ? 'Neonatal diabetes mellitus'
-                      : $purl =~ /Orphanet_110/ ? 'Bardet-Biedl syndrome'
-                      : $disease_property->values->[0];
+  if (my $disease = $donor->disease) {
+    my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
+                : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
+                : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
+                : die "did not recognise disease $disease";
+    my $disease_value = $disease eq 'normal' ? 'Normal'
+                : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
+                : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
+                : die "did not recognise disease $disease";
+
     $donor_update->{diseaseStatus} = {
       value => $disease_value,
       ontologyPURL => $purl,
