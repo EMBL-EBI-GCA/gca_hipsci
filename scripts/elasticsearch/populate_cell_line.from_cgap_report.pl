@@ -121,11 +121,20 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   }
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
-  $sample_index->{'bankingStatus'} =
-          $ips_line->ecacc && $sample_index->{'openAccess'} ? 'Banked'
-        : $ips_line->selected_for_genomics ? 'Selected'
-        : (List::Util::any {$_->selected_for_genomics} @{$tissue->ips_lines}) ? 'Not selected'
-        : 'Pending';
+  my @bankingStatus;
+  push(@bankingStatus, 'Banked at ECACC') if 0;
+  push(@bankingStatus, 'Banked at EBiSC') if 0;
+  if ($ips_line->selected_for_genomics) {
+    push(@bankingStatus, 'Selected for banking');
+  }
+  elsif (List::Util::any {$_->selected_for_genomics} @{$tissue->ips_lines}) {
+    push(@bankingStatus, 'Not selected');
+  }
+  else {
+    push(@bankingStatus, 'Pending selection');
+  }
+  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc && $sample_index->{'openAccess'};
+  $sample_index->{'bankingStatus'} = \@bankingStatus;
 
   $elasticsearch->index(
     index => 'hipsci',
