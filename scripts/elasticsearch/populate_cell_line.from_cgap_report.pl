@@ -133,7 +133,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   else {
     push(@bankingStatus, 'Pending selection');
   }
-  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc && $sample_index->{'openAccess'};
+  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc;
   $sample_index->{'bankingStatus'} = \@bankingStatus;
 
   $elasticsearch->index(
