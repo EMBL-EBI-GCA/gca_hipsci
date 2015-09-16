@@ -89,7 +89,7 @@ sub pipeline_analyses {
       });
     push(@analyses, {
             -logic_name    => 'ascp_file',
-            -module        => 'ReseqTrack::Hive::HipSci::PrivToPub::ASCP';
+            -module        => 'ReseqTrack::Hive::HipSci::PrivToPub::ASCP',
             -parameters    => {
               file => '#name#',
               staging_dir => $self->o('staging_dir'),
@@ -120,7 +120,7 @@ sub pipeline_analyses {
       });
     push(@analyses, {
             -logic_name    => 'archive_file',
-            -module        => 'ReseqTrack::Hive::HipSci::PrivToPub::Archive';
+            -module        => 'ReseqTrack::Hive::HipSci::PrivToPub::Archive',
             -meadow_type => 'LOCAL',
             -parameters    => {
               reseqtrack_db => $self->o('public_reseqtrack_db'),

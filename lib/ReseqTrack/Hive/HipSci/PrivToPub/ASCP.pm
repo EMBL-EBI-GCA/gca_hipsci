@@ -43,7 +43,7 @@ sub run {
     $remote_path =~ s/^$remote_trim_dir// or throw("could not trim $file $remote_trim_dir");
     $remote_path =~ s{//}{/}g;
 
-    my $cmd = sprintf("%s -k2 -T -Q -l 100M '%s@%s:%s' '%s'", $ascp, $ascp_user, $ascp_host, $file, $output_path);
+    my $cmd = sprintf("%s -k2 -T -Q -l 100M '%s@%s:%s' '%s'", $ascp, $ascp_user, $ascp_host, $remote_path, $output_path);
     $self->dbc->disconnect_when_inactive(1);
     my $return = eval{execute_system_command($cmd);};
     my $msg_thrown = $@;
