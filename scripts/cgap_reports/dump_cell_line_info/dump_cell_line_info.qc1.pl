@@ -212,6 +212,11 @@ foreach my $donor (@$donors) {
         age => $donor->age,
         disease => $donor->disease,
         ethnicity => $donor->ethnicity,
+        pluri_raw => $pluritest_details{$tissue->name}->[1],
+        pluri_logit_p => $pluritest_details{$tissue->name}->[2],
+        pluri_novelty => $pluritest_details{$tissue->name}->[3],
+        pluri_novelty_logit_p => $pluritest_details{$tissue->name}->[4],
+        pluri_rmsd => $pluritest_details{$tissue->name}->[5],
         'rnaseq.sendai_reads' => $rna_sendai_reads{$tissue->name},
     );
     if (my $tissue_ag_lims_fields = $ag_lims_fields{$tissue->name}) {
