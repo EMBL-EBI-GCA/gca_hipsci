@@ -8,7 +8,17 @@ use Getopt::Long;
 use BioSD;
 use Search::Elasticsearch;
 use List::Util qw();
+use Data::Compare;
+use Data::Dumper;
 
+use POSIX qw(strftime);
+my $date = strftime('%Y%m%d', localtime);
+
+#FIXME###############################################################
+  # FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
+#my $cgap_ips_lines = read_cgap_report(days_old => 10)->{ips_lines};
+#$date = 20150801;
+#FIXME###############################################################
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my $es_host='vg-rs-dev1:9200';
 my %biomaterial_provider_hash = (
@@ -32,6 +42,13 @@ my %open_access_hash = (
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
+my $cell_created = 0;
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_created = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
+
 my %donors;
 CELL_LINE:
 foreach my $ips_line (@{$cgap_ips_lines}) {
@@ -44,6 +61,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
   my $source_material = $tissue->tissue_type;
+
+#FIXME###############################################################
+  # FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
+  next CELL_LINE if ($$biosample{_id} eq 'SAMEA3282740'); #  Ignore Pulk1
+#FIXME###############################################################
 
   my $sample_index = {};
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
@@ -133,15 +155,46 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   else {
     push(@bankingStatus, 'Pending selection');
   }
-  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc;
+  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc && $sample_index->{'openAccess'};
   $sample_index->{'bankingStatus'} = \@bankingStatus;
 
-  $elasticsearch->index(
+
+  my $line_exists = $elasticsearch->exists(
     index => 'hipsci',
     type => 'cellLine',
-    id => $sample_index->{name},
-    body => $sample_index,
+    id => $sample_index->{name}
+  );
+  if ($line_exists){
+    my $original = $elasticsearch->get(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $sample_index->{name},
     );
+    $sample_index->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
+    $sample_index->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
+    if (Compare($sample_index, $$original{'_source'})){
+      $cell_uptodate++;
+    }else{ 
+      $sample_index->{'indexUpdated'} = $date;
+      $elasticsearch->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $sample_index->{name},
+        body => {doc => $sample_index},
+      );
+      $cell_updated++;
+    }
+  }else{
+    $sample_index->{'indexCreated'} = $date;
+    $sample_index->{'indexUpdated'} = $date;
+    $elasticsearch->index(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $sample_index->{name},
+      body => $sample_index,
+    );
+    $cell_created++;
+  }
 
   $donors{$sample_index->{donor}{name}} //= {};
   my $donor_index = $donors{$sample_index->{donor}{name}};
@@ -154,13 +207,47 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     push(@{$donor_index->{'cellLines'}}, {name =>$sample_index->{'name'}, bankingStatus => $sample_index->{'bankingStatus'}});
   }
   $donor_index->{'tissueProvider'} = $sample_index->{tissueProvider};
-  
+
 }
+
 while (my ($donor_name, $donor_index) = each %donors) {
-  $elasticsearch->index(
+  my $line_exists = $elasticsearch->exists(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
-    body => $donor_index,
+  );
+  if ($line_exists){
+    my $original = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'donor',
+    id => $donor_name,
     );
+    $donor_index->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
+    $donor_index->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
+    if (Compare($donor_index, $$original{'_source'})){
+      $donor_uptodate++;
+    }else{ 
+      $donor_index->{'indexUpdated'} = $date;
+      $elasticsearch->update(
+        index => 'hipsci',
+        type => 'donor',
+        id => $donor_name,
+        body => {doc => $donor_index},
+      );
+      $donor_updated++;
+    }
+  }else{
+    $donor_index->{'indexCreated'} = $date;
+    $donor_index->{'indexUpdated'} = $date;
+    $elasticsearch->index(
+      index => 'hipsci',
+      type => 'donor',
+      id => $donor_name,
+      body => $donor_index,
+    );
+    $donor_created++;
+  }
 }
+#TODO  Should send this to a log file
+print "\nCell lines: $cell_created created, $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_created created, $donor_updated updated, $donor_uptodate unchanged.\n";
