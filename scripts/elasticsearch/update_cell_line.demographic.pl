@@ -9,6 +9,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use Text::Capitalize qw();
 use Data::Compare;
+use Data::Dumper;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -84,27 +85,28 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_update->{ethnicity} = $ethnicity;
     $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
-    my $line_exists = $elasticsearch->exists(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-  );
   my $original = $elasticsearch->get(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
   );
-  $donor_update->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
-  $donor_update->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
-  if (Compare($donor_update, $$original{'_source'})){
+  my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'donor',
+    id => $donor_name,
+  );
+  foreach my $field (keys %$donor_update){
+    $$update{'_source'}{$field} = $$donor_update{$field};
+  }
+  if (Compare($$update{'_source'}, $$original{'_source'})){
     $donor_uptodate++;
   }else{ 
-    $donor_update->{'indexUpdated'} = $date;
+    $$update{'_source'}{'indexUpdated'} = $date;
     $elasticsearch->update(
       index => 'hipsci',
       type => 'donor',
       id => $donor_name,
-      body => {doc => $donor_update},
+      body => {doc => $$update{'_source'}},
     );
     $donor_updated++;
   }
@@ -123,17 +125,25 @@ foreach my $donor (@{$cgap_donors}) {
         type => 'cellLine',
         id => $cell_line->name,
       );
-      $cell_line_update->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
-      $cell_line_update->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
-      if (Compare($cell_line_update, $$original{'_source'})){
+      my $update = $elasticsearch->get(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $cell_line->name,
+      );
+      foreach my $field (keys %$cell_line_update){
+        foreach my $subfield (keys $$cell_line_update{$field}){
+          $$update{'_source'}{$field}{$subfield} = $$cell_line_update{$field}{$subfield};
+        }     
+      }
+      if (Compare($$update{'_source'}, $$original{'_source'})){
         $cell_uptodate++;
       }else{
-        $cell_line_update->{'indexUpdated'} = $date;
+        $$update{'_source'}{'indexUpdated'} = $date;
         $elasticsearch->update(
           index => 'hipsci',
           type => 'cellLine',
           id => $cell_line->name,
-          body => {doc => $cell_line_update},
+          body => {doc => $$update{'_source'}},
         );
         $cell_updated++;
       }
