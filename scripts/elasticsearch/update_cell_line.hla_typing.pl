@@ -7,6 +7,11 @@ use Getopt::Long;
 use Search::Elasticsearch;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(dirname);
+use Data::Compare;
+use Data::Dumper;
+use POSIX qw(strftime);
+
+my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
 my $dbhost = 'mysql-g1kdcc-public';
@@ -31,6 +36,12 @@ my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
 );
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
+
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
   -user => $dbuser,
@@ -69,17 +80,43 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
 }
 
 CELL_LINE:
-while (my ($ips_line, $update) = each %cell_line_updates) {
+while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
   my $line_exists = $elasticsearch->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line
   );
   next CELL_LINE if !$line_exists;
-  $elasticsearch->update(
+  my $original = $elasticsearch->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
-    body => {doc => $update},
   );
+  my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'cellLine',
+    id => $ips_line,
+  );
+  foreach my $field (keys $lineupdate){
+    foreach my $subfield (keys $$lineupdate{$field}){
+      $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+    }
+  }
+  if (Compare($$update{'_source'}, $$original{'_source'})){
+    $cell_uptodate++;
+  }else{
+    $$update{'_source'}{'indexUpdated'} = $date;
+    $elasticsearch->update(
+      index => 'hipsci',
+      type => 'cellLine',
+     id => $ips_line,
+      body => {doc => $$update{'_source'}},
+    );
+    $cell_updated++;
+  }
 }
+
+#TODO  Should send this to a log file
+print "\n11update_hla_typing\n";
+print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

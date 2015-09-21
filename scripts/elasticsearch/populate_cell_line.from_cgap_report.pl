@@ -15,7 +15,7 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 #FIXME###############################################################
-  # FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
+#  FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
 #my $cgap_ips_lines = read_cgap_report(days_old => 10)->{ips_lines};
 #$date = 20150801;
 #FIXME###############################################################
@@ -170,17 +170,30 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
       type => 'cellLine',
       id => $sample_index->{name},
     );
-    $sample_index->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
-    $sample_index->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
-    if (Compare($sample_index, $$original{'_source'})){
+    my $update = $elasticsearch->get(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $sample_index->{name},
+    );
+    foreach my $field (keys %$sample_index){
+      my $subfield = $$sample_index{$field};
+      if (ref($subfield) eq 'HASH'){
+        foreach my $subfield (keys $$sample_index{$field}){
+          $$update{'_source'}{$field}{$subfield} = $$sample_index{$field}{$subfield};
+        }
+      }else{
+        $$update{'_source'}{$field} = $$sample_index{$field};
+      }
+    }
+    if (Compare($$update{'_source'}, $$original{'_source'})){
       $cell_uptodate++;
     }else{ 
-      $sample_index->{'indexUpdated'} = $date;
+      $$update{'_source'}{'indexUpdated'} = $date;
       $elasticsearch->update(
         index => 'hipsci',
         type => 'cellLine',
         id => $sample_index->{name},
-        body => {doc => $sample_index},
+        body => {doc => $$update{'_source'}},
       );
       $cell_updated++;
     }
@@ -222,17 +235,30 @@ while (my ($donor_name, $donor_index) = each %donors) {
     type => 'donor',
     id => $donor_name,
     );
-    $donor_index->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
-    $donor_index->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
-    if (Compare($donor_index, $$original{'_source'})){
+    my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'donor',
+    id => $donor_name,
+    );
+    foreach my $field (keys %$donor_index){
+      my $subfield = $$donor_index{$field};
+      if (ref($subfield) eq 'HASH'){
+        foreach my $subfield (keys $$donor_index{$field}){
+          $$update{'_source'}{$field}{$subfield} = $$donor_index{$field}{$subfield};
+        }
+      }else{
+        $$update{'_source'}{$field} = $$donor_index{$field};
+      }
+    }
+    if (Compare($$update{'_source'}, $$original{'_source'})){
       $donor_uptodate++;
     }else{ 
-      $donor_index->{'indexUpdated'} = $date;
+      $$update{'_source'}{'indexUpdated'} = $date;
       $elasticsearch->update(
         index => 'hipsci',
         type => 'donor',
         id => $donor_name,
-        body => {doc => $donor_index},
+        body => {doc => $$update{'_source'}},
       );
       $donor_updated++;
     }

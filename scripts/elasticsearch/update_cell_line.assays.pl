@@ -7,6 +7,11 @@ use Getopt::Long;
 use Search::Elasticsearch;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::ERAUtils qw(get_erapro_conn);
+use Data::Compare;
+use Data::Dumper;
+use POSIX qw(strftime);
+
+my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
 my %study_ids;
@@ -43,6 +48,11 @@ my %ontology_map = (
 );
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
 
@@ -104,10 +114,37 @@ foreach my $ips_line (@{$cgap_lines}) {
     id => $ips_line->name,
   );
   next CELL_LINE if !$line_exists;
-  $elasticsearch->update(
+  my $original = $elasticsearch->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line->name,
-    body => {doc => $cell_line_updates{$biosample_id}},
   );
+  my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'cellLine',
+    id => $ips_line->name,
+  );
+
+  foreach my $field (keys $cell_line_updates{$biosample_id}){
+    foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
+      $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};
+    }
+  }
+  if (Compare($$update{'_source'}, $$original{'_source'})){
+    $cell_uptodate++;
+  }else{
+    $$update{'_source'}{'indexUpdated'} = $date;
+    $elasticsearch->update(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $ips_line->name,
+      body => {doc => $$update{'_source'}},
+    );
+    $cell_updated++;
+  }
 }
+
+#TODO  Should send this to a log file
+print "\n03update_assays\n";
+print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

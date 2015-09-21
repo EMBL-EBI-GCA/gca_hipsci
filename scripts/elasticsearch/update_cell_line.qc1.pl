@@ -5,6 +5,11 @@ use warnings;
 
 use Getopt::Long;
 use Search::Elasticsearch;
+use Data::Compare;
+use Data::Dumper;
+use POSIX qw(strftime);
+
+my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
 my $cnv_filename;
@@ -21,6 +26,11 @@ my $allowed_samples_gexarray_file;
 );
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
 
 my %allowed_samples_gtarray;
 open my $fh, '<', $allowed_samples_gtarray_file or die "could not open $allowed_samples_gtarray_file: $!";
@@ -82,10 +92,36 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
     id => $ips_name
   );
   next CELL_LINE if !$line_exists;
-  $elasticsearch->update(
+  my $original = $elasticsearch->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_name,
-    body => {doc => $qc1_details{$ips_name}},
   );
+  my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'cellLine',
+    id => $ips_name,
+  );
+  foreach my $field (keys $qc1_details{$ips_name}){
+    foreach my $subfield (keys $qc1_details{$ips_name}{$field}){
+      $$update{'_source'}{$field}{$subfield} = $qc1_details{$ips_name}{$field}{$subfield};
+    }
+  }
+  if (Compare($$update{'_source'}, $$original{'_source'})){
+    $cell_uptodate++;
+  }else{
+    $$update{'_source'}{'indexUpdated'} = $date;
+    $elasticsearch->update(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $ips_name,
+      body => {doc => $$update{'_source'}},
+    );
+    $cell_updated++;
+  }
 }
+
+#TODO  Should send this to a log file
+print "\n04update_qc1\n";
+print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

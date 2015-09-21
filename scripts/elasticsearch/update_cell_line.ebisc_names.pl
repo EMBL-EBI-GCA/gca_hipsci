@@ -5,6 +5,11 @@ use warnings;
 
 use Getopt::Long;
 use Search::Elasticsearch;
+use Data::Compare;
+use Data::Dumper;
+use POSIX qw(strftime);
+
+my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
 my $ebisc_name_file;
@@ -16,7 +21,10 @@ my $ebisc_name_file;
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
-
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
 
 open my $fh, '<', $ebisc_name_file or die "could not open $ebisc_name_file $!";
 <$fh>;
@@ -30,10 +38,32 @@ while (my $line = <$fh>) {
     id => $hipsci_name,
   );
   next CELL_LINE if !$line_exists;
-  $elasticsearch->update(
+    my $original = $elasticsearch->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $hipsci_name,
-    body => {doc => {ebiscName => $ebisc_name}},
   );
+  my $update = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'cellLine',
+    id => $hipsci_name,
+  );
+  $$update{'_source'}{'ebiscName'} = $ebisc_name;
+  if (Compare($$update{'_source'}, $$original{'_source'})){
+    $cell_uptodate++;
+  }else{
+    $$update{'_source'}{'indexUpdated'} = $date;
+    $elasticsearch->update(
+      index => 'hipsci',
+      type => 'cellLine',
+      id => $hipsci_name,
+      body => {doc => $$update{'_source'}},
+    );
+    $cell_updated++;
+  }
 }
+
+#TODO  Should send this to a log file
+print "\n10update_ebisc_name\n";
+print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";
