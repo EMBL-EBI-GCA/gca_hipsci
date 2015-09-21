@@ -10,8 +10,8 @@ use Search::Elasticsearch;
 use List::Util qw();
 use Data::Compare;
 use Data::Dumper;
-
 use POSIX qw(strftime);
+
 my $date = strftime('%Y%m%d', localtime);
 
 #FIXME###############################################################
@@ -249,6 +249,6 @@ while (my ($donor_name, $donor_index) = each %donors) {
   }
 }
 #TODO  Should send this to a log file
-print "\n01populate_from_cgap\n"
+print "\n01populate_from_cgap\n";
 print "Cell lines: $cell_created created, $cell_updated updated, $cell_uptodate unchanged.\n";
 print "Donors: $donor_created created, $donor_updated updated, $donor_uptodate unchanged.\n";

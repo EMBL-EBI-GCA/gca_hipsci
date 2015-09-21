@@ -9,8 +9,8 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use Text::Capitalize qw();
 use Data::Compare;
-
 use POSIX qw(strftime);
+
 my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
@@ -141,6 +141,6 @@ foreach my $donor (@{$cgap_donors}) {
   }
 }
 #TODO  Should send this to a log file
-print "\n02update_demographics\n"
+print "\n02update_demographics\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";
