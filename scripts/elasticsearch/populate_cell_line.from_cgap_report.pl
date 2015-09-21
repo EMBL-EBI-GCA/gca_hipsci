@@ -100,7 +100,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     elsif ($method_of_derivation =~ /episomal/i) {
       $sample_index->{'reprogramming'} = {
         methodOfDerivation => $method_of_derivation,
-        type => 'integrating vector',
+        type => 'non-integrating vector',
         vector => 'episomal',
       }
     }
