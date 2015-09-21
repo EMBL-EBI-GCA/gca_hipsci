@@ -8,6 +8,10 @@ use Search::Elasticsearch;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use Text::Capitalize qw();
+use Data::Compare;
+
+use POSIX qw(strftime);
+my $date = strftime('%Y%m%d', localtime);
 
 my $es_host='vg-rs-dev1:9200';
 my $demographic_filename;
@@ -19,6 +23,11 @@ my $demographic_filename;
 
 my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 die "did not get a demographic file on the command line" if !$demographic_filename;
+
+my $cell_updated = 0;
+my $cell_uptodate = 0;
+my $donor_updated = 0;
+my $donor_uptodate = 0;
 
 my $cgap_donors = read_cgap_report()->{donors};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
@@ -75,13 +84,30 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_update->{ethnicity} = $ethnicity;
     $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
-
-  $elasticsearch->update(
+    my $line_exists = $elasticsearch->exists(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
-    body => {doc => $donor_update},
   );
+  my $original = $elasticsearch->get(
+    index => 'hipsci',
+    type => 'donor',
+    id => $donor_name,
+  );
+  $donor_update->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
+  $donor_update->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
+  if (Compare($donor_update, $$original{'_source'})){
+    $donor_uptodate++;
+  }else{ 
+    $donor_update->{'indexUpdated'} = $date;
+    $elasticsearch->update(
+      index => 'hipsci',
+      type => 'donor',
+      id => $donor_name,
+      body => {doc => $donor_update},
+    );
+    $donor_updated++;
+  }
 
   foreach my $tissue (@{$donor->tissues}) {
     CELL_LINE:
@@ -92,12 +118,29 @@ foreach my $donor (@{$cgap_donors}) {
         id => $cell_line->name,
       );
       next CELL_LINE if !$line_exists;
-      $elasticsearch->update(
+      my $original = $elasticsearch->get(
         index => 'hipsci',
         type => 'cellLine',
         id => $cell_line->name,
-        body => {doc => $cell_line_update},
       );
+      $cell_line_update->{'indexCreated'} = $$original{'_source'}{'indexCreated'};
+      $cell_line_update->{'indexUpdated'} = $$original{'_source'}{'indexUpdated'};
+      if (Compare($cell_line_update, $$original{'_source'})){
+        $cell_uptodate++;
+      }else{
+        $cell_line_update->{'indexUpdated'} = $date;
+        $elasticsearch->update(
+          index => 'hipsci',
+          type => 'cellLine',
+          id => $cell_line->name,
+          body => {doc => $cell_line_update},
+        );
+        $cell_updated++;
+      }
     }
   }
 }
+#TODO  Should send this to a log file
+print "\n02update_demographics\n"
+print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";
