@@ -45,6 +45,7 @@ foreach my $file_type (@file_types) {
     next CELL_LINE if $file->withdrawn;
     my $filepath = $file->name;
     next CELL_LINE if $filepath !~ /\.png$/;
+    next CELL_LINE if $filepath =~ /withdrawn/;
     next CELL_LINE if $filepath !~ m{/qc1_images/};
     my $filename = fileparse($filepath);
     my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
