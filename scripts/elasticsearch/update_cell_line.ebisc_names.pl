@@ -6,7 +6,6 @@ use warnings;
 use Getopt::Long;
 use Search::Elasticsearch;
 use Data::Compare;
-use Data::Dumper;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -23,8 +22,6 @@ my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
-my $donor_updated = 0;
-my $donor_uptodate = 0;
 
 open my $fh, '<', $ebisc_name_file or die "could not open $ebisc_name_file $!";
 <$fh>;
@@ -66,4 +63,3 @@ while (my $line = <$fh>) {
 #TODO  Should send this to a log file
 print "\n10update_ebisc_name\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
-print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

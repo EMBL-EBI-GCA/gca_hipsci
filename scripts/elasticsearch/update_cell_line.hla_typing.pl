@@ -8,7 +8,6 @@ use Search::Elasticsearch;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(dirname);
 use Data::Compare;
-use Data::Dumper;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -39,8 +38,6 @@ my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
-my $donor_updated = 0;
-my $donor_uptodate = 0;
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
@@ -119,4 +116,3 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
 #TODO  Should send this to a log file
 print "\n11update_hla_typing\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
-print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

@@ -8,7 +8,6 @@ use Search::Elasticsearch;
 use File::Basename qw(fileparse);
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Data::Compare;
-use Data::Dumper;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -49,8 +48,6 @@ my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
-my $donor_updated = 0;
-my $donor_uptodate = 0;
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
 
@@ -117,4 +114,3 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
 #TODO  Should send this to a log file
 print "\n08update_array_assays\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
-print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

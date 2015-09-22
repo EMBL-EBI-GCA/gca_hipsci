@@ -9,16 +9,10 @@ use BioSD;
 use Search::Elasticsearch;
 use List::Util qw();
 use Data::Compare;
-use Data::Dumper;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-#FIXME###############################################################
-#  FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
-#my $cgap_ips_lines = read_cgap_report(days_old => 10)->{ips_lines};
-#$date = 20150801;
-#FIXME###############################################################
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my $es_host='vg-rs-dev1:9200';
 my %biomaterial_provider_hash = (
