@@ -42,7 +42,7 @@ sub derive_path {
 
   if ($incoming_dirname =~ m{/incoming/keane}) {
     if ($filename =~ /\.vcf(\.gz)?$/) {
-      $destination = $self->derive_keane_vcf(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_keane_vcf(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
     }
     elsif ($filename =~ /\.bam$/) {
       $destination = $self->derive_keane_bam(filename => $filename, destination_base_dir => $destination_base_dir);
@@ -139,27 +139,35 @@ sub derive_keane_vcf {
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
 
-  $filename =~ /HPSI\d{4}[a-z]+-[a-z]{4}(?:_\d+)?/;
-  my $sample = $&;
-  die "no sample name for $filename" if !$sample;
+  if ($filename =~ /HPSI\d{4}[a-z]+-[a-z]{4}(?:_\d+)?/) {
+    my $sample = $&;
 
-  if ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
-    return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+    if ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
+      return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+    }
+    elsif ($filename =~ /\.HumanCoreExome.*\.imputed/) {
+      return "$destination_base_dir/gtarray/imputed_vcf/$sample/$filename";
+    }
+    elsif ($filename =~ /\.HumanCoreExome/) {
+      return "$destination_base_dir/gtarray/vcf/$sample/$filename";
+    }
+    elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
+      return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+    }
+    elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.imputed/) {
+      return "$destination_base_dir/exomeseq/imputed_vcf/$sample/$filename";
+    }
+    else {
+      return undef;
+    }
   }
-  elsif ($filename =~ /\.HumanCoreExome.*\.imputed/) {
-    return "$destination_base_dir/gtarray/imputed_vcf/$sample/$filename";
-  }
-  elsif ($filename =~ /\.HumanCoreExome/) {
-    return "$destination_base_dir/gtarray/vcf/$sample/$filename";
-  }
-  elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
-    return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
-  }
-  elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.imputed/) {
-    return "$destination_base_dir/exomeseq/imputed_vcf/$sample/$filename";
+  elsif ($filename =~ /^hipsci\./) {
+    my $incoming_dirname = $options{incoming_dirname} or throw("missing incoming_dir_name");
+    my ($dirname) = $incoming_dirname =~ m{keane/data/(.*)};
+    return "$destination_base_dir/$dirname/$filename";
   }
   else {
-    return undef;
+    throw("could not derive new filename for $filename");
   }
 }
 
