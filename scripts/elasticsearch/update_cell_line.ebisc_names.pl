@@ -10,15 +10,18 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my $ebisc_name_file;
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'ebisc_name_file=s' =>\$ebisc_name_file,
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -29,18 +32,18 @@ CELL_LINE:
 while (my $line = <$fh>) {
   chomp $line;
   my ($ebisc_name, $hipsci_name) = split("\t", $line);
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $hipsci_name,
   );
   next CELL_LINE if !$line_exists;
-    my $original = $elasticsearch->get(
+    my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $hipsci_name,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $hipsci_name,
@@ -50,12 +53,14 @@ while (my $line = <$fh>) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $hipsci_name,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $hipsci_name,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }

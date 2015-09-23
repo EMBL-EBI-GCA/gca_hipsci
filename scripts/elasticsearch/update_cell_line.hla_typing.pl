@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my $dbhost = 'mysql-g1kdcc-public';
 my $dbuser = 'g1kro';
 my $dbpass;
@@ -24,7 +24,7 @@ my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
 my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,
@@ -34,7 +34,10 @@ my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
     'trim=s'      => \$trim,
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -78,18 +81,18 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
 
 CELL_LINE:
 while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line
   );
   next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
@@ -103,12 +106,14 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-     id => $ips_line,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+       id => $ips_line,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }

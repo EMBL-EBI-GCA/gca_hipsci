@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my %study_ids;
 
 sub study_id_handler {
@@ -21,7 +21,7 @@ sub study_id_handler {
 }
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
           'gtarray=s' =>\&study_id_handler,
           'gexarray=s' =>\&study_id_handler,
           'mtarray=s' =>\&study_id_handler,
@@ -44,7 +44,10 @@ my %ontology_map = (
   mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -76,18 +79,18 @@ while (my ($assay, $submission_files) = each %study_ids) {
 
 CELL_LINE:
 while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
   );
   next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
@@ -101,12 +104,14 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $ips_line,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $ips_line,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }

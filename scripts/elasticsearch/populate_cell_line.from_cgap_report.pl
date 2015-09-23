@@ -14,7 +14,7 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my %biomaterial_provider_hash = (
   'H1288' => 'Cambridge BioResource',
   '13_042' => 'Cambridge BioResource',
@@ -31,10 +31,12 @@ my %open_access_hash = (
 );
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
 );
-
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_created = 0;
 my $cell_updated = 0;
@@ -153,18 +155,18 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bankingStatus'} = \@bankingStatus;
 
 
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $sample_index->{name}
   );
   if ($line_exists){
-    my $original = $elasticsearch->get(
+    my $original = $elasticsearch[0]->get(
       index => 'hipsci',
       type => 'cellLine',
       id => $sample_index->{name},
     );
-    my $update = $elasticsearch->get(
+    my $update = $elasticsearch[0]->get(
       index => 'hipsci',
       type => 'cellLine',
       id => $sample_index->{name},
@@ -183,23 +185,27 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
       $cell_uptodate++;
     }else{ 
       $$update{'_source'}{'indexUpdated'} = $date;
-      $elasticsearch->update(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $sample_index->{name},
-        body => {doc => $$update{'_source'}},
-      );
+      foreach my $elasticsearchserver (@elasticsearch){
+        $elasticsearchserver->update(
+          index => 'hipsci',
+          type => 'cellLine',
+          id => $sample_index->{name},
+          body => {doc => $$update{'_source'}},
+        );
+      }
       $cell_updated++;
     }
   }else{
     $sample_index->{'indexCreated'} = $date;
     $sample_index->{'indexUpdated'} = $date;
-    $elasticsearch->index(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $sample_index->{name},
-      body => $sample_index,
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->index(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $sample_index->{name},
+        body => $sample_index,
+      );
+    }
     $cell_created++;
   }
 
@@ -218,18 +224,18 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 }
 
 while (my ($donor_name, $donor_index) = each %donors) {
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
   );
   if ($line_exists){
-    my $original = $elasticsearch->get(
+    my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
     );
-    my $update = $elasticsearch->get(
+    my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
@@ -248,23 +254,27 @@ while (my ($donor_name, $donor_index) = each %donors) {
       $donor_uptodate++;
     }else{ 
       $$update{'_source'}{'indexUpdated'} = $date;
-      $elasticsearch->update(
-        index => 'hipsci',
-        type => 'donor',
-        id => $donor_name,
-        body => {doc => $$update{'_source'}},
-      );
+      foreach my $elasticsearchserver (@elasticsearch){
+        $elasticsearchserver->update(
+          index => 'hipsci',
+          type => 'donor',
+          id => $donor_name,
+          body => {doc => $$update{'_source'}},
+        );
+      }
       $donor_updated++;
     }
   }else{
     $donor_index->{'indexCreated'} = $date;
     $donor_index->{'indexUpdated'} = $date;
-    $elasticsearch->index(
-      index => 'hipsci',
-      type => 'donor',
-      id => $donor_name,
-      body => $donor_index,
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->index(
+        index => 'hipsci',
+        type => 'donor',
+        id => $donor_name,
+        body => $donor_index,
+      );
+    }
     $donor_created++;
   }
 }

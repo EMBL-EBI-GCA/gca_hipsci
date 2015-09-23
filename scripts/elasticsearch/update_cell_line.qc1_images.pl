@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my $dbhost = 'mysql-g1kdcc-public';
 my $dbuser = 'g1kro';
 my $dbpass;
@@ -22,7 +22,7 @@ my @file_types = qw(COPY_NUMBER_PNG PLURITEST_PNG CNV_REGION_PNG);
 my $trim = '/nfs/hipsci';
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,
@@ -32,7 +32,10 @@ my $trim = '/nfs/hipsci';
     'trim=s'      => \$trim,
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -60,13 +63,13 @@ foreach my $file_type (@file_types) {
     next CELL_LINE if !$sample_name;
     my @cell_line_names = ($sample_name);
     if ($sample_name =~ /HPSI-/) {
-      my $donor_exists = $elasticsearch->exists(
+      my $donor_exists = $elasticsearch[0]->exists(
         index => 'hipsci',
         type => 'donor',
         id => $sample_name
       );
       next CELL_LINE if !$donor_exists;
-      my $donor = $elasticsearch->get(
+      my $donor = $elasticsearch[0]->get(
         index => 'hipsci',
         type => 'donor',
         id => $sample_name,
@@ -92,18 +95,18 @@ foreach my $file_type (@file_types) {
 
 CELL_LINE:
 while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line
   );
   next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line,
@@ -117,12 +120,14 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $ips_line,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $ips_line,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }

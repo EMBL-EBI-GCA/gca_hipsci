@@ -13,15 +13,18 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my $demographic_filename;
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'demographic_file=s' => \$demographic_filename,
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 die "did not get a demographic file on the command line" if !$demographic_filename;
 
 my $cell_updated = 0;
@@ -39,7 +42,7 @@ foreach my $donor (@{$cgap_donors}) {
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   next DONOR if !$donor_biosample;
   my $donor_name = $donor_biosample->property('Sample Name')->values->[0];
-  my $donor_exists = $elasticsearch->exists(
+  my $donor_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
@@ -84,12 +87,12 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_update->{ethnicity} = $ethnicity;
     $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
@@ -101,30 +104,32 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_uptodate++;
   }else{ 
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'donor',
-      id => $donor_name,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'donor',
+        id => $donor_name,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $donor_updated++;
   }
 
   foreach my $tissue (@{$donor->tissues}) {
     CELL_LINE:
     foreach my $cell_line (@{$tissue->ips_lines}) {
-      my $line_exists = $elasticsearch->exists(
+      my $line_exists = $elasticsearch[0]->exists(
         index => 'hipsci',
         type => 'cellLine',
         id => $cell_line->name,
       );
       next CELL_LINE if !$line_exists;
-      my $original = $elasticsearch->get(
+      my $original = $elasticsearch[0]->get(
         index => 'hipsci',
         type => 'cellLine',
         id => $cell_line->name,
       );
-      my $update = $elasticsearch->get(
+      my $update = $elasticsearch[0]->get(
         index => 'hipsci',
         type => 'cellLine',
         id => $cell_line->name,
@@ -138,12 +143,14 @@ foreach my $donor (@{$cgap_donors}) {
         $cell_uptodate++;
       }else{
         $$update{'_source'}{'indexUpdated'} = $date;
-        $elasticsearch->update(
-          index => 'hipsci',
-          type => 'cellLine',
-          id => $cell_line->name,
-          body => {doc => $$update{'_source'}},
-        );
+        foreach my $elasticsearchserver (@elasticsearch){
+          $elasticsearchserver->update(
+            index => 'hipsci',
+            type => 'cellLine',
+            id => $cell_line->name,
+            body => {doc => $$update{'_source'}},
+          );
+        }
         $cell_updated++;
       }
     }

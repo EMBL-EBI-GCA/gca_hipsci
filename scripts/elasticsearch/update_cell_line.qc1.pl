@@ -10,21 +10,24 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my $cnv_filename;
 my $pluritest_filename;
 my $allowed_samples_gtarray_file;
 my $allowed_samples_gexarray_file;
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'pluritest_file=s' => \$pluritest_filename,
     'cnv_filename=s' => \$cnv_filename,
     'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
     'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -83,18 +86,18 @@ close $cnv_fh;
 
 CELL_LINE:
 while (my ($ips_name, $qc1_hash) = each %qc1_details) {
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_name
   );
   next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_name,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_name,
@@ -108,12 +111,14 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $ips_name,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $ips_name,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }

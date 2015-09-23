@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $es_host='vg-rs-dev1:9200';
+my @es_host;
 my %study_ids;
 my @era_params = ('ops$laura', undef, 'ERAPRO');
 
@@ -22,7 +22,7 @@ sub study_id_handler {
 }
 
 &GetOptions(
-    'es_host=s' =>\$es_host,
+    'es_host=s' =>\@es_host,
     'era_password=s'              => \$era_params[1],
           'rnaseq=s' =>\&study_id_handler,
           'chipseq=s' =>\&study_id_handler,
@@ -46,7 +46,10 @@ my %ontology_map = (
   mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
 );
 
-my $elasticsearch = Search::Elasticsearch->new(nodes => $es_host);
+my @elasticsearch;
+foreach my $es_host (@es_host){
+  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+}
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -105,18 +108,18 @@ foreach my $ips_line (@{$cgap_lines}) {
   my $biosample_id = $ips_line->biosample_id;
   next CELL_LINE if !$biosample_id;
   next CELL_LINE if !$cell_line_updates{$biosample_id};
-  my $line_exists = $elasticsearch->exists(
+  my $line_exists = $elasticsearch[0]->exists(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line->name,
   );
   next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch->get(
+  my $original = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line->name,
   );
-  my $update = $elasticsearch->get(
+  my $update = $elasticsearch[0]->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $ips_line->name,
@@ -131,12 +134,14 @@ foreach my $ips_line (@{$cgap_lines}) {
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'indexUpdated'} = $date;
-    $elasticsearch->update(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $ips_line->name,
-      body => {doc => $$update{'_source'}},
-    );
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->update(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $ips_line->name,
+        body => {doc => $$update{'_source'}},
+      );
+    }
     $cell_updated++;
   }
 }
