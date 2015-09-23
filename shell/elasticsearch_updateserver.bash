@@ -1,6 +1,6 @@
 #!/bin/bash
 
-UPDATE_SERVER=vg-rs-dev1
+UPDATE_SERVER=$1
 UPDATE_SCRIPTS=/homes/peter/elasticsearch_update_scripts
 (
 source /homes/peter/elasticsearch_update_scripts/required_exports_dontgit \
