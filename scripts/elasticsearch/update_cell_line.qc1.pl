@@ -110,7 +110,7 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
   if (Compare($$update{'_source'}, $$original{'_source'})){
     $cell_uptodate++;
   }else{
-    $$update{'_source'}{'indexUpdated'} = $date;
+    $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
       $elasticsearchserver->update(
         index => 'hipsci',
@@ -123,6 +123,5 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
   }
 }
 
-#TODO  Should send this to a log file
 print "\n04update_qc1\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";

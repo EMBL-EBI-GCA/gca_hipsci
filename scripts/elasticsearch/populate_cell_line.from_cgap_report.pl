@@ -184,7 +184,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     if (Compare($$update{'_source'}, $$original{'_source'})){
       $cell_uptodate++;
     }else{ 
-      $$update{'_source'}{'indexUpdated'} = $date;
+      $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
         $elasticsearchserver->update(
           index => 'hipsci',
@@ -196,8 +196,8 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
       $cell_updated++;
     }
   }else{
-    $sample_index->{'indexCreated'} = $date;
-    $sample_index->{'indexUpdated'} = $date;
+    $sample_index->{'_indexCreated'} = $date;
+    $sample_index->{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
       $elasticsearchserver->index(
         index => 'hipsci',
@@ -253,7 +253,7 @@ while (my ($donor_name, $donor_index) = each %donors) {
     if (Compare($$update{'_source'}, $$original{'_source'})){
       $donor_uptodate++;
     }else{ 
-      $$update{'_source'}{'indexUpdated'} = $date;
+      $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
         $elasticsearchserver->update(
           index => 'hipsci',
@@ -265,8 +265,8 @@ while (my ($donor_name, $donor_index) = each %donors) {
       $donor_updated++;
     }
   }else{
-    $donor_index->{'indexCreated'} = $date;
-    $donor_index->{'indexUpdated'} = $date;
+    $donor_index->{'_indexCreated'} = $date;
+    $donor_index->{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
       $elasticsearchserver->index(
         index => 'hipsci',
@@ -278,7 +278,7 @@ while (my ($donor_name, $donor_index) = each %donors) {
     $donor_created++;
   }
 }
-#TODO  Should send this to a log file
+
 print "\n01populate_from_cgap\n";
 print "Cell lines: $cell_created created, $cell_updated updated, $cell_uptodate unchanged.\n";
 print "Donors: $donor_created created, $donor_updated updated, $donor_uptodate unchanged.\n";

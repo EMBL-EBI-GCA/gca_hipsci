@@ -119,7 +119,7 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
   if (Compare($$update{'_source'}, $$original{'_source'})){
     $cell_uptodate++;
   }else{
-    $$update{'_source'}{'indexUpdated'} = $date;
+    $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
       $elasticsearchserver->update(
         index => 'hipsci',
@@ -132,6 +132,5 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
   }
 }
 
-#TODO  Should send this to a log file
 print "\n06update_qc1_images\n";
 print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
