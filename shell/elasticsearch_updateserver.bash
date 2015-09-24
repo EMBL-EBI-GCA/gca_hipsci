@@ -1,18 +1,55 @@
 #!/bin/bash
 
-UPDATE_SERVER1=$1
-UPDATE_SERVER2=$2
-UPDATE_SCRIPTS=/homes/peter/elasticsearch_update_scripts
-(
-source /homes/peter/elasticsearch_update_scripts/required_exports_dontgit \
-&& $UPDATE_SCRIPTS/01populate_from_cgap.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/02update_demographics.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/03update_assays.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/04update_qc1.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/05update_proteomics.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/06update_qc1_images.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/07update_cellbiol-fn.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/08update_array_assays.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/10update_ebisc_name.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head \
-&& $UPDATE_SCRIPTS/11update_hla_typing.bash $UPDATE_SERVER1 $UPDATE_SERVER2 | head
-) 2> >(grep -v 'Use of uninitialized.*Text/Delimited.pm' 1>&2)
+SERVER1=$1
+SERVER2=$2
+
+perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2015-05-19.csv \
+&& source /nfs/production/reseq-info/work/hipdcc/oracle_env_hinxton.sh \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.assays.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -era_password $RESEQTRACK_PASS \
+  -rnaseq EGAS00001000593 \
+  -rnaseq EGAS00001001318 \
+  -rnaseq EGAS00001001137 \
+  -rnaseq ERP007111 \
+  -exomeseq EGAS00001000592 \
+  -exomeseq EGAS00001000969 \
+  -exomeseq EGAS00001001140 \
+  -exomeseq ERP006946 \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -pluritest /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data/hipsci.qc1.pluritest.tsv \
+  -cnv /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data/hipsci.qc1.cnv_summary.tsv \
+  -allowed_samples_gtarray /nfs/research2/hipsci/tracking_resources/qc_samples/allowed_samples.gtarray.tsv \
+  -allowed_samples_gexarray /nfs/research2/hipsci/tracking_resources/qc_samples/allowed_samples.gexarray.tsv \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.proteomics.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -file_type PROTEOMICS_RAW \
+  -trim /nfs/hipsci \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1_images.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -trim /nfs/hipsci \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.cellbiol-fn.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -file_type CELLBIOL-FN_MISC \
+  -trim /nfs/hipsci \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.array_assays.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.201504.tsv \
+  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.201411.tsv \
+  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.201411.tsv \
+  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
+  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
+  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.201504.tsv \
+  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
+  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
+  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.ebisc_names.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -ebisc_name_file /nfs/research2/hipsci/tracking_resources/ebisc_names/ebisc_names.txt \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.hla_typing.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200
