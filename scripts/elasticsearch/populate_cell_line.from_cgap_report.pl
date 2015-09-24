@@ -57,12 +57,6 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
   my $source_material = $tissue->tissue_type;
-
-#FIXME###############################################################
-  # FOR TESTING MUST REMOVE FOR PERODUCTION DEPLOYMENT
-  next CELL_LINE if ($$biosample{_id} eq 'SAMEA3282740'); #  Ignore Pulk1
-#FIXME###############################################################
-
   my $sample_index = {};
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
