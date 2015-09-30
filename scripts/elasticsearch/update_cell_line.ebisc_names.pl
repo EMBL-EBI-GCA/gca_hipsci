@@ -5,18 +5,21 @@ use warnings;
 
 use Getopt::Long;
 use Search::Elasticsearch;
+use ReseqTrack::EBiSC::hESCreg;
 use Data::Compare;
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
-my $ebisc_name_file;
+my ($ebisc_name_file, $hESCreg_user, $hESCreg_pass);
 
 &GetOptions(
     'es_host=s' =>\@es_host,
-    'ebisc_name_file=s' =>\$ebisc_name_file,
+    "hESCreg_user=s" => \$hESCreg_user,
+    "hESCreg_pass=s" => \$hESCreg_pass,
 );
+die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
@@ -26,42 +29,57 @@ foreach my $es_host (@es_host){
 my $cell_updated = 0;
 my $cell_uptodate = 0;
 
-open my $fh, '<', $ebisc_name_file or die "could not open $ebisc_name_file $!";
-<$fh>;
-CELL_LINE:
-while (my $line = <$fh>) {
-  chomp $line;
-  my ($ebisc_name, $hipsci_name) = split("\t", $line);
-  my $line_exists = $elasticsearch[0]->exists(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $hipsci_name,
-  );
-  next CELL_LINE if !$line_exists;
-    my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $hipsci_name,
-  );
-  my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $hipsci_name,
-  );
-  $$update{'_source'}{'ebiscName'} = $ebisc_name;
-  if (Compare($$update{'_source'}, $$original{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->update(
+my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
+  user => $hESCreg_user,
+  pass => $hESCreg_pass,
+);
+
+LINE:
+foreach my $ebisc_name (@{$hESCreg->find_lines()}) {
+  if ($ebisc_name =~ /^WTSI/){
+    my $line = eval{$hESCreg->get_line($ebisc_name);};
+    next LINE if !$line || $@;
+    my $alternate_names = $line->{alternate_name};
+    my $hipsci_name;
+    foreach my $name (@$alternate_names){
+      if ($name  =~ /^HPSI/){
+        die "HipSci line $hipsci_name already defined. More than one hipsci name in line record $ebisc_name" if $hipsci_name;
+        $hipsci_name = $name;
+      }
+    }
+    if ($hipsci_name){
+      my $line_exists = $elasticsearch[0]->exists(
         index => 'hipsci',
         type => 'cellLine',
         id => $hipsci_name,
-        body => {doc => $$update{'_source'}},
       );
+      next LINE if !$line_exists;
+      my $original = $elasticsearch[0]->get(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $hipsci_name,
+      );
+      my $update = $elasticsearch[0]->get(
+        index => 'hipsci',
+        type => 'cellLine',
+        id => $hipsci_name,
+      );
+      $$update{'_source'}{'ebiscName'} = $ebisc_name;
+      if (Compare($$update{'_source'}, $$original{'_source'})){
+        $cell_uptodate++;
+      }else{
+        $$update{'_source'}{'_indexUpdated'} = $date;
+        foreach my $elasticsearchserver (@elasticsearch){
+          $elasticsearchserver->update(
+            index => 'hipsci',
+            type => 'cellLine',
+            id => $hipsci_name,
+            body => {doc => $$update{'_source'}},
+          );
+        }
+        $cell_updated++;
+      }
     }
-    $cell_updated++;
   }
 }
 

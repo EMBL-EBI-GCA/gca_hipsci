@@ -50,6 +50,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.ebisc_names.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
-  -ebisc_name_file /nfs/research2/hipsci/tracking_resources/ebisc_names/ebisc_names.txt \
+  -hESCreg_user $HESCREG_USER \
+  -hESCreg_pass $HESCREG_PASS \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.hla_typing.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200
