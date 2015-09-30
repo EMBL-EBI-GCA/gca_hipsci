@@ -35,8 +35,9 @@ my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
 );
 
 LINE:
-foreach my $ebisc_name (@{$hESCreg->find_lines()}) {
+foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
   if ($ebisc_name =~ /^WTSI/){
+    print "$ebisc_name\n";
     my $line = eval{$hESCreg->get_line($ebisc_name);};
     next LINE if !$line || $@;
     my $alternate_names = $line->{alternate_name};
@@ -45,6 +46,7 @@ foreach my $ebisc_name (@{$hESCreg->find_lines()}) {
       if ($name  =~ /^HPSI/){
         die "HipSci line $hipsci_name already defined. More than one hipsci name in line record $ebisc_name" if $hipsci_name;
         $hipsci_name = $name;
+        print "$hipsci_name\n\n\n";
       }
     }
     if ($hipsci_name){
