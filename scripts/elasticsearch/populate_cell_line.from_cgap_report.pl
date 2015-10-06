@@ -75,14 +75,22 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
   }
 
-  if (my $growing_conditions_property = $biosample->property('growing conditions')) {
-    my $growing_conditions = $growing_conditions_property->values->[0];
-    my $growing_conditions_qc1 = $growing_conditions =~ /feeder/i ? 'Feeder dependent' : 'E8 media';
-    my $growing_conditions_qc2 = $growing_conditions =~ /E8 media/i ? 'E8 media' : 'Feeder dependent';
-    $sample_index->{'growingConditionsQC1'} = $growing_conditions_qc1;
-    $sample_index->{'growingConditionsQC2'} = $growing_conditions_qc2;
+=cut 
 
-    if ($growing_conditions_qc2 =~ /E8/) {
+  if (my $qc1_release = List::Util::first {$_->is_qc1} @{$ips_line->release}) {
+    $sample_index->{'growingConditionsQC1'} = $qc1_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
+  }
+  if (my $qc2_release = List::Util::first {$_->is_qc2} @{$ips_line->release}) {
+    $sample_index->{'growingConditionsQC2'} = $qc2_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
+  }
+
+=cut
+
+  if (my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
+                          || (List::Util::first {$_->type =~ /ebisc/i } @{$ips_line->release})
+                          || (List::Util::first {$_} @{$ips_line->release})
+                                                                  ) {
+    if ($bank_release->is_feeder_free) {
       $sample_index->{'culture'} = {
         medium => 'E8 media',
         passageMethod => 'EDTA clump passaging',
@@ -90,7 +98,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
         CO2 => '5%',
       };
     }
-    elsif ($growing_conditions_qc2 =~ /feeder/i) {
+    else {
       $sample_index->{'culture'} = {
         medium => 'KOSR',
         passageMethod => 'collagenase and dispase',
@@ -99,6 +107,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
       };
     }
   }
+
   if (my $method_property = $biosample->property('method of derivation')) {
     my $method_of_derivation = $method_property->values->[0];
 
@@ -136,16 +145,16 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my @bankingStatus;
   push(@bankingStatus, 'Banked at ECACC') if 0;
   push(@bankingStatus, 'Banked at EBiSC') if 0;
-  if ($ips_line->selected_for_genomics) {
+  if ($ips_line->genomics_selection_status) {
     push(@bankingStatus, 'Selected for banking');
   }
-  elsif (List::Util::any {$_->selected_for_genomics} @{$tissue->ips_lines}) {
+  elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
     push(@bankingStatus, 'Not selected');
   }
   else {
     push(@bankingStatus, 'Pending selection');
   }
-  push(@bankingStatus, 'Shipped to ECACC') if $ips_line->ecacc && $sample_index->{'openAccess'};
+  push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && $sample_index->{'openAccess'};
   $sample_index->{'bankingStatus'} = \@bankingStatus;
 
 
