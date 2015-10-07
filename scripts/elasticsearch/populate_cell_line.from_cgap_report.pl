@@ -180,11 +180,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     }else{ 
       $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
-        $elasticsearchserver->update(
+        $elasticsearchserver->index(
           index => 'hipsci',
           type => 'cellLine',
           id => $sample_index->{name},
-          body => {doc => $$update{'_source'}},
+          body => $$update{'_source'},
         );
       }
       $cell_updated++;
@@ -249,11 +249,11 @@ while (my ($donor_name, $donor_index) = each %donors) {
     }else{ 
       $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
-        $elasticsearchserver->update(
+        $elasticsearchserver->index(
           index => 'hipsci',
           type => 'donor',
           id => $donor_name,
-          body => {doc => $$update{'_source'}},
+          body => $$update{'_source'},
         );
       }
       $donor_updated++;

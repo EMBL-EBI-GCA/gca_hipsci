@@ -105,7 +105,7 @@ foreach my $donor (@{$cgap_donors}) {
   }else{ 
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->update(
+      $elasticsearchserver->index(
         index => 'hipsci',
         type => 'donor',
         id => $donor_name,
@@ -144,11 +144,11 @@ foreach my $donor (@{$cgap_donors}) {
       }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->update(
+          $elasticsearchserver->index(
             index => 'hipsci',
             type => 'cellLine',
             id => $cell_line->name,
-            body => {doc => $$update{'_source'}},
+            body => $$update{'_source'},
           );
         }
         $cell_updated++;

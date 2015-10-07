@@ -135,11 +135,11 @@ foreach my $ips_line (@{$cgap_lines}) {
   }else{
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->update(
+      $elasticsearchserver->index(
         index => 'hipsci',
         type => 'cellLine',
         id => $ips_line->name,
-        body => {doc => $$update{'_source'}},
+        body => $$update{'_source'},
       );
     }
     $cell_updated++;

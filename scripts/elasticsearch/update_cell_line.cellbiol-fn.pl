@@ -95,11 +95,11 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
   }else{
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->update(
+      $elasticsearchserver->index(
         index => 'hipsci',
         type => 'cellLine',
         id => $ips_line,
-        body => {doc => $$update{'_source'}},
+        body => $$update{'_source'},
       );
     }
     $cell_updated++;

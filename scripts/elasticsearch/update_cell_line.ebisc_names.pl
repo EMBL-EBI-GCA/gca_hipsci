@@ -70,11 +70,11 @@ foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
       }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->update(
+          $elasticsearchserver->index(
             index => 'hipsci',
             type => 'cellLine',
             id => $hipsci_name,
-            body => {doc => $$update{'_source'}},
+            body => $$update{'_source'},
           );
         }
         $cell_updated++;
