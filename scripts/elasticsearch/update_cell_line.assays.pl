@@ -57,14 +57,16 @@ my $cell_uptodate = 0;
 my $cgap_lines = read_cgap_report()->{ips_lines};
 
 my $sql_ega =  '
-  select sa.biosample_id from sample sa, run r, run_sample rs, experiment e, study st
+  select sa.biosample_id from sample sa, run r, run_sample rs, experiment e, study st, run_ega_dataset rd
   where sa.sample_id=rs.sample_id and rs.run_id=r.run_id and r.experiment_id=e.experiment_id and e.study_id=st.study_id
+  and rd.run_id=r.run_id
   and st.ega_id=? group by sa.biosample_id
   ';
 
 my $sql_ena =  '
   select sa.biosample_id from sample sa, run r, run_sample rs, experiment e
   where sa.sample_id=rs.sample_id and rs.run_id=r.run_id and r.experiment_id=e.experiment_id
+  and r.status_id=4
   and e.study_id=? group by sa.biosample_id
   ';
 
