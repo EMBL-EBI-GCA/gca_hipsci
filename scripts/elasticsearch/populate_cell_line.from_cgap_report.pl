@@ -88,8 +88,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 
   if (my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
                           || (List::Util::first {$_->type =~ /ebisc/i } @{$ips_line->release})
-                          || (List::Util::first {$_} @{$ips_line->release})
+                          || $ips_line->genomics_selection_status ? (List::Util::first {$_->is_qc2 } @{$ips_line->release}) : undef
                                                                   ) {
+  if ($ips_line->genomics_selection_status) {
+    push(@bankingStatus, 'Selected for banking');
+
     if ($bank_release->is_feeder_free) {
       $sample_index->{'culture'} = {
         medium => 'E8 media',
