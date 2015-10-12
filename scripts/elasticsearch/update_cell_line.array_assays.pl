@@ -36,12 +36,12 @@ my %assay_name_map = (
   mtarray => 'Methylation array',
 );
 my %ontology_map = (
-  rnaseq => 'http://www.ebi.ac.uk/efoEFO_0002770',
-  exomeseq => 'http://www.ebi.ac.uk/efoEFO_0005396',
-  chipseq => 'http://www.ebi.ac.uk/efoEFO_0002692',
-  gexarray => 'http://www.ebi.ac.uk/efoEFO_0002770',
-  gtarray => 'http://www.ebi.ac.uk/efoEFO_0002767',
-  mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
+  rnaseq => 'http://www.ebi.ac.uk/efo/EFO_0002770',
+  exomeseq => 'http://www.ebi.ac.uk/efo/EFO_0005396',
+  chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
+  gexarray => 'http://www.ebi.ac.uk/efo/EFO_0002770',
+  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
+  mtarray => 'http://www.ebi.ac.uk/efo/EFO_0002759',
 );
 
 my @elasticsearch;
