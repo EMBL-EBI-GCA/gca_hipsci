@@ -5,7 +5,6 @@ use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
-use BioSD;
 use Search::Elasticsearch;
 use List::Util qw();
 use Data::Compare;
@@ -35,14 +34,9 @@ my @donors;
 CELL_LINE:
 foreach my $ips_line (@{$cgap_ips_lines}) {
 	next CELL_LINE if ! $ips_line->biosample_id;
- 	next CELL_LINE if $ips_line->name !~ /^HPSI/;
- 	my $biosample = BioSD::fetch_sample($ips_line->biosample_id);
- 	next CELL_LINE if !$biosample;
-	my $tissue = $ips_line->tissue;
-	my $donor = $tissue->donor;
-	my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
- 	push(@cellLines, $biosample->property('Sample Name')->values->[0]);
- 	push(@donors, $donor_biosample->property('Sample Name')->values->[0]);
+    next CELL_LINE if $ips_line->name !~ /^HPSI/;
+    push(@cellLines, $ips_line->biosample_id);
+    push(@donors, $ips_line->tissue->donor->biosample_id);
 }
 
 my $alert_message = 0;
@@ -54,8 +48,8 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     	size        => 500
     );
     while ( my $doc = $scroll->next ) {
-    	if ($$doc{'_type'} eq 'cellLine') {
-    		if ($$doc{'_source'}{'name'} ~~ @cellLines){
+        if ($$doc{'_type'} eq 'cellLine') {
+            if ($$doc{'_source'}{'bioSamplesAccession'} ~~ @cellLines){
     			$cell_uptodate++;
     		}else{
                 print_alert() if !$alert_message;
@@ -63,7 +57,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     			$cell_deleted++;
     		}
     	}elsif ($$doc{'_type'} eq 'donor') {
-    		if ($$doc{'_source'}{'name'} ~~ @donors) {
+            if ($$doc{'_source'}{'bioSamplesAccession'} ~~ @donors) {
     			$donor_uptodate++;
     		}else{
                 print_alert() if !$alert_message;
