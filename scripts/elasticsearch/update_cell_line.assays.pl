@@ -33,17 +33,11 @@ my %assay_name_map = (
   rnaseq => 'RNA-seq',
   exomeseq => 'Exome-seq',
   chipseq => 'ChIP-seq',
-  gexarray => 'Expression array',
-  gtarray => 'Genotyping array',
-  mtarray => 'Methylation array',
 );
 my %ontology_map = (
   rnaseq => 'http://www.ebi.ac.uk/efo/EFO_0002770',
   exomeseq => 'http://www.ebi.ac.uk/efo/EFO_0005396',
   chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
-  gexarray => 'http://www.ebi.ac.uk/efo/EFO_0002770',
-  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
-  mtarray => 'http://www.ebi.ac.uk/efo/EFO_0002759',
 );
 
 my @elasticsearch;
@@ -126,7 +120,12 @@ foreach my $ips_line (@{$cgap_lines}) {
     type => 'cellLine',
     id => $ips_line->name,
   );
-
+  foreach my $key (keys %assay_name_map){
+    delete $$update{'_source'}{'assays'}{$key};
+  }
+  if (! scalar keys $$update{'_source'}{'assays'}){
+    delete $$update{'_source'}{'assays'};
+  }
   foreach my $field (keys $cell_line_updates{$biosample_id}){
     foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
       $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};

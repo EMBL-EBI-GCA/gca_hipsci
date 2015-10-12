@@ -85,6 +85,10 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     type => 'cellLine',
     id => $ips_line,
   );
+  delete $$update{'_source'}{'assays'}{'cellbiol-fn'};
+  if (! scalar keys $$update{'_source'}{'assays'}){
+    delete $$update{'_source'}{'assays'};
+  }
   foreach my $field (keys $lineupdate){
     foreach my $subfield (keys $$lineupdate{$field}){
       $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};

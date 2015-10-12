@@ -28,20 +28,14 @@ sub study_id_handler {
 );
 
 my %assay_name_map = (
-  rnaseq => 'RNA-seq',
-  exomeseq => 'Exome-seq',
-  chipseq => 'ChIP-seq',
   gexarray => 'Expression array',
   gtarray => 'Genotyping array',
   mtarray => 'Methylation array',
 );
 my %ontology_map = (
-  rnaseq => 'http://www.ebi.ac.uk/efo/EFO_0002770',
-  exomeseq => 'http://www.ebi.ac.uk/efo/EFO_0005396',
-  chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
-  gexarray => 'http://www.ebi.ac.uk/efo/EFO_0002770',
-  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
-  mtarray => 'http://www.ebi.ac.uk/efo/EFO_0002759',
+  gexarray => 'http://www.ebi.ac.uk/efoEFO_0002770',
+  gtarray => 'http://www.ebi.ac.uk/efoEFO_0002767',
+  mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
 );
 
 my @elasticsearch;
@@ -53,7 +47,6 @@ my $cell_updated = 0;
 my $cell_uptodate = 0;
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
-
 
 my %cell_line_updates;
 while (my ($assay, $submission_files) = each %study_ids) {
@@ -95,6 +88,12 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     type => 'cellLine',
     id => $ips_line,
   );
+  foreach my $key (keys %assay_name_map){
+    delete $$update{'_source'}{'assays'}{$key};
+  }
+  if (! scalar keys $$update{'_source'}{'assays'}){
+    delete $$update{'_source'}{'assays'};
+  }
   foreach my $field (keys $lineupdate){
     foreach my $subfield (keys $$lineupdate{$field}){
       $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};

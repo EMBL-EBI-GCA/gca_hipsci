@@ -174,6 +174,19 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
       type => 'cellLine',
       id => $sample_index->{name},
     );
+    delete $$update{'_source'}{'name'}; 
+    delete $$update{'_source'}{'bioSamplesAccession'}; 
+    delete $$update{'_source'}{'donor'}{'name'}; 
+    delete $$update{'_source'}{'donor'}{'bioSamplesAccession'};
+    if (! scalar keys $$update{'_source'}{'donor'}){
+      delete $$update{'_source'}{'donor'};
+    }
+    delete $$update{'_source'}{'sourceMaterial'}; 
+    delete $$update{'_source'}{'culture'}; 
+    delete $$update{'_source'}{'reprogramming'}; 
+    delete $$update{'_source'}{'tissueProvider'}; 
+    delete $$update{'_source'}{'openAccess'};  
+    delete $$update{'_source'}{'bankingStatus'};    
     foreach my $field (keys %$sample_index){
       my $subfield = $$sample_index{$field};
       if (ref($subfield) eq 'HASH'){
@@ -242,6 +255,10 @@ while (my ($donor_name, $donor_index) = each %donors) {
     type => 'donor',
     id => $donor_name,
     );
+    delete $$update{'_source'}{'name'}; 
+    delete $$update{'_source'}{'bioSamplesAccession'}; 
+    delete $$update{'_source'}{'cellLines'}; 
+    delete $$update{'_source'}{'tissueProvider'}; 
     foreach my $field (keys %$donor_index){
       my $subfield = $$donor_index{$field};
       if (ref($subfield) eq 'HASH'){

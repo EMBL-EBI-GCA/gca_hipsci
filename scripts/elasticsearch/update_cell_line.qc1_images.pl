@@ -111,6 +111,15 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     type => 'cellLine',
     id => $ips_line,
   );
+  delete $$update{'_source'}{'cnv'}{aberrant_images};
+  if (! scalar keys $$update{'_source'}{'cnv'}){
+    delete $$update{'_source'}{'cnv'};
+  }
+  delete $$update{'_source'}{'pluritest'}{novelty_image};
+  delete $$update{'_source'}{'pluritest'}{pluripotency_image};
+  if (! scalar keys $$update{'_source'}{'pluritest'}){
+    delete $$update{'_source'}{'pluritest'};
+  }
   foreach my $field (keys $lineupdate){
     foreach my $subfield (keys $$lineupdate{$field}){
       $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};

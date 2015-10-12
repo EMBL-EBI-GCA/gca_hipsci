@@ -64,6 +64,7 @@ foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
         type => 'cellLine',
         id => $hipsci_name,
       );
+      delete $$update{'_source'}{'ebiscName'};
       $$update{'_source'}{'ebiscName'} = $ebisc_name;
       if (Compare($$update{'_source'}, $$original{'_source'})){
         $cell_uptodate++;

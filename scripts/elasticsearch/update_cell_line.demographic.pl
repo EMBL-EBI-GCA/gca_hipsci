@@ -82,6 +82,10 @@ foreach my $donor (@{$cgap_donors}) {
   }
   my $original = $elasticsearch[0]->fetch_donor_by_name($donor_name);
   my $update = $elasticsearch[0]->fetch_donor_by_name($donor_name);
+  delete $$update{'_source'}{'diseaseStatus'};
+  delete $$update{'_source'}{'sex'};
+  delete $$update{'_source'}{'age'};
+  delete $$update{'_source'}{'ethnicity'};
   foreach my $field (keys %$donor_update){
     $$update{'_source'}{$field} = $$donor_update{$field};
   }
@@ -106,6 +110,13 @@ foreach my $donor (@{$cgap_donors}) {
       next CELL_LINE if !$line_exists;
       my $original = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
       my $update = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
+      delete $$update{'_source'}{'diseaseStatus'};
+      delete $$update{'_source'}{'donor'}{'sex'};
+      delete $$update{'_source'}{'donor'}{'age'};
+      delete $$update{'_source'}{'donor'}{'ethnicity'};
+      if (! scalar keys $$update{'_source'}{'donor'}){
+        delete $$update{'_source'}{'donor'};
+      }
       foreach my $field (keys %$cell_line_update){
         foreach my $subfield (keys $$cell_line_update{$field}){
           $$update{'_source'}{$field}{$subfield} = $$cell_line_update{$field}{$subfield};
