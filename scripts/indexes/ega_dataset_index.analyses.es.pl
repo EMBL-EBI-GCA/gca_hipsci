@@ -118,14 +118,15 @@ foreach my $dataset_id (@dataset_id) {
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
     }
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($xml_hash->{ANALYSIS}{DESCRIPTION}));
-    $es_id =~ s/\s/_/g;
-
     my $description = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bstar\b/i ? 'Splice-aware STAR alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
+
+    my $es_id = join('-', $sample_name, $short_assay, lc($description));
+    $es_id =~ s/\s/_/g;
+
 
     $docs{$es_id} = {
       description => $description,

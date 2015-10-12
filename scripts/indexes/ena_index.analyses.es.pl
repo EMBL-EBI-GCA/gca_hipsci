@@ -108,9 +108,6 @@ foreach my $study_id (@study_id) {
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
     }
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($xml_hash->{ANALYSIS}{DESCRIPTION}));
-    $es_id =~ s/\s/_/g;
-
     my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
     $files = ref($files) eq 'ARRAY' ? $files : [$files];
     $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
@@ -121,6 +118,8 @@ foreach my $study_id (@study_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
+    my $es_id = join('-', $sample_name, $short_assay, lc($description));
+    $es_id =~ s/\s/_/g;
 
     $docs{$es_id} = {
       description => $description,

@@ -149,7 +149,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
     while (my ($ext, $date_hash) = each %files) {
 
       while (my ($file_description, $file_hash) = each %{$files{$ext}}) {
-        my $es_id = join('-', $sample_name, $short_assay, lc($file_description));
+        my $es_id = join('-', $sample_name, $short_assay, lc($file_description), $ext);
         $es_id =~ s/\s/_/g;
 
         $docs{$es_id} = {
