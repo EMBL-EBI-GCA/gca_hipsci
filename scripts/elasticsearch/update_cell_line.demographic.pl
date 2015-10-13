@@ -94,7 +94,7 @@ foreach my $donor (@{$cgap_donors}) {
   }else{ 
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index_donor(id => $donor_name, body => {doc => $$update{'_source'}});
+      $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
     }
     $donor_updated++;
   }
@@ -127,7 +127,7 @@ foreach my $donor (@{$cgap_donors}) {
       }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->index_line(id => $cell_line->name, body => {doc => $$update{'_source'}});
+          $elasticsearchserver->index_line(id => $cell_line->name, body => $$update{'_source'});
         }
         $cell_updated++;
       }
