@@ -33,9 +33,9 @@ my %assay_name_map = (
   mtarray => 'Methylation array',
 );
 my %ontology_map = (
-  gexarray => 'http://www.ebi.ac.uk/efoEFO_0002770',
-  gtarray => 'http://www.ebi.ac.uk/efoEFO_0002767',
-  mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
+  gexarray => 'http://www.ebi.ac.uk/efo/EFO_0002770',
+  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
+  mtarray => 'http://www.ebi.ac.uk/efo/EFO_0002759',
 );
 
 my @elasticsearch;
