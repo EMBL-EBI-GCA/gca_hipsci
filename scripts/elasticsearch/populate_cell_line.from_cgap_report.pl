@@ -223,7 +223,6 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     push(@{$donor_index->{'cellLines'}}, {name =>$sample_index->{'name'}, bankingStatus => $sample_index->{'bankingStatus'}});
   }
   $donor_index->{'tissueProvider'} = $sample_index->{tissueProvider};
-
 }
 
 while (my ($donor_name, $donor_index) = each %donors) {

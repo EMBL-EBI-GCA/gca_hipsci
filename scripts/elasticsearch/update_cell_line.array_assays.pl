@@ -21,10 +21,10 @@ sub study_id_handler {
 }
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-          'gtarray=s' =>\&study_id_handler,
-          'gexarray=s' =>\&study_id_handler,
-          'mtarray=s' =>\&study_id_handler,
+  'es_host=s' =>\@es_host,
+  'gtarray=s' =>\&study_id_handler,
+  'gexarray=s' =>\&study_id_handler,
+  'mtarray=s' =>\&study_id_handler,
 );
 
 my %assay_name_map = (
@@ -58,21 +58,21 @@ my $cgap_lines = read_cgap_report()->{ips_lines};
 my %cell_line_updates;
 while (my ($assay, $submission_files) = each %study_ids) {
   foreach my $submission_file (@$submission_files) {
-      my $filename = fileparse($submission_file);
-      my ($study_id) = $filename =~ /(EGAS\d+)/;
-      die "did not recognise study_id from $submission_file" if !$study_id;
-      open my $fh, '<', $submission_file or die "could not open $submission_file $!";
-      <$fh>;
-      while (my $line = <$fh>) {
-        chomp $line;
-        my ($sample) = split("\t", $line);
-        $cell_line_updates{$sample}{assays}{$assay} = {
-          'archive' => 'EGA',
-          'study' => $study_id,
-          'name' => $assay_name_map{$assay},
-          'ontologyPURL' => $ontology_map{$assay},
-        };
-      }
+    my $filename = fileparse($submission_file);
+    my ($study_id) = $filename =~ /(EGAS\d+)/;
+    die "did not recognise study_id from $submission_file" if !$study_id;
+    open my $fh, '<', $submission_file or die "could not open $submission_file $!";
+    <$fh>;
+    while (my $line = <$fh>) {
+      chomp $line;
+      my ($sample) = split("\t", $line);
+      $cell_line_updates{$sample}{assays}{$assay} = {
+        'archive' => 'EGA',
+        'study' => $study_id,
+        'name' => $assay_name_map{$assay},
+        'ontologyPURL' => $ontology_map{$assay},
+      };
+    }
   }
 }
 

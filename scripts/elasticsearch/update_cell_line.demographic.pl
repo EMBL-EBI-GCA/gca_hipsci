@@ -17,8 +17,8 @@ my @es_host;
 my $demographic_filename;
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'demographic_file=s' => \$demographic_filename,
+  'es_host=s' =>\@es_host,
+  'demographic_file=s' => \$demographic_filename,
 );
 
 my @elasticsearch;

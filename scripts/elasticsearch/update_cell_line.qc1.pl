@@ -17,11 +17,11 @@ my $allowed_samples_gtarray_file;
 my $allowed_samples_gexarray_file;
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'pluritest_file=s' => \$pluritest_filename,
-    'cnv_filename=s' => \$cnv_filename,
-    'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
-    'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
+  'es_host=s' =>\@es_host,
+  'pluritest_file=s' => \$pluritest_filename,
+  'cnv_filename=s' => \$cnv_filename,
+  'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
+  'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
 );
 
 my @elasticsearch;

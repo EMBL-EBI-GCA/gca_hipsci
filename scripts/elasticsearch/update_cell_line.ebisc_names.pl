@@ -15,9 +15,9 @@ my @es_host;
 my ($ebisc_name_file, $hESCreg_user, $hESCreg_pass);
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    "hESCreg_user=s" => \$hESCreg_user,
-    "hESCreg_pass=s" => \$hESCreg_pass,
+  'es_host=s' =>\@es_host,
+  "hESCreg_user=s" => \$hESCreg_user,
+  "hESCreg_pass=s" => \$hESCreg_pass,
 );
 die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 

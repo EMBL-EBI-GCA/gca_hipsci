@@ -24,9 +24,9 @@ sub study_id_handler {
 &GetOptions(
     'es_host=s' =>\@es_host,
     'era_password=s'              => \$era_params[1],
-          'rnaseq=s' =>\&study_id_handler,
-          'chipseq=s' =>\&study_id_handler,
-          'exomeseq=s' =>\&study_id_handler,
+    'rnaseq=s' =>\&study_id_handler,
+    'chipseq=s' =>\&study_id_handler,
+    'exomeseq=s' =>\&study_id_handler,
 );
 
 my %assay_name_map = (

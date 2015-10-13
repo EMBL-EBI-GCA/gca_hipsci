@@ -22,14 +22,14 @@ my @file_types = qw(COPY_NUMBER_PNG PLURITEST_PNG CNV_REGION_PNG);
 my $trim = '/nfs/hipsci';
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'dbhost=s'      => \$dbhost,
-    'dbname=s'      => \$dbname,
-    'dbuser=s'      => \$dbuser,
-    'dbpass=s'      => \$dbpass,
-    'dbport=s'      => \$dbport,
-    'file_type=s'      => \@file_types,
-    'trim=s'      => \$trim,
+  'es_host=s' =>\@es_host,
+  'dbhost=s'      => \$dbhost,
+  'dbname=s'      => \$dbname,
+  'dbuser=s'      => \$dbuser,
+  'dbpass=s'      => \$dbpass,
+  'dbport=s'      => \$dbport,
+  'file_type=s'      => \@file_types,
+  'trim=s'      => \$trim,
 );
 
 my @elasticsearch;
@@ -46,7 +46,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -port => $dbport,
   -dbname => $dbname,
   -pass => $dbpass,
-    );
+);
 
 my %cell_line_updates;
 my $fa = $db->get_FileAdaptor;

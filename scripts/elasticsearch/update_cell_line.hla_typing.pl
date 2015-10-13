@@ -24,14 +24,14 @@ my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
 my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'dbhost=s'      => \$dbhost,
-    'dbname=s'      => \$dbname,
-    'dbuser=s'      => \$dbuser,
-    'dbpass=s'      => \$dbpass,
-    'dbport=s'      => \$dbport,
-    'file_pattern=s'      => \$file_pattern,
-    'trim=s'      => \$trim,
+  'es_host=s' =>\@es_host,
+  'dbhost=s'      => \$dbhost,
+  'dbname=s'      => \$dbname,
+  'dbuser=s'      => \$dbuser,
+  'dbpass=s'      => \$dbpass,
+  'dbport=s'      => \$dbport,
+  'file_pattern=s'      => \$file_pattern,
+  'trim=s'      => \$trim,
 );
 
 my @elasticsearch;
@@ -48,7 +48,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -port => $dbport,
   -dbname => $dbname,
   -pass => $dbpass,
-    );
+);
 
 my %cell_line_updates;
 my $fa = $db->get_FileAdaptor;
