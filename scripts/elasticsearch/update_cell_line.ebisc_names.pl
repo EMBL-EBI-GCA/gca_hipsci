@@ -15,9 +15,9 @@ my @es_host;
 my ($ebisc_name_file, $hESCreg_user, $hESCreg_pass);
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    "hESCreg_user=s" => \$hESCreg_user,
-    "hESCreg_pass=s" => \$hESCreg_pass,
+  'es_host=s' =>\@es_host,
+  "hESCreg_user=s" => \$hESCreg_user,
+  "hESCreg_pass=s" => \$hESCreg_pass,
 );
 die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 
@@ -64,6 +64,7 @@ foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
         type => 'cellLine',
         id => $hipsci_name,
       );
+      delete $$update{'_source'}{'ebiscName'};
       $$update{'_source'}{'ebiscName'} = $ebisc_name;
       if (Compare($$update{'_source'}, $$original{'_source'})){
         $cell_uptodate++;

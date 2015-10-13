@@ -17,11 +17,11 @@ my $allowed_samples_gtarray_file;
 my $allowed_samples_gexarray_file;
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'pluritest_file=s' => \$pluritest_filename,
-    'cnv_filename=s' => \$cnv_filename,
-    'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
-    'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
+  'es_host=s' =>\@es_host,
+  'pluritest_file=s' => \$pluritest_filename,
+  'cnv_filename=s' => \$cnv_filename,
+  'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
+  'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
 );
 
 my @elasticsearch;
@@ -102,6 +102,17 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
     type => 'cellLine',
     id => $ips_name,
   );
+  delete $$update{'_source'}{'cnv'}{num_different_regions};
+  delete $$update{'_source'}{'cnv'}{length_different_regions_Mbp};
+  delete $$update{'_source'}{'cnv'}{length_shared_differences};
+  if (! scalar keys $$update{'_source'}{'cnv'}){
+    delete $$update{'_source'}{'cnv'};
+  }
+  delete $$update{'_source'}{'pluritest'}{pluripotency};
+  delete $$update{'_source'}{'pluritest'}{novelty};
+  if (! scalar keys $$update{'_source'}{'pluritest'}){
+    delete $$update{'_source'}{'pluritest'};
+  }
   foreach my $field (keys $qc1_details{$ips_name}){
     foreach my $subfield (keys $qc1_details{$ips_name}{$field}){
       $$update{'_source'}{$field}{$subfield} = $qc1_details{$ips_name}{$field}{$subfield};

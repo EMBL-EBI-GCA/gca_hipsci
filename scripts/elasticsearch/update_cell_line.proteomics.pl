@@ -22,14 +22,14 @@ my $file_type = 'PROTEOMICS_RAW';
 my $trim = '/nfs/hipsci';
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-    'dbhost=s'      => \$dbhost,
-    'dbname=s'      => \$dbname,
-    'dbuser=s'      => \$dbuser,
-    'dbpass=s'      => \$dbpass,
-    'dbport=s'      => \$dbport,
-    'file_type=s'      => \$file_type,
-    'trim=s'      => \$trim,
+  'es_host=s' =>\@es_host,
+  'dbhost=s'  => \$dbhost,
+  'dbname=s'  => \$dbname,
+  'dbuser=s'  => \$dbuser,
+  'dbpass=s'  => \$dbpass,
+  'dbport=s'  => \$dbport,
+  'file_type=s'  => \$file_type,
+  'trim=s'  => \$trim,
 );
 
 my @elasticsearch;
@@ -46,7 +46,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -port => $dbport,
   -dbname => $dbname,
   -pass => $dbpass,
-    );
+);
 
 my %cell_line_updates;
 my $fa = $db->get_FileAdaptor;
@@ -84,6 +84,10 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     type => 'cellLine',
     id => $ips_line,
   );
+  delete $$update{'_source'}{'assays'}{'proteomics'};
+  if (! scalar keys $$update{'_source'}{'assays'}){
+    delete $$update{'_source'}{'assays'};
+  }
   foreach my $field (keys $lineupdate){
     foreach my $subfield (keys $$lineupdate{$field}){
       $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};

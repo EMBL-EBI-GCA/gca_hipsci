@@ -59,7 +59,7 @@ sub fetch_donor_by_biosample_id {
   my ($self, $biosample_id) = @_;
   my $results = $self->_client->search(
     index => 'hipsci',
-    type => 'cellLine',
+    type => 'donor',
     body => {
       query => {
         filtered => {
@@ -78,6 +78,15 @@ sub fetch_donor_by_biosample_id {
 sub index_line {
   my ($self, %args) = @_;
   my %es_args = (index => 'hipsci', type => 'cellLine', body => $args{body});
+  if ($args{id}) {
+    $es_args{id} = $args{id};
+  }
+  return $self->_client->index(%es_args);
+}
+
+sub index_donor {
+  my ($self, %args) = @_;
+  my %es_args = (index => 'hipsci', type => 'donor', body => $args{body});
   if ($args{id}) {
     $es_args{id} = $args{id};
   }

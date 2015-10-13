@@ -27,11 +27,11 @@ my $es_host='vg-rs-dev1:9200';
   'growing_conditions_file=s' => \$growing_conditions_filename,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
-  'era_password=s'              => \$era_params[1],
-          'rnaseq=s' =>\&study_id_handler,
-          'chipseq=s' =>\&study_id_handler,
-          'exomeseq=s' =>\&study_id_handler,
-          'es_host=s' =>\&es_host,
+  'era_password=s' => \$era_params[1],
+  'rnaseq=s' =>\&study_id_handler,
+  'chipseq=s' =>\&study_id_handler,
+  'exomeseq=s' =>\&study_id_handler,
+  'es_host=s' =>\&es_host,
 );
 
 sub study_id_handler {
@@ -160,8 +160,8 @@ while (my ($biosample_id, $sample_index) = each %sample_details) {
   $donor_index->{'ethnicity'} = $sample_index->{'donorEthnicity'};
   $donor_index->{'age'} = $sample_index->{'donorAge'};
   push(@{$donor_index->{'cellLines'}}, $sample_index->{'name'});
-  
 }
+
 while (my ($donor_name, $donor_index) = each %donors) {
   $elasticsearch->index(
     index => 'hipsci',

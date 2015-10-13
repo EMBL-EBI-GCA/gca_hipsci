@@ -21,27 +21,21 @@ sub study_id_handler {
 }
 
 &GetOptions(
-    'es_host=s' =>\@es_host,
-          'gtarray=s' =>\&study_id_handler,
-          'gexarray=s' =>\&study_id_handler,
-          'mtarray=s' =>\&study_id_handler,
+  'es_host=s' =>\@es_host,
+  'gtarray=s' =>\&study_id_handler,
+  'gexarray=s' =>\&study_id_handler,
+  'mtarray=s' =>\&study_id_handler,
 );
 
 my %assay_name_map = (
-  rnaseq => 'RNA-seq',
-  exomeseq => 'Exome-seq',
-  chipseq => 'ChIP-seq',
   gexarray => 'Expression array',
   gtarray => 'Genotyping array',
   mtarray => 'Methylation array',
 );
 my %ontology_map = (
-  rnaseq => 'http://www.ebi.ac.uk/efo/EFO_0002770',
-  exomeseq => 'http://www.ebi.ac.uk/efo/EFO_0005396',
-  chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
-  gexarray => 'http://www.ebi.ac.uk/efo/EFO_0002770',
-  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
-  mtarray => 'http://www.ebi.ac.uk/efo/EFO_0002759',
+  gexarray => 'http://www.ebi.ac.uk/efoEFO_0002770',
+  gtarray => 'http://www.ebi.ac.uk/efoEFO_0002767',
+  mtarray => 'http://www.ebi.ac.uk/efoEFO_0002759',
 );
 
 my @elasticsearch;
@@ -54,25 +48,24 @@ my $cell_uptodate = 0;
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
 
-
 my %cell_line_updates;
 while (my ($assay, $submission_files) = each %study_ids) {
   foreach my $submission_file (@$submission_files) {
-      my $filename = fileparse($submission_file);
-      my ($study_id) = $filename =~ /(EGAS\d+)/;
-      die "did not recognise study_id from $submission_file" if !$study_id;
-      open my $fh, '<', $submission_file or die "could not open $submission_file $!";
-      <$fh>;
-      while (my $line = <$fh>) {
-        chomp $line;
-        my ($sample) = split("\t", $line);
-        $cell_line_updates{$sample}{assays}{$assay} = {
-          'archive' => 'EGA',
-          'study' => $study_id,
-          'name' => $assay_name_map{$assay},
-          'ontologyPURL' => $ontology_map{$assay},
-        };
-      }
+    my $filename = fileparse($submission_file);
+    my ($study_id) = $filename =~ /(EGAS\d+)/;
+    die "did not recognise study_id from $submission_file" if !$study_id;
+    open my $fh, '<', $submission_file or die "could not open $submission_file $!";
+    <$fh>;
+    while (my $line = <$fh>) {
+      chomp $line;
+      my ($sample) = split("\t", $line);
+      $cell_line_updates{$sample}{assays}{$assay} = {
+        'archive' => 'EGA',
+        'study' => $study_id,
+        'name' => $assay_name_map{$assay},
+        'ontologyPURL' => $ontology_map{$assay},
+      };
+    }
   }
 }
 
@@ -95,6 +88,12 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
     type => 'cellLine',
     id => $ips_line,
   );
+  foreach my $key (keys %assay_name_map){
+    delete $$update{'_source'}{'assays'}{$key};
+  }
+  if (! scalar keys $$update{'_source'}{'assays'}){
+    delete $$update{'_source'}{'assays'};
+  }
   foreach my $field (keys $lineupdate){
     foreach my $subfield (keys $$lineupdate{$field}){
       $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
