@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Text::Capitalize qw();
 use Data::Compare;
 use POSIX qw(strftime);
@@ -23,7 +23,7 @@ my $demographic_filename;
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 die "did not get a demographic file on the command line" if !$demographic_filename;
 
@@ -39,16 +39,9 @@ my %donors;
 DONOR:
 foreach my $donor (@{$cgap_donors}) {
   next DONOR if !$donor->biosample_id;
-  my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
-  next DONOR if !$donor_biosample;
-  my $donor_name = $donor_biosample->property('Sample Name')->values->[0];
-  my $donor_exists = $elasticsearch[0]->exists(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-  );
-  next DONOR if !$donor_exists;
-
+  my $donor_elastic = $elasticsearch[0]->fetch_donor_by_biosample_id($donor->biosample_id);
+  next DONOR if !$donor_elastic;
+  my $donor_name = $$donor_elastic{'_source'}{'name'};
 
   my $donor_update = {};
   my $cell_line_update = {};
@@ -87,16 +80,8 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_update->{ethnicity} = $ethnicity;
     $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
-  my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-  );
-  my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-  );
+  my $original = $elasticsearch[0]->fetch_donor_by_name($donor_name);
+  my $update = $elasticsearch[0]->fetch_donor_by_name($donor_name);
   foreach my $field (keys %$donor_update){
     $$update{'_source'}{$field} = $$donor_update{$field};
   }
@@ -105,12 +90,7 @@ foreach my $donor (@{$cgap_donors}) {
   }else{ 
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'donor',
-        id => $donor_name,
-        body => {doc => $$update{'_source'}},
-      );
+      $elasticsearchserver->index_donor(id => $donor_name, body => {doc => $$update{'_source'}});
     }
     $donor_updated++;
   }
@@ -118,22 +98,14 @@ foreach my $donor (@{$cgap_donors}) {
   foreach my $tissue (@{$donor->tissues}) {
     CELL_LINE:
     foreach my $cell_line (@{$tissue->ips_lines}) {
-      my $line_exists = $elasticsearch[0]->exists(
+      my $line_exists = $elasticsearch[0]->call('exists',
         index => 'hipsci',
         type => 'cellLine',
         id => $cell_line->name,
       );
       next CELL_LINE if !$line_exists;
-      my $original = $elasticsearch[0]->get(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $cell_line->name,
-      );
-      my $update = $elasticsearch[0]->get(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $cell_line->name,
-      );
+      my $original = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
+      my $update = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
       foreach my $field (keys %$cell_line_update){
         foreach my $subfield (keys $$cell_line_update{$field}){
           $$update{'_source'}{$field}{$subfield} = $$cell_line_update{$field}{$subfield};
@@ -144,12 +116,7 @@ foreach my $donor (@{$cgap_donors}) {
       }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->index(
-            index => 'hipsci',
-            type => 'cellLine',
-            id => $cell_line->name,
-            body => $$update{'_source'},
-          );
+          $elasticsearchserver->index_line(id => $cell_line->name, body => {doc => $$update{'_source'}});
         }
         $cell_updated++;
       }
