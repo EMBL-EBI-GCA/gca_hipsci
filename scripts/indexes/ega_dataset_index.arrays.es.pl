@@ -161,13 +161,13 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
             openAccess => 0,
           },
-          sample => {
+          samples => [{
             name => $cell_line,
             bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
             cellType => $cell_type,
             diseaseStatus => $disease,
             sex => $cgap_tissue->donor->gender,
-          },
+          }],
           assay => {
             type => $long_assay,
             description => ["PLATFORM=$platform",],

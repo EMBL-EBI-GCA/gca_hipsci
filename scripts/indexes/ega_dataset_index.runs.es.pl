@@ -122,13 +122,13 @@ foreach my $dataset_id (@dataset_id) {
         url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
         openAccess => 0,
       },
-      sample => {
+      samples => [{
         name => $sample_name,
         bioSamplesAccession => $row->{BIOSAMPLE_ID},
         cellType => $cell_type,
         diseaseStatus => $disease,
         sex => $cgap_tissue->donor->gender,
-      },
+      }],
       assay => {
         type => $long_assay,
         description => [ map {$_.'='.$row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],

@@ -132,13 +132,13 @@ foreach my $study_id (@study_id) {
         url => 'http://www.ebi.ac.uk/ena/data/view/'.$row->{ANALYSIS_ID},
         openAccess => 1,
       },
-      sample => {
+      samples => [{
         name => $sample_name,
         bioSamplesAccession => $row->{BIOSAMPLE_ID},
         cellType => $cell_type,
         diseaseStatus => $disease,
         sex => $cgap_tissue->donor->gender,
-      },
+      }],
       assay => {
         type => $long_assay,
         description => [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
