@@ -20,9 +20,9 @@ my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_track';
-my $file_type = 'PROTEOMICS_RAW';
+my $file_type = 'CELLBIOL-FN_MISC';
 my $trim = '/nfs/hipsci';
-my $description = 'Thermo raw mass spectrometry';
+my $description = 'Images and figures';
 
 &GetOptions(
     'es_host=s' => \$es_host,
@@ -57,73 +57,54 @@ foreach my $cell_line (@$cgap_ips_lines) {
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
 }
 
-my %dundee_id_files;
+my %cell_line_files;
 FILE:
 foreach my $file (@{$fa->fetch_by_type($file_type)}) {
-  my $dundee_id = $file->filename =~ /^PT\d+/ ? $&
-        : die 'did not recognise dundee_id for file '.$file->name;
-  $dundee_id_files{$dundee_id} //= [];
+  next FILE if $file->name !~ /pdf$/;
   next FILE if $file->name !~ /$trim/ || $file->name =~ m{/withdrawn/};
-  push(@{$dundee_id_files{$dundee_id}}, $file);
+  my ($cell_line_name) = split(/\./, $file->filename);
+  next FILE if $cell_line_name =~ m{zumy};
+  next FILE if $cell_line_name =~ m{qifc};
+  $cell_line_files{$cell_line_name} //= [];
+  push(@{$cell_line_files{$cell_line_name}}, $file);
 }
 
 my %docs;
 SAMPLE:
-while (my ($dundee_id, $files) = each %dundee_id_files) {
+while (my ($cell_line, $files) = each %cell_line_files) {
   my $dir = dirname($files->[0]->name);
-  next SAMPLE if $dir =~ m{/zumy\b};
-  next SAMPLE if $dir =~ m{/qifc\b};
-  my ($sample_name) = $dir =~ m{/(HPSI[^/]*)};
-  die 'did not recognise cell line '.$files->[0]->name if !$sample_name;
-  my @cell_lines = ($sample_name);
-  if (my $composites = $composite_names{$sample_name}) {
-    @cell_lines = @$composites;
-  }
   $dir =~ s{$trim}{};
 
-  my %growing_conditions;
-  my @samples;
-  foreach my $cell_line (@cell_lines) {
-    my $cgap_ips_line = $cgap_ips_line_hash{$cell_line};
-    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-                    : $cgap_tissues_hash{$cell_line};
-    die 'did not recognise sample '.$cell_line if !$cgap_tissue;
+  my $cgap_ips_line = $cgap_ips_line_hash{$cell_line};
+  my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                  : $cgap_tissues_hash{$cell_line};
+  die 'did not recognise sample '.$cell_line if !$cgap_tissue;
 
-    my $source_material = $cgap_tissue->tissue_type || '';
-    my $cell_type = $cgap_ips_line ? 'iPSC'
-                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-                  : die "did not recognise source material $source_material";
+  my $source_material = $cgap_tissue->tissue_type || '';
+  my $cell_type = $cgap_ips_line ? 'iPSC'
+                : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                : die "did not recognise source material $source_material";
 
-    my $growing_conditions;
-    if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
-      $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
-                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
-                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
-                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
-                        : die "could not get growing conditions for $cell_line";
-      $growing_conditions{$growing_conditions} = 1;
-    }
-
-    my $disease = $cgap_tissue->donor->disease;
-    $disease = $disease eq 'normal' ? 'Normal'
-            : $disease =~ /bardet-/ ? 'Bardet-Biedl'
-            : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
-            : die "did not recognise disease $disease";
-
-    push(@samples, {
-      name => $cell_line,
-      bioSamplesAccession => $cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id,
-      cellType => $cell_type,
-      diseaseStatus => $disease,
-      sex => $cgap_tissue->donor->gender,
-    });
+  my $growing_conditions;
+  if ($cgap_ips_line) {
+    my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
+    $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
+                      : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
+                      : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
+                      : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
+                      : die "could not get growing conditions for $cell_line";
   }
 
+  my $disease = $cgap_tissue->donor->disease;
+  $disease = $disease eq 'normal' ? 'Normal'
+          : $disease =~ /bardet-/ ? 'Bardet-Biedl'
+          : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
+          : die "did not recognise disease $disease";
 
 
-  my $es_id = join('-', $sample_name, 'proteomics', 'raw', $dundee_id);
+
+  my $es_id = join('-', $cell_line, 'cellbiol-fn', 'pdf');
   $es_id =~ s/\s/_/g;
   $docs{$es_id} = {
     description => $description,
@@ -134,14 +115,19 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
       openAccess => 1,
     },
-    samples => \@samples,
+    samples => [{
+      name => $cell_line,
+      bioSamplesAccession => $cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id,
+      cellType => $cell_type,
+      diseaseStatus => $disease,
+      sex => $cgap_tissue->donor->gender,
+    }],
     assay => {
-      type => 'Proteomics',
+      type => 'Cellular phenotyping',
     }
   };
-  my @growing_conditions = keys %growing_conditions;
-  if (scalar @growing_conditions == 1) {
-      $docs{$es_id}{assay}{growingConditions} = $growing_conditions[0];
+  if ($growing_conditions) {
+      $docs{$es_id}{assay}{growingConditions} = $growing_conditions;
   }
 
   FILE:
@@ -169,7 +155,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
       filtered => {
         filter => {
           term => {
-            'assay.type' => 'Proteomics',
+            'assay.type' => 'Cellular phenotyping',
           },
         }
       }
