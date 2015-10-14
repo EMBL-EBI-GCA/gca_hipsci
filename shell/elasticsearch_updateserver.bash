@@ -42,12 +42,12 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.201504.tsv \
   -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.201411.tsv \
   -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.201411.tsv \
-  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
-  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
-  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.201504.tsv \
-  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
-  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
-  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
+#  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
+#  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
+#  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.201504.tsv \
+#  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
+#  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
+#  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.ebisc_names.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
   -hESCreg_user $HESCREG_USER \
