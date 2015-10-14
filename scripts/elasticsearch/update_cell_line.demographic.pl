@@ -36,13 +36,25 @@ my $cgap_donors = read_cgap_report()->{donors};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %donors;
+
+my %cgap_donors_hash;
 DONOR:
 foreach my $donor (@{$cgap_donors}) {
   next DONOR if !$donor->biosample_id;
-  my $donor_elastic = $elasticsearch[0]->fetch_donor_by_biosample_id($donor->biosample_id);
-  next DONOR if !$donor_elastic;
-  my $donor_name = $$donor_elastic{'_source'}{'name'};
+  $cgap_donors_hash{$donor->biosample_id}=$donor;
+}
 
+my $scroll = $elasticsearch[0]->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
+);
+
+DONOR:
+while ( my $doc = $scroll->next ) {
+  next DONOR if ($$doc{'_type'} ne 'donor');
+  my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
+  my $donor_name = $$doc{'_source'}{'name'};
   my $donor_update = {};
   my $cell_line_update = {};
   if (my $disease = $donor->disease) {
@@ -80,7 +92,6 @@ foreach my $donor (@{$cgap_donors}) {
     $donor_update->{ethnicity} = $ethnicity;
     $cell_line_update->{donor}{ethnicity} = $ethnicity;
   }
-  my $original = $elasticsearch[0]->fetch_donor_by_name($donor_name);
   my $update = $elasticsearch[0]->fetch_donor_by_name($donor_name);
   delete $$update{'_source'}{'diseaseStatus'};
   delete $$update{'_source'}{'sex'};
@@ -89,7 +100,7 @@ foreach my $donor (@{$cgap_donors}) {
   foreach my $field (keys %$donor_update){
     $$update{'_source'}{$field} = $$donor_update{$field};
   }
-  if (Compare($$update{'_source'}, $$original{'_source'})){
+  if (Compare($$update{'_source'}, $$doc{'_source'})){
     $donor_uptodate++;
   }else{ 
     $$update{'_source'}{'_indexUpdated'} = $date;
@@ -98,7 +109,6 @@ foreach my $donor (@{$cgap_donors}) {
     }
     $donor_updated++;
   }
-
   foreach my $tissue (@{$donor->tissues}) {
     CELL_LINE:
     foreach my $cell_line (@{$tissue->ips_lines}) {

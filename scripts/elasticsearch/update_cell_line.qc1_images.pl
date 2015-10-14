@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(fileparse);
 use Data::Compare;
@@ -34,7 +34,7 @@ my $trim = '/nfs/hipsci';
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 
 my $cell_updated = 0;
@@ -63,17 +63,13 @@ foreach my $file_type (@file_types) {
     next CELL_LINE if !$sample_name;
     my @cell_line_names = ($sample_name);
     if ($sample_name =~ /HPSI-/) {
-      my $donor_exists = $elasticsearch[0]->exists(
+      my $donor_exists = $elasticsearch[0]->call('exists',
         index => 'hipsci',
         type => 'donor',
         id => $sample_name
       );
       next CELL_LINE if !$donor_exists;
-      my $donor = $elasticsearch[0]->get(
-        index => 'hipsci',
-        type => 'donor',
-        id => $sample_name,
-      );
+      my $donor = $elasticsearch[0]->fetch_donor_by_name($sample_name);
       @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
     }
 
@@ -93,24 +89,16 @@ foreach my $file_type (@file_types) {
   }
 }
 
+my $scroll = $elasticsearch[0]->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
+);
+
 CELL_LINE:
-while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
-  my $line_exists = $elasticsearch[0]->exists(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line
-  );
-  next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line,
-  );
-  my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line,
-  );
+while ( my $doc = $scroll->next ) {
+  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
   delete $$update{'_source'}{'cnv'}{aberrant_images};
   if (! scalar keys $$update{'_source'}{'cnv'}){
     delete $$update{'_source'}{'cnv'};
@@ -120,22 +108,20 @@ while (my ($ips_line, $lineupdate) = each %cell_line_updates) {
   if (! scalar keys $$update{'_source'}{'pluritest'}){
     delete $$update{'_source'}{'pluritest'};
   }
-  foreach my $field (keys $lineupdate){
-    foreach my $subfield (keys $$lineupdate{$field}){
-      $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+  if ($cell_line_updates{$$doc{'_source'}{'name'}}){
+    my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
+    foreach my $field (keys $lineupdate){
+      foreach my $subfield (keys $$lineupdate{$field}){
+        $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+      }
     }
   }
-  if (Compare($$update{'_source'}, $$original{'_source'})){
+  if (Compare($$update{'_source'}, $$doc{'_source'})){
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $ips_line,
-        body => $$update{'_source'},
-      );
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
     }
     $cell_updated++;
   }

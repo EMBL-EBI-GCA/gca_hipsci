@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::EBiSC::hESCreg;
 use Data::Compare;
 use POSIX qw(strftime);
@@ -23,7 +23,7 @@ die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 
 my $cell_updated = 0;
@@ -34,6 +34,7 @@ my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
   pass => $hESCreg_pass,
 );
 
+my %ebisc_names;
 LINE:
 foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
   if ($ebisc_name =~ /^WTSI/){
@@ -48,39 +49,33 @@ foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
       }
     }
     if ($hipsci_name){
-      my $line_exists = $elasticsearch[0]->exists(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $hipsci_name,
-      );
-      next LINE if !$line_exists;
-      my $original = $elasticsearch[0]->get(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $hipsci_name,
-      );
-      my $update = $elasticsearch[0]->get(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $hipsci_name,
-      );
-      delete $$update{'_source'}{'ebiscName'};
-      $$update{'_source'}{'ebiscName'} = $ebisc_name;
-      if (Compare($$update{'_source'}, $$original{'_source'})){
-        $cell_uptodate++;
-      }else{
-        $$update{'_source'}{'_indexUpdated'} = $date;
-        foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->index(
-            index => 'hipsci',
-            type => 'cellLine',
-            id => $hipsci_name,
-            body => $$update{'_source'},
-          );
-        }
-        $cell_updated++;
-      }
+      $ebisc_names{$hipsci_name} = $ebisc_name;
     }
+  }
+}
+
+my $scroll = $elasticsearch[0]->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
+);
+
+CELL_LINE:
+while ( my $doc = $scroll->next ) {
+  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
+  delete $$update{'_source'}{'ebiscName'};
+  if ($ebisc_names{$$doc{'_source'}{'name'}}){
+    $$update{'_source'}{'ebiscName'} = $ebisc_names{$$doc{'_source'}{'name'}};
+  }
+  if (Compare($$update{'_source'}, $$doc{'_source'})){
+    $cell_uptodate++;
+  }else{
+    $$update{'_source'}{'_indexUpdated'} = $date;
+    foreach my $elasticsearchserver (@elasticsearch){
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+    }
+    $cell_updated++;
   }
 }
 

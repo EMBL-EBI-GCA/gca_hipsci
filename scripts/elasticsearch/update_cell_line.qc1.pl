@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Data::Compare;
 use POSIX qw(strftime);
 
@@ -26,7 +26,7 @@ my $allowed_samples_gexarray_file;
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 
 my $cell_updated = 0;
@@ -84,24 +84,16 @@ while (my $line = <$cnv_fh>) {
 }
 close $cnv_fh;
 
+my $scroll = $elasticsearch[0]->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
+);
+
 CELL_LINE:
-while (my ($ips_name, $qc1_hash) = each %qc1_details) {
-  my $line_exists = $elasticsearch[0]->exists(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_name
-  );
-  next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_name,
-  );
-  my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_name,
-  );
+while ( my $doc = $scroll->next ) {
+  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
   delete $$update{'_source'}{'cnv'}{num_different_regions};
   delete $$update{'_source'}{'cnv'}{length_different_regions_Mbp};
   delete $$update{'_source'}{'cnv'}{length_shared_differences};
@@ -113,22 +105,19 @@ while (my ($ips_name, $qc1_hash) = each %qc1_details) {
   if (! scalar keys $$update{'_source'}{'pluritest'}){
     delete $$update{'_source'}{'pluritest'};
   }
-  foreach my $field (keys $qc1_details{$ips_name}){
-    foreach my $subfield (keys $qc1_details{$ips_name}{$field}){
-      $$update{'_source'}{$field}{$subfield} = $qc1_details{$ips_name}{$field}{$subfield};
+  if ($qc1_details{$$doc{'_source'}{'name'}}){
+    foreach my $field (keys $qc1_details{$$doc{'_source'}{'name'}}){
+      foreach my $subfield (keys $qc1_details{$$doc{'_source'}{'name'}}{$field}){
+        $$update{'_source'}{$field}{$subfield} = $qc1_details{$$doc{'_source'}{'name'}}{$field}{$subfield};
+      }
     }
   }
-  if (Compare($$update{'_source'}, $$original{'_source'})){
+  if (Compare($$update{'_source'}, $$doc{'_source'})){
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $ips_name,
-        body => $$update{'_source'},
-      );
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
     }
     $cell_updated++;
   }
