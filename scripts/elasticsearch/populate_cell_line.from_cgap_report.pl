@@ -49,7 +49,7 @@ my %donors;
 CELL_LINE:
 foreach my $ips_line (@{$cgap_ips_lines}) {
   next CELL_LINE if ! $ips_line->biosample_id;
-  next CELL_LINE if $ips_line->name !~ /^HPSI/;
+  next CELL_LINE if $ips_line->name !~ /^HPSI\d{4}i-/;
   my $biosample = BioSD::fetch_sample($ips_line->biosample_id);
   next CELL_LINE if !$biosample;
   my $tissue = $ips_line->tissue;
@@ -62,6 +62,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
+  
   
   $sample_index->{'cellType'}->{value} = "iPSC";
   $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
