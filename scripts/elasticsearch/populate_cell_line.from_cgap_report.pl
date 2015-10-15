@@ -62,6 +62,10 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
+  
+  $sample_index->{'cellType'}->{value} = "iPSC";
+  $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
+  
   $sample_index->{'sourceMaterial'} = {
     value => $source_material,
   };
