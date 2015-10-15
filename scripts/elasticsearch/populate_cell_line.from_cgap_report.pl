@@ -6,7 +6,7 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
 use BioSD;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use List::Util qw();
 use Data::Compare;
 use POSIX qw(strftime);
@@ -35,7 +35,7 @@ my %open_access_hash = (
 );
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 
 my $cell_created = 0;
@@ -158,22 +158,14 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bankingStatus'} = \@bankingStatus;
 
 
-  my $line_exists = $elasticsearch[0]->exists(
+  my $line_exists = $elasticsearch[0]->call('exists',
     index => 'hipsci',
     type => 'cellLine',
-    id => $sample_index->{name}
+    id => $sample_index->{name},
   );
   if ($line_exists){
-    my $original = $elasticsearch[0]->get(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $sample_index->{name},
-    );
-    my $update = $elasticsearch[0]->get(
-      index => 'hipsci',
-      type => 'cellLine',
-      id => $sample_index->{name},
-    );
+    my $original = $elasticsearch[0]->fetch_line_by_name($sample_index->{name});
+    my $update = $elasticsearch[0]->fetch_line_by_name($sample_index->{name});
     delete $$update{'_source'}{'name'}; 
     delete $$update{'_source'}{'bioSamplesAccession'}; 
     delete $$update{'_source'}{'donor'}{'name'}; 
@@ -202,12 +194,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     }else{ 
       $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
-        $elasticsearchserver->index(
-          index => 'hipsci',
-          type => 'cellLine',
-          id => $sample_index->{name},
-          body => $$update{'_source'},
-        );
+        $elasticsearchserver->index_line(id => $sample_index->{name}, body => $$update{'_source'});
       }
       $cell_updated++;
     }
@@ -215,12 +202,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     $sample_index->{'_indexCreated'} = $date;
     $sample_index->{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $sample_index->{name},
-        body => $sample_index,
-      );
+      $elasticsearchserver->index_line(id => $sample_index->{name}, body => $sample_index);
     }
     $cell_created++;
   }
@@ -239,22 +221,14 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 }
 
 while (my ($donor_name, $donor_index) = each %donors) {
-  my $line_exists = $elasticsearch[0]->exists(
+  my $line_exists = $elasticsearch[0]->call('exists',
     index => 'hipsci',
     type => 'donor',
     id => $donor_name,
   );
   if ($line_exists){
-    my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-    );
-    my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'donor',
-    id => $donor_name,
-    );
+    my $original = $elasticsearch[0]->fetch_donor_by_name($donor_name);
+    my $update = $elasticsearch[0]->fetch_donor_by_name($donor_name);
     delete $$update{'_source'}{'name'}; 
     delete $$update{'_source'}{'bioSamplesAccession'}; 
     delete $$update{'_source'}{'cellLines'}; 
@@ -274,12 +248,7 @@ while (my ($donor_name, $donor_index) = each %donors) {
     }else{ 
       $$update{'_source'}{'_indexUpdated'} = $date;
       foreach my $elasticsearchserver (@elasticsearch){
-        $elasticsearchserver->index(
-          index => 'hipsci',
-          type => 'donor',
-          id => $donor_name,
-          body => $$update{'_source'},
-        );
+        $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
       }
       $donor_updated++;
     }
@@ -287,12 +256,7 @@ while (my ($donor_name, $donor_index) = each %donors) {
     $donor_index->{'_indexCreated'} = $date;
     $donor_index->{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'donor',
-        id => $donor_name,
-        body => $donor_index,
-      );
+      $elasticsearchserver->index_donor(id => $donor_name, body => $donor_index);
     }
     $donor_created++;
   }

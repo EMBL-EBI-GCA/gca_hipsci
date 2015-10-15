@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::ERAUtils qw(get_erapro_conn);
 use Data::Compare;
@@ -42,7 +42,7 @@ my %ontology_map = (
 
 my @elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, Search::Elasticsearch->new(nodes => $es_host));
+  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
 }
 
 my $cell_updated = 0;
@@ -98,50 +98,36 @@ while (my ($assay, $study_ids) = each %study_ids) {
   }
 }
 
+my $scroll = $elasticsearch[0]->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
+);
 
 CELL_LINE:
-foreach my $ips_line (@{$cgap_lines}) {
-  my $biosample_id = $ips_line->biosample_id;
-  next CELL_LINE if !$biosample_id;
-  next CELL_LINE if !$cell_line_updates{$biosample_id};
-  my $line_exists = $elasticsearch[0]->exists(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line->name,
-  );
-  next CELL_LINE if !$line_exists;
-  my $original = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line->name,
-  );
-  my $update = $elasticsearch[0]->get(
-    index => 'hipsci',
-    type => 'cellLine',
-    id => $ips_line->name,
-  );
+while ( my $doc = $scroll->next ) {
+  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+  my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
+  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
   foreach my $key (keys %assay_name_map){
     delete $$update{'_source'}{'assays'}{$key};
   }
   if (! scalar keys $$update{'_source'}{'assays'}){
     delete $$update{'_source'}{'assays'};
   }
-  foreach my $field (keys $cell_line_updates{$biosample_id}){
-    foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
-      $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};
+  if ($cell_line_updates{$biosample_id}){
+    foreach my $field (keys $cell_line_updates{$biosample_id}){
+      foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
+        $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};
+      }
     }
   }
-  if (Compare($$update{'_source'}, $$original{'_source'})){
+  if (Compare($$update{'_source'}, $$doc{'_source'})){
     $cell_uptodate++;
   }else{
     $$update{'_source'}{'_indexUpdated'} = $date;
     foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index(
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $ips_line->name,
-        body => $$update{'_source'},
-      );
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
     }
     $cell_updated++;
   }
