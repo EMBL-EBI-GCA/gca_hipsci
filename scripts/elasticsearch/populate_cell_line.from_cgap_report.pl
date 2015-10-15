@@ -76,7 +76,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     if ($cell_type_purl !~ /^http:/) {
       $cell_type_purl = $cell_type_qual_val->term_source()->uri() . $cell_type_purl;
     }
-    $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    if (ucfirst(lc($cell_type_qual_val->value())) eq "Pbmc"){
+      $sample_index->{'sourceMaterial'}->{cellType} = "PBMC";
+    }else{
+      $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    }
     $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
   }
 
