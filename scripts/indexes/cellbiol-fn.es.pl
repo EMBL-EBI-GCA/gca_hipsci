@@ -130,7 +130,7 @@ while (my ($cell_line, $files) = each %cell_line_files) {
 
   FILE:
     foreach my $file (@$files) {
-      my $url = sprintf('ftp://ftp.hipsci.ebi.ac.uk/%s/%s', $dir, $file->name);
+      my $url = sprintf('ftp://ftp.hipsci.ebi.ac.uk/%s/%s', $dir, $file->filename);
       $url =~ s{//}{/}g;
       push(@{$docs{$es_id}{files}}, 
           {
