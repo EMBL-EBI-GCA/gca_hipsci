@@ -36,8 +36,6 @@ my $description = 'Images and figures';
     'demographic_file=s' => \$demographic_filename,
 );
 
-my %composite_names = (HPSI_composite_1503 => []);
-
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
