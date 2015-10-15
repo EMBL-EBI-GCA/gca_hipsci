@@ -5,7 +5,7 @@ use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
-use Search::Elasticsearch;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use List::Util qw();
 use Data::Compare;
 use POSIX qw(strftime);
@@ -21,7 +21,7 @@ my @es_host;
 
 my %elasticsearch;
 foreach my $es_host (@es_host){
-  $elasticsearch{$es_host} = Search::Elasticsearch->new(nodes => $es_host);
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 
 my $cell_deleted = 0;
@@ -43,10 +43,10 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 my $alert_message = 0;
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
-  my $scroll = $elasticsearchserver->scroll_helper(
-    index       => 'hipsci',
-    search_type => 'scan',
-    size        => 500
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+  index       => 'hipsci',
+  search_type => 'scan',
+  size        => 500
   );
   while ( my $doc = $scroll->next ) {
     if ($$doc{'_type'} eq 'cellLine') {
