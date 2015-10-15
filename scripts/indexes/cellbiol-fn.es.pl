@@ -136,7 +136,7 @@ while (my ($cell_line, $files) = each %cell_line_files) {
           {
             name => $file->filename,
             md5 => $file->md5,
-            type => 'raw',
+            type => 'pdf',
             url => $url,
           }
         );
