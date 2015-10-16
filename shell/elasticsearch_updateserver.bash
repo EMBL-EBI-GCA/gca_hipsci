@@ -5,6 +5,8 @@ SERVER2=$2
 
 perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+perl $HIPSCI_CODE/scripts/elasticsearch/populate_fibroblast_line.from_files_elasticsearch.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
   -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2015-05-19.csv \
