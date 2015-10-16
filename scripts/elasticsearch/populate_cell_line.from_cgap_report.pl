@@ -182,6 +182,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     if (! scalar keys $$update{'_source'}{'donor'}){
       delete $$update{'_source'}{'donor'};
     }
+    delete $$update{'_source'}{'cellType'}{'value'};
+    delete $$update{'_source'}{'cellType'}{'ontologyPURL'};
+    if (! scalar keys $$update{'_source'}{'cellType'}){
+      delete $$update{'_source'}{'cellType'};
+    }
     delete $$update{'_source'}{'sourceMaterial'}; 
     delete $$update{'_source'}{'culture'}; 
     delete $$update{'_source'}{'reprogramming'}; 
