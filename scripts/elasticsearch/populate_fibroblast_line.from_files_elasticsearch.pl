@@ -8,7 +8,6 @@ use Getopt::Long;
 use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Data::Compare;
-use Data::Dumper;
 
 use POSIX qw(strftime);
 
@@ -85,11 +84,8 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
     type => 'cellLine',
     id => $nonipsc_linename,
   );
-  print "$nonipsc_linename\n"; #TODO Remove
   if ($line_exists){
     my $original = $elasticsearch[0]->fetch_line_by_name($nonipsc_linename);
-    print Dumper($original); #TODO Remove
-    print "\n"; #TODO Remove
     my $update = $elasticsearch[0]->fetch_line_by_name($nonipsc_linename);
     delete $$update{'_source'}{'name'}; 
     delete $$update{'_source'}{'bioSamplesAccession'}; 
