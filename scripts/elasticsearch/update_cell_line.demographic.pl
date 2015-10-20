@@ -111,15 +111,15 @@ while ( my $doc = $scroll->next ) {
   }
   foreach my $tissue (@{$donor->tissues}) {
     CELL_LINE:
-    foreach my $cell_line (@{$tissue->ips_lines}) {
+    foreach my $cell_line(map {$_->name} $tissue, @{$tissue->ips_lines}){
       my $line_exists = $elasticsearch[0]->call('exists',
         index => 'hipsci',
         type => 'cellLine',
-        id => $cell_line->name,
+        id => $cell_line,
       );
       next CELL_LINE if !$line_exists;
-      my $original = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
-      my $update = $elasticsearch[0]->fetch_line_by_name($cell_line->name);
+      my $original = $elasticsearch[0]->fetch_line_by_name($cell_line);
+      my $update = $elasticsearch[0]->fetch_line_by_name($cell_line);
       delete $$update{'_source'}{'diseaseStatus'};
       delete $$update{'_source'}{'donor'}{'sex'};
       delete $$update{'_source'}{'donor'}{'age'};
@@ -137,7 +137,7 @@ while ( my $doc = $scroll->next ) {
       }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->index_line(id => $cell_line->name, body => $$update{'_source'});
+          $elasticsearchserver->index_line(id => $cell_line, body => $$update{'_source'});
         }
         $cell_updated++;
       }

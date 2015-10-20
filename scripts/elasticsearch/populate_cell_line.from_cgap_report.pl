@@ -49,7 +49,7 @@ my %donors;
 CELL_LINE:
 foreach my $ips_line (@{$cgap_ips_lines}) {
   next CELL_LINE if ! $ips_line->biosample_id;
-  next CELL_LINE if $ips_line->name !~ /^HPSI/;
+  next CELL_LINE if $ips_line->name !~ /^HPSI\d{4}i-/;
   my $biosample = BioSD::fetch_sample($ips_line->biosample_id);
   next CELL_LINE if !$biosample;
   my $tissue = $ips_line->tissue;
@@ -62,6 +62,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
+  
+  
+  $sample_index->{'cellType'}->{value} = "iPSC";
+  $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
+  
   $sample_index->{'sourceMaterial'} = {
     value => $source_material,
   };
@@ -69,9 +74,13 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     my $cell_type_qual_val = $cell_type_property->qualified_values()->[0];
     my $cell_type_purl = $cell_type_qual_val->term_source()->term_source_id();
     if ($cell_type_purl !~ /^http:/) {
-      $cell_type_purl = $cell_type_qual_val->term_source()->uri() . '/' . $cell_type_purl;
+      $cell_type_purl = $cell_type_qual_val->term_source()->uri() . $cell_type_purl;
     }
-    $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    if (ucfirst(lc($cell_type_qual_val->value())) eq "Pbmc"){
+      $sample_index->{'sourceMaterial'}->{cellType} = "PBMC";
+    }else{
+      $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    }
     $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
   }
 
@@ -172,6 +181,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     delete $$update{'_source'}{'donor'}{'bioSamplesAccession'};
     if (! scalar keys $$update{'_source'}{'donor'}){
       delete $$update{'_source'}{'donor'};
+    }
+    delete $$update{'_source'}{'cellType'}{'value'};
+    delete $$update{'_source'}{'cellType'}{'ontologyPURL'};
+    if (! scalar keys $$update{'_source'}{'cellType'}){
+      delete $$update{'_source'}{'cellType'};
     }
     delete $$update{'_source'}{'sourceMaterial'}; 
     delete $$update{'_source'}{'culture'}; 
