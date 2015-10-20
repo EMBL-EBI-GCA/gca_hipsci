@@ -49,4 +49,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -hESCreg_user $HESCREG_USER \
   -hESCreg_pass $HESCREG_PASS \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.hla_typing.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.coa.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -trim /nfs/hipsci
