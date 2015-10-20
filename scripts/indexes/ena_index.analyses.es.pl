@@ -12,7 +12,6 @@ use XML::Simple qw(XMLin);
 use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use File::Basename qw(fileparse);
-use URI::Escape qw(uri_escape);
 
 my @era_params = ('ops$laura', undef, 'ERAPRO');
 my @study_id;
@@ -118,7 +117,7 @@ foreach my $study_id (@study_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($description));
+    my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
     $es_id =~ s/\s/_/g;
 
     $docs{$es_id} = {
@@ -130,6 +129,7 @@ foreach my $study_id (@study_id) {
         accession => $row->{ANALYSIS_ID},
         accessionType => 'ANALYSIS_ID',
         url => 'http://www.ebi.ac.uk/ena/data/view/'.$row->{ANALYSIS_ID},
+        ftpUrl => sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s/%s/', substr($row->{ANALYSIS_ID}, 0, 6), $row->{ANALYSIS_ID}),
         openAccess => 1,
       },
       samples => [{
@@ -158,7 +158,6 @@ foreach my $study_id (@study_id) {
           {
             name => $filename,
             md5 => $file->{checksum},
-            url => sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s/%s/%s', substr($row->{ANALYSIS_ID}, 0, 6), $row->{ANALYSIS_ID}, uri_escape($file->{filename})),
             type => $file->{filetype},
           }
         );

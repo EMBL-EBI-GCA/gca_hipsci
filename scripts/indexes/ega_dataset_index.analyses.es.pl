@@ -124,7 +124,7 @@ foreach my $dataset_id (@dataset_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($description));
+    my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
     $es_id =~ s/\s/_/g;
 
 

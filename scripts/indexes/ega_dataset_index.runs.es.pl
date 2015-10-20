@@ -103,7 +103,7 @@ foreach my $dataset_id (@dataset_id) {
     $filename =~ s/\.gpg$//;
     my $file_description = 'Raw sequencing reads';
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($file_description));
+    my $es_id = join('-', $sample_name, $short_assay, $row->{RUN_ID});
     $es_id =~ s/\s/_/g;
 
     $docs{$es_id} = {

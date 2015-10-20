@@ -111,6 +111,7 @@ while (my ($cell_line, $files) = each %cell_line_files) {
     archive => {
       name => 'HipSci FTP',
       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
       openAccess => 1,
     },
     samples => [{
@@ -130,14 +131,11 @@ while (my ($cell_line, $files) = each %cell_line_files) {
 
   FILE:
     foreach my $file (@$files) {
-      my $url = sprintf('ftp://ftp.hipsci.ebi.ac.uk/%s/%s', $dir, $file->filename);
-      $url =~ s{//}{/}g;
       push(@{$docs{$es_id}{files}}, 
           {
             name => $file->filename,
             md5 => $file->md5,
             type => 'pdf',
-            url => $url,
           }
         );
     }

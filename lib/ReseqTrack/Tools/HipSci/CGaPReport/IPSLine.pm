@@ -94,6 +94,8 @@ sub BUILD {
     push(@releases, ReseqTrack::Tools::HipSci::CGaPReport::Release->new(type => $types[$i], goal_time => $goal_times[$i], cell_state => $cell_states[$i]));
   }
 
+=cut
+
   # This is a temporary override and should be removed when lines in LIMs are fixed.
   if ($override_fd_qc1_lines{$self->name}) {
     foreach my $release (@releases) {
@@ -102,6 +104,8 @@ sub BUILD {
       }
     }
   }
+
+=cut
 
   $self->release([sort {$b->goal_time cmp $a->goal_time} @releases]);
 }

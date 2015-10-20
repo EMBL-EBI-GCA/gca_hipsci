@@ -97,7 +97,7 @@ foreach my $study_id (@study_id) {
     my ($filename, $dirname) = fileparse($file->{filename});
     my $file_description = 'Raw sequencing reads';
 
-    my $es_id = join('-', $sample_name, $short_assay, lc($file_description));
+    my $es_id = join('-', $sample_name, $short_assay, $row->{RUN_ID});
     $es_id =~ s/\s/_/g;
 
     $docs{$es_id} = {
@@ -106,7 +106,6 @@ foreach my $study_id (@study_id) {
         {
           name => $filename,
           md5 => $file->{checksum},
-          url => sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s%s', $dirname, uri_escape($filename)),
           type => $file->{filetype},
         }
       ],
@@ -115,6 +114,7 @@ foreach my $study_id (@study_id) {
         accession => $row->{RUN_ID},
         accessionType => 'RUN_ID',
         url => 'http://www.ebi.ac.uk/ena/data/view/'.$row->{RUN_ID},
+        ftpUrl => sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s%s', $dirname, uri_escape($filename)),
         openAccess => 1,
       },
       samples => [{
