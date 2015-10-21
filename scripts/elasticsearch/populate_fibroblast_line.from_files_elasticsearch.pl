@@ -109,6 +109,7 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
     if (! scalar keys $$update{'_source'}{'cellType'}){
       delete $$update{'_source'}{'cellType'};
     }
+    delete $$update{'_source'}{'sourceMaterial'}; 
     delete $$update{'_source'}{'tissueProvider'}; 
     delete $$update{'_source'}{'openAccess'};
     foreach my $field (keys %$sample_index){
