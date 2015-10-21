@@ -52,7 +52,8 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
   next TISSUE if $nonipsc_linename !~ /^HPSI/;
   my $tissue = $cgap_tissues{$nonipsc_linename};
   next TISSUE if ! $tissue->biosample_id;
-  my $biosample = BioSD::fetch_sample($tissue->biosample_id); 
+  my $biosample = BioSD::fetch_sample($tissue->biosample_id);
+  next CELL_LINE if !$biosample;
   my $donor = $tissue->donor;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
