@@ -75,30 +75,6 @@ sub fetch_donor_by_biosample_id {
   return $results->{hits}{hits} ? $results->{hits}{hits}[0] : undef;
 }
 
-sub fetch_non_ipsc_names {
-  my ($self) = @_;
-  my $results = $self->_client->search(
-    index => 'hipsci',
-    type => 'file',
-    fields => ['samples.name'],
-    body => {
-      query => {
-        filtered => {
-          filter => {
-            not => {
-              term => {
-                cellType => "iPSC"
-              }
-            }
-          }
-        }
-      }
-    }
-  );
-  return map { @{$_->{fields}{'samples.name'}} } @{$results->{'hits'}{'hits'}};
-}
-
-
 sub index_line {
   my ($self, %args) = @_;
   my %es_args = (index => 'hipsci', type => 'cellLine', body => $args{body});

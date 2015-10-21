@@ -46,12 +46,25 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 }
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_created = 0;
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
   TISSUE:
-  foreach my $nonipsc_linename ($elasticsearchserver ->fetch_non_ipsc_names()){
-    next TISSUE if $nonipsc_linename !~ /^HPSI\d{4}/;
-    my $tissue = $cgap_tissues{$nonipsc_linename};
-    next TISSUE if ! $tissue->biosample_id;   
-    $cellLines{$tissue->biosample_id} = 1;
+  while ( my $doc = $scroll->next ) {
+    next TISSUE if ($$doc{'_type'} ne 'file');
+    SAMPLE:
+    foreach my $sample (@{$$doc{'_source'}{'samples'}}){
+      next SAMPLE if $$sample{'cellType'} eq 'iPSC';
+      my $nonipsc_linename = $$sample{'name'};
+      my $tissue = $cgap_tissues{$nonipsc_linename};
+      next SAMPLE if ! $tissue->biosample_id;
+      $cellLines{$tissue->biosample_id} = 1;
+    }
   }
 }
 
