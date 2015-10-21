@@ -45,12 +45,14 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $donors{$ips_line->tissue->donor->biosample_id} = 1;
 }
 
-TISSUE:
-foreach my $nonipsc_linename ($elasticsearch{$es_host[0]}->fetch_non_ipsc_names()){
-  next TISSUE if $nonipsc_linename !~ /^HPSI\d{4}/;
-  my $tissue = $cgap_tissues{$nonipsc_linename};
-  next TISSUE if ! $tissue->biosample_id;
-  $cellLines{$tissue->biosample_id} = 1;
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  TISSUE:
+  foreach my $nonipsc_linename ($elasticsearchserver ->fetch_non_ipsc_names()){
+    next TISSUE if $nonipsc_linename !~ /^HPSI\d{4}/;
+    my $tissue = $cgap_tissues{$nonipsc_linename};
+    next TISSUE if ! $tissue->biosample_id;   
+    $cellLines{$tissue->biosample_id} = 1;
+  }
 }
 
 my $alert_message = 0;
