@@ -52,10 +52,12 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
   next TISSUE if $nonipsc_linename !~ /^HPSI/;
   my $tissue = $cgap_tissues{$nonipsc_linename};
   next TISSUE if ! $tissue->biosample_id;
-  my $biosample = BioSD::fetch_sample($tissue->biosample_id); 
+  my $biosample = BioSD::fetch_sample($tissue->biosample_id);
+  next CELL_LINE if !$biosample;
   my $donor = $tissue->donor;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
+  my $source_material = $tissue->tissue_type;
   my $sample_index = {};
 
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
@@ -63,12 +65,22 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
 
+  $sample_index->{'sourceMaterial'} = {
+    value => $source_material,
+  };
+
   if (my $cell_type_property = $tissue_biosample->property('cell type')) {
     my $cell_type_qual_val = $cell_type_property->qualified_values()->[0];
     my $cell_type_purl = $cell_type_qual_val->term_source()->term_source_id();
     if ($cell_type_purl !~ /^http:/) {
       $cell_type_purl = $cell_type_qual_val->term_source()->uri() . $cell_type_purl;
     }
+    if (ucfirst(lc($cell_type_qual_val->value())) eq "Pbmc"){
+      $sample_index->{'sourceMaterial'}->{cellType} = "PBMC";
+    }else{
+      $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    }
+    $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
     $sample_index->{'cellType'}->{value} = ucfirst(lc($cell_type_qual_val->value()));
     $sample_index->{'cellType'}->{ontologyPURL} = $cell_type_purl;
   }
@@ -77,8 +89,6 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
     $sample_index->{'tissueProvider'} = $biomaterial_provider;
   }
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
-
-
   my $line_exists = $elasticsearch[0]->call('exists',
     index => 'hipsci',
     type => 'cellLine',
@@ -99,6 +109,7 @@ foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
     if (! scalar keys $$update{'_source'}{'cellType'}){
       delete $$update{'_source'}{'cellType'};
     }
+    delete $$update{'_source'}{'sourceMaterial'}; 
     delete $$update{'_source'}{'tissueProvider'}; 
     delete $$update{'_source'}{'openAccess'};
     foreach my $field (keys %$sample_index){
