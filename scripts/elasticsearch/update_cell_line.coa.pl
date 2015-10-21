@@ -32,9 +32,9 @@ my $trim = '/nfs/hipsci';
   'trim=s'      => \$trim,
 );
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
@@ -56,35 +56,34 @@ foreach my $file (@{$fa->fetch_by_type("COA_PDF")}) {
   $coa_urls{$samplename} = $url;
 }
 
-my $cell_updated = 0;
-my $cell_uptodate = 0;
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
 
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
 
-CELL_LINE:
-while ( my $doc = $scroll->next ) {
-  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
-  delete $$update{'_source'}{'certificateOfAnalysis'};
-  if ($coa_urls{$$doc{'_source'}{'name'}}){
-    $$update{'_source'}{'certificateOfAnalysis'}{'url'} = $coa_urls{$$doc{'_source'}{'name'}};
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+  CELL_LINE:
+  while ( my $doc = $scroll->next ) {
+    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    delete $$update{'_source'}{'certificateOfAnalysis'};
+    if ($coa_urls{$$doc{'_source'}{'name'}}){
+      $$update{'_source'}{'certificateOfAnalysis'}{'url'} = $coa_urls{$$doc{'_source'}{'name'}};
     }
-    $cell_updated++;
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $cell_uptodate++;
+    }else{
+      $$update{'_source'}{'_indexUpdated'} = $date;
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+      $cell_updated++;
+    }
   }
+  print "\n$host\n";
+  print "13update_coa\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+
 }
-
-print "\n13update_coa\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
-
-

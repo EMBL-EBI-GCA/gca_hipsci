@@ -21,9 +21,9 @@ my $demographic_filename;
   'demographic_file=s' => \$demographic_filename,
 );
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 die "did not get a demographic file on the command line" if !$demographic_filename;
 
@@ -44,107 +44,109 @@ foreach my $donor (@{$cgap_donors}) {
   $cgap_donors_hash{$donor->biosample_id}=$donor;
 }
 
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
+  my $donor_updated = 0;
+  my $donor_uptodate = 0;
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
 
-DONOR:
-while ( my $doc = $scroll->next ) {
-  next DONOR if ($$doc{'_type'} ne 'donor');
-  my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
-  my $donor_name = $$doc{'_source'}{'name'};
-  my $donor_update = {};
-  my $cell_line_update = {};
-  if (my $disease = $donor->disease) {
-    my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
-                : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
-                : die "did not recognise disease $disease";
-    my $disease_value = $disease eq 'normal' ? 'Normal'
-                : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
-                : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
-                : die "did not recognise disease $disease";
+  DONOR:
+  while ( my $doc = $scroll->next ) {
+    next DONOR if ($$doc{'_type'} ne 'donor');
+    my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
+    my $donor_name = $$doc{'_source'}{'name'};
+    my $donor_update = {};
+    my $cell_line_update = {};
+    if (my $disease = $donor->disease) {
+      my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
+                  : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
+                  : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
+                  : die "did not recognise disease $disease";
+      my $disease_value = $disease eq 'normal' ? 'Normal'
+                  : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
+                  : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
+                  : die "did not recognise disease $disease";
 
-    $donor_update->{diseaseStatus} = {
-      value => $disease_value,
-      ontologyPURL => $purl,
-    };
-    $cell_line_update->{diseaseStatus} = $donor_update->{diseaseStatus};
-  }
-  if (my $sex = $donor->gender) {
-    my %sex_hash = (
-      value => ucfirst($sex),
-      ontologyPURL => $sex eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
-                      : $sex eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
-                      : undef,
-    );
-    $donor_update->{sex} = \%sex_hash;
-    $cell_line_update->{donor}{sex} = \%sex_hash;
-  }
-  if (my $age = $donor->age) {
-    $donor_update->{age} = $age;
-    $cell_line_update->{donor}{age} = $age;
-  }
-  if (my $ethnicity = $donor->ethnicity) {
-    $ethnicity = Text::Capitalize::capitalize($ethnicity);
-    $donor_update->{ethnicity} = $ethnicity;
-    $cell_line_update->{donor}{ethnicity} = $ethnicity;
-  }
-  my $update = $elasticsearch[0]->fetch_donor_by_name($donor_name);
-  delete $$update{'_source'}{'diseaseStatus'};
-  delete $$update{'_source'}{'sex'};
-  delete $$update{'_source'}{'age'};
-  delete $$update{'_source'}{'ethnicity'};
-  foreach my $field (keys %$donor_update){
-    $$update{'_source'}{$field} = $$donor_update{$field};
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $donor_uptodate++;
-  }else{ 
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
+      $donor_update->{diseaseStatus} = {
+        value => $disease_value,
+        ontologyPURL => $purl,
+      };
+      $cell_line_update->{diseaseStatus} = $donor_update->{diseaseStatus};
     }
-    $donor_updated++;
-  }
-  foreach my $tissue (@{$donor->tissues}) {
-    CELL_LINE:
-    foreach my $cell_line(map {$_->name} $tissue, @{$tissue->ips_lines}){
-      my $line_exists = $elasticsearch[0]->call('exists',
-        index => 'hipsci',
-        type => 'cellLine',
-        id => $cell_line,
+    if (my $sex = $donor->gender) {
+      my %sex_hash = (
+        value => ucfirst($sex),
+        ontologyPURL => $sex eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
+                        : $sex eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
+                        : undef,
       );
-      next CELL_LINE if !$line_exists;
-      my $original = $elasticsearch[0]->fetch_line_by_name($cell_line);
-      my $update = $elasticsearch[0]->fetch_line_by_name($cell_line);
-      delete $$update{'_source'}{'diseaseStatus'};
-      delete $$update{'_source'}{'donor'}{'sex'};
-      delete $$update{'_source'}{'donor'}{'age'};
-      delete $$update{'_source'}{'donor'}{'ethnicity'};
-      if (! scalar keys $$update{'_source'}{'donor'}){
-        delete $$update{'_source'}{'donor'};
-      }
-      foreach my $field (keys %$cell_line_update){
-        foreach my $subfield (keys $$cell_line_update{$field}){
-          $$update{'_source'}{$field}{$subfield} = $$cell_line_update{$field}{$subfield};
-        }     
-      }
-      if (Compare($$update{'_source'}, $$original{'_source'})){
-        $cell_uptodate++;
-      }else{
-        $$update{'_source'}{'_indexUpdated'} = $date;
-        foreach my $elasticsearchserver (@elasticsearch){
-          $elasticsearchserver->index_line(id => $cell_line, body => $$update{'_source'});
+      $donor_update->{sex} = \%sex_hash;
+      $cell_line_update->{donor}{sex} = \%sex_hash;
+    }
+    if (my $age = $donor->age) {
+      $donor_update->{age} = $age;
+      $cell_line_update->{donor}{age} = $age;
+    }
+    if (my $ethnicity = $donor->ethnicity) {
+      $ethnicity = Text::Capitalize::capitalize($ethnicity);
+      $donor_update->{ethnicity} = $ethnicity;
+      $cell_line_update->{donor}{ethnicity} = $ethnicity;
+    }
+    my $update = $elasticsearchserver->fetch_donor_by_name($donor_name);
+    delete $$update{'_source'}{'diseaseStatus'};
+    delete $$update{'_source'}{'sex'};
+    delete $$update{'_source'}{'age'};
+    delete $$update{'_source'}{'ethnicity'};
+    foreach my $field (keys %$donor_update){
+      $$update{'_source'}{$field} = $$donor_update{$field};
+    }
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $donor_uptodate++;
+    }else{ 
+      $$update{'_source'}{'_indexUpdated'} = $date;
+        $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
+      $donor_updated++;
+    }
+    foreach my $tissue (@{$donor->tissues}) {
+      CELL_LINE:
+      foreach my $cell_line(map {$_->name} $tissue, @{$tissue->ips_lines}){
+        my $line_exists = $elasticsearchserver->call('exists',
+          index => 'hipsci',
+          type => 'cellLine',
+          id => $cell_line,
+        );
+        next CELL_LINE if !$line_exists;
+        my $original = $elasticsearchserver->fetch_line_by_name($cell_line);
+        my $update = $elasticsearchserver->fetch_line_by_name($cell_line);
+        delete $$update{'_source'}{'diseaseStatus'};
+        delete $$update{'_source'}{'donor'}{'sex'};
+        delete $$update{'_source'}{'donor'}{'age'};
+        delete $$update{'_source'}{'donor'}{'ethnicity'};
+        if (! scalar keys $$update{'_source'}{'donor'}){
+          delete $$update{'_source'}{'donor'};
         }
-        $cell_updated++;
+        foreach my $field (keys %$cell_line_update){
+          foreach my $subfield (keys $$cell_line_update{$field}){
+            $$update{'_source'}{$field}{$subfield} = $$cell_line_update{$field}{$subfield};
+          }     
+        }
+        if (Compare($$update{'_source'}, $$original{'_source'})){
+          $cell_uptodate++;
+        }else{
+          $$update{'_source'}{'_indexUpdated'} = $date;
+          $elasticsearchserver->index_line(id => $cell_line, body => $$update{'_source'});
+          $cell_updated++;
+        }
       }
     }
   }
+  print "\n$host\n";
+  print "02update_demographics\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
+  print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";
 }
-
-print "\n02update_demographics\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
-print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";

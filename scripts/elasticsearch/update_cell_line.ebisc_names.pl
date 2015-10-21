@@ -21,13 +21,10 @@ my ($ebisc_name_file, $hESCreg_user, $hESCreg_pass);
 );
 die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
-
-my $cell_updated = 0;
-my $cell_uptodate = 0;
 
 my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
   user => $hESCreg_user,
@@ -53,31 +50,32 @@ foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
     }
   }
 }
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
 
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
-
-CELL_LINE:
-while ( my $doc = $scroll->next ) {
-  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
-  delete $$update{'_source'}{'ebiscName'};
-  if ($ebisc_names{$$doc{'_source'}{'name'}}){
-    $$update{'_source'}{'ebiscName'} = $ebisc_names{$$doc{'_source'}{'name'}};
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
-      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+  CELL_LINE:
+  while ( my $doc = $scroll->next ) {
+    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    delete $$update{'_source'}{'ebiscName'};
+    if ($ebisc_names{$$doc{'_source'}{'name'}}){
+      $$update{'_source'}{'ebiscName'} = $ebisc_names{$$doc{'_source'}{'name'}};
     }
-    $cell_updated++;
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $cell_uptodate++;
+    }else{
+      $$update{'_source'}{'_indexUpdated'} = $date;
+      $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+      $cell_updated++;
+    }
   }
+  print "\n$host\n";
+  print "\n10update_ebisc_name\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }
-
-print "\n10update_ebisc_name\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";

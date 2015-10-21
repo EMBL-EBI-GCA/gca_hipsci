@@ -40,13 +40,10 @@ my %ontology_map = (
   chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
 );
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
-
-my $cell_updated = 0;
-my $cell_uptodate = 0;
 
 my $cgap_lines = read_cgap_report()->{ips_lines};
 
@@ -63,7 +60,6 @@ my $sql_ena =  '
   and r.status_id=4
   and e.study_id=? group by sa.biosample_id
   ';
-
 
 my %cell_line_updates;
 my $era_db = get_erapro_conn(@era_params);
@@ -98,40 +94,42 @@ while (my ($assay, $study_ids) = each %study_ids) {
   }
 }
 
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
 
-CELL_LINE:
-while ( my $doc = $scroll->next ) {
-  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-  my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
-  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
-  foreach my $key (keys %assay_name_map){
-    delete $$update{'_source'}{'assays'}{$key};
-  }
-  if (! scalar keys $$update{'_source'}{'assays'}){
-    delete $$update{'_source'}{'assays'};
-  }
-  if ($cell_line_updates{$biosample_id}){
-    foreach my $field (keys $cell_line_updates{$biosample_id}){
-      foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
-        $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};
+  CELL_LINE:
+  while ( my $doc = $scroll->next ) {
+    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+    my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
+    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    foreach my $key (keys %assay_name_map){
+      delete $$update{'_source'}{'assays'}{$key};
+    }
+    if (! scalar keys $$update{'_source'}{'assays'}){
+      delete $$update{'_source'}{'assays'};
+    }
+    if ($cell_line_updates{$biosample_id}){
+      foreach my $field (keys $cell_line_updates{$biosample_id}){
+        foreach my $subfield (keys $cell_line_updates{$biosample_id}{$field}){
+          $$update{'_source'}{$field}{$subfield} = $cell_line_updates{$biosample_id}{$field}{$subfield};
+        }
       }
     }
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $cell_uptodate++;
+    }else{
+      $$update{'_source'}{'_indexUpdated'} = $date;
       $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+      $cell_updated++;
     }
-    $cell_updated++;
   }
+  print "\n$host\n";
+  print "03update_assays\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }
-
-print "\n03update_assays\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";

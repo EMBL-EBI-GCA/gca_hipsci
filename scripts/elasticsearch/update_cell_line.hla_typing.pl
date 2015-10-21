@@ -34,13 +34,10 @@ my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
   'trim=s'      => \$trim,
 );
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
-
-my $cell_updated = 0;
-my $cell_uptodate = 0;
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
@@ -79,35 +76,38 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
 
 }
 
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
 
-CELL_LINE:
-while ( my $doc = $scroll->next ) {
-  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
-  delete $$update{'_source'}{'hlaTyping'};
-  if ($cell_line_updates{$$doc{'_source'}{'name'}}){
-    my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
-    foreach my $field (keys $lineupdate){
-      foreach my $subfield (keys $$lineupdate{$field}){
-        $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
+
+  CELL_LINE:
+  while ( my $doc = $scroll->next ) {
+    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    delete $$update{'_source'}{'hlaTyping'};
+    if ($cell_line_updates{$$doc{'_source'}{'name'}}){
+      my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
+      foreach my $field (keys $lineupdate){
+        foreach my $subfield (keys $$lineupdate{$field}){
+          $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+        }
       }
     }
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $cell_uptodate++;
+    }else{
+      $$update{'_source'}{'_indexUpdated'} = $date;
       $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+      $cell_updated++;
     }
-    $cell_updated++;
   }
+  print "\n$host\n";
+  print "11update_hla_typing\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }
-
-print "\n11update_hla_typing\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";

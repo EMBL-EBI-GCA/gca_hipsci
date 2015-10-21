@@ -32,13 +32,10 @@ my $trim = '/nfs/hipsci';
   'trim=s'      => \$trim,
 );
 
-my @elasticsearch;
+my %elasticsearch;
 foreach my $es_host (@es_host){
-  push(@elasticsearch, ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host));
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
-
-my $cell_updated = 0;
-my $cell_uptodate = 0;
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
@@ -47,85 +44,87 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -dbname => $dbname,
   -pass => $dbpass,
 );
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my %cell_line_updates;
+  my $fa = $db->get_FileAdaptor;
+  foreach my $file_type (@file_types) {
+    CELL_LINE:
+    foreach my $file (@{$fa->fetch_by_type($file_type)}) {
+      next CELL_LINE if $file->withdrawn;
+      my $filepath = $file->name;
+      next CELL_LINE if $filepath !~ /\.png$/;
+      next CELL_LINE if $filepath =~ /withdrawn/;
+      next CELL_LINE if $filepath !~ m{/qc1_images/};
+      my $filename = fileparse($filepath);
+      my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
+      next CELL_LINE if !$sample_name;
+      my @cell_line_names = ($sample_name);
+      if ($sample_name =~ /HPSI-/) {
+        my $donor_exists = $elasticsearchserver->call('exists',
+          index => 'hipsci',
+          type => 'donor',
+          id => $sample_name
+        );
+        next CELL_LINE if !$donor_exists;
+        my $donor = $elasticsearchserver->fetch_donor_by_name($sample_name);
+        @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
+      }
 
-my %cell_line_updates;
-my $fa = $db->get_FileAdaptor;
-foreach my $file_type (@file_types) {
+      $filepath =~ s{$trim}{};
+      foreach my $cell_line_name (@cell_line_names) {
+        if ($filename =~ /\.pluritest\.novelty_score\./) {
+          $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
+        }
+        elsif ($filename =~ /\.pluritest\.pluripotency_score\./) {
+          $cell_line_updates{$cell_line_name}{pluritest}{pluripotency_image} = $filepath;
+        }
+        elsif ($filename =~ /\.cnv_aberrant_regions\./) {
+          $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
+          push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
+        }
+      }
+    }
+  }
+
+
+  my $cell_updated = 0;
+  my $cell_uptodate = 0;
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+    index       => 'hipsci',
+    search_type => 'scan',
+    size        => 500
+  );
+
   CELL_LINE:
-  foreach my $file (@{$fa->fetch_by_type($file_type)}) {
-    next CELL_LINE if $file->withdrawn;
-    my $filepath = $file->name;
-    next CELL_LINE if $filepath !~ /\.png$/;
-    next CELL_LINE if $filepath =~ /withdrawn/;
-    next CELL_LINE if $filepath !~ m{/qc1_images/};
-    my $filename = fileparse($filepath);
-    my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
-    next CELL_LINE if !$sample_name;
-    my @cell_line_names = ($sample_name);
-    if ($sample_name =~ /HPSI-/) {
-      my $donor_exists = $elasticsearch[0]->call('exists',
-        index => 'hipsci',
-        type => 'donor',
-        id => $sample_name
-      );
-      next CELL_LINE if !$donor_exists;
-      my $donor = $elasticsearch[0]->fetch_donor_by_name($sample_name);
-      @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
+  while ( my $doc = $scroll->next ) {
+    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
+    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    delete $$update{'_source'}{'cnv'}{aberrant_images};
+    if (! scalar keys $$update{'_source'}{'cnv'}){
+      delete $$update{'_source'}{'cnv'};
     }
-
-    $filepath =~ s{$trim}{};
-    foreach my $cell_line_name (@cell_line_names) {
-      if ($filename =~ /\.pluritest\.novelty_score\./) {
-        $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
-      }
-      elsif ($filename =~ /\.pluritest\.pluripotency_score\./) {
-        $cell_line_updates{$cell_line_name}{pluritest}{pluripotency_image} = $filepath;
-      }
-      elsif ($filename =~ /\.cnv_aberrant_regions\./) {
-        $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
-        push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
+    delete $$update{'_source'}{'pluritest'}{novelty_image};
+    delete $$update{'_source'}{'pluritest'}{pluripotency_image};
+    if (! scalar keys $$update{'_source'}{'pluritest'}){
+      delete $$update{'_source'}{'pluritest'};
+    }
+    if ($cell_line_updates{$$doc{'_source'}{'name'}}){
+      my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
+      foreach my $field (keys $lineupdate){
+        foreach my $subfield (keys $$lineupdate{$field}){
+          $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
+        }
       }
     }
-  }
-}
-
-my $scroll = $elasticsearch[0]->call('scroll_helper',
-  index       => 'hipsci',
-  search_type => 'scan',
-  size        => 500
-);
-
-CELL_LINE:
-while ( my $doc = $scroll->next ) {
-  next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-  my $update = $elasticsearch[0]->fetch_line_by_name($$doc{'_source'}{'name'});
-  delete $$update{'_source'}{'cnv'}{aberrant_images};
-  if (! scalar keys $$update{'_source'}{'cnv'}){
-    delete $$update{'_source'}{'cnv'};
-  }
-  delete $$update{'_source'}{'pluritest'}{novelty_image};
-  delete $$update{'_source'}{'pluritest'}{pluripotency_image};
-  if (! scalar keys $$update{'_source'}{'pluritest'}){
-    delete $$update{'_source'}{'pluritest'};
-  }
-  if ($cell_line_updates{$$doc{'_source'}{'name'}}){
-    my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
-    foreach my $field (keys $lineupdate){
-      foreach my $subfield (keys $$lineupdate{$field}){
-        $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
-      }
-    }
-  }
-  if (Compare($$update{'_source'}, $$doc{'_source'})){
-    $cell_uptodate++;
-  }else{
-    $$update{'_source'}{'_indexUpdated'} = $date;
-    foreach my $elasticsearchserver (@elasticsearch){
+    if (Compare($$update{'_source'}, $$doc{'_source'})){
+      $cell_uptodate++;
+    }else{
+      $$update{'_source'}{'_indexUpdated'} = $date;
       $elasticsearchserver->index_line(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
+      $cell_updated++;
     }
-    $cell_updated++;
   }
+  print "\n$host\n";
+  print "06update_qc1_images\n";
+  print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }
-
-print "\n06update_qc1_images\n";
-print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
