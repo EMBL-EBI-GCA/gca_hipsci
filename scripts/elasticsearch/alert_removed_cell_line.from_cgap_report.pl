@@ -13,6 +13,11 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
+
+my %cgap_tissues;
+foreach my $tissue (@{read_cgap_report()->{tissues}}){
+  $cgap_tissues{$tissue->name} = $tissue;
+}
 my @es_host;
 
 &GetOptions(
@@ -29,15 +34,23 @@ my $cell_uptodate = 0;
 my $donor_deleted = 0;
 my $donor_uptodate = 0;
 
-my @cellLines;
-my @donors;
+my %cellLines;
+my %donors;
 
 CELL_LINE:
 foreach my $ips_line (@{$cgap_ips_lines}) {
   next CELL_LINE if ! $ips_line->biosample_id;
-  next CELL_LINE if $ips_line->name !~ /^HPSI/;
-  push(@cellLines, $ips_line->biosample_id);
-  push(@donors, $ips_line->tissue->donor->biosample_id);
+  next CELL_LINE if $ips_line->name !~ /^HPSI\d{4}i-/;
+  $cellLines{$ips_line->biosample_id} = 1;
+  $donors{$ips_line->tissue->donor->biosample_id} = 1;
+}
+
+TISSUE:
+foreach my $nonipsc_linename ($elasticsearch{$es_host[0]}->fetch_non_ipsc_names()){
+  next TISSUE if $nonipsc_linename !~ /^HPSI\d{4}/;
+  my $tissue = $cgap_tissues{$nonipsc_linename};
+  next TISSUE if ! $tissue->biosample_id;
+  $cellLines{$tissue->biosample_id} = 1;
 }
 
 my $alert_message = 0;
@@ -50,7 +63,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   );
   while ( my $doc = $scroll->next ) {
     if ($$doc{'_type'} eq 'cellLine') {
-      if ($$doc{'_source'}{'bioSamplesAccession'} ~~ @cellLines){
+      if ($cellLines{$$doc{'_source'}{'bioSamplesAccession'}}){
         $cell_uptodate++;
       }else{
         print_alert() if !$alert_message;
@@ -58,7 +71,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
         $cell_deleted++;
       }
     }elsif ($$doc{'_type'} eq 'donor') {
-      if ($$doc{'_source'}{'bioSamplesAccession'} ~~ @donors) {
+      if ($donors{$$doc{'_source'}{'bioSamplesAccession'}}) {
         $donor_uptodate++;
       }else{
         print_alert() if !$alert_message;
