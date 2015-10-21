@@ -49,7 +49,7 @@ my $cell_uptodate = 0;
 
 TISSUE:
 foreach my $nonipsc_linename ($elasticsearch[0]->fetch_non_ipsc_names()){
-  next TISSUE if $nonipsc_linename !~ /^HPSI/;
+  next TISSUE if $nonipsc_linename !~ /^HPSI\d{4}/;
   my $tissue = $cgap_tissues{$nonipsc_linename};
   next TISSUE if ! $tissue->biosample_id;
   my $biosample = BioSD::fetch_sample($tissue->biosample_id);
