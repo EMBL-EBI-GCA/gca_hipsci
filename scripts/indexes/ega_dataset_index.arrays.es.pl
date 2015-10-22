@@ -120,6 +120,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                         : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                         : die "could not get growing conditions for @files";
     }
+    else {
+      $growing_conditions = $cell_type;
+    }
 
     my %files;
 
@@ -167,15 +170,13 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             cellType => $cell_type,
             diseaseStatus => $disease,
             sex => $cgap_tissue->donor->gender,
+            growing_conditions => $growing_conditions,
           }],
           assay => {
             type => $long_assay,
             description => ["PLATFORM=$platform",],
           }
         };
-        if ($growing_conditions) {
-          $docs{$es_id}{assay}{growingConditions} = $growing_conditions;
-        }
         while (my ($filename, $file_object) = each %$file_hash) {
           push(@{$docs{$es_id}{files}}, {name => $filename, md5 => $file_object->md5, type => $ext});
         }

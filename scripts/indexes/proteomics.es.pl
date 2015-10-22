@@ -81,7 +81,6 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
   }
   $dir =~ s{$trim}{};
 
-  my %growing_conditions;
   my @samples;
   foreach my $cell_line (@cell_lines) {
     my $cgap_ips_line = $cgap_ips_line_hash{$cell_line};
@@ -95,30 +94,34 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                   : die "did not recognise source material $source_material";
 
-    my $growing_conditions;
-    if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
-      $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
-                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
-                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
-                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
-                        : die "could not get growing conditions for $cell_line";
-      $growing_conditions{$growing_conditions} = 1;
-    }
-
     my $disease = $cgap_tissue->donor->disease;
     $disease = $disease eq 'normal' ? 'Normal'
             : $disease =~ /bardet-/ ? 'Bardet-Biedl'
             : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
             : die "did not recognise disease $disease";
 
-    push(@samples, {
+    my %sample = (
       name => $cell_line,
       bioSamplesAccession => $cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id,
       cellType => $cell_type,
       diseaseStatus => $disease,
       sex => $cgap_tissue->donor->gender,
-    });
+    );
+
+    if ($cgap_ips_line) {
+      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
+      $sample{growingConditions} = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
+                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
+                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
+                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
+                        : die "could not get growing conditions for $cell_line";
+
+    }
+    else {
+      $sample{growingConditions} = $cell_type;
+    }
+
+    push(@samples, \%sample);
   }
 
 
@@ -140,10 +143,6 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
       type => 'Proteomics',
     }
   };
-  my @growing_conditions = keys %growing_conditions;
-  if (scalar @growing_conditions == 1) {
-      $docs{$es_id}{assay}{growingConditions} = $growing_conditions[0];
-  }
 
   FILE:
     foreach my $file (@$files) {

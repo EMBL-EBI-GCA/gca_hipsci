@@ -103,13 +103,30 @@ foreach my $file_set (values %file_sets) {
             : $disease =~ /bardet-/ ? 'Bardet-Biedl'
             : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
             : die "did not recognise disease $disease";
-    push(@samples, {
+
+    my %sample = (
         name => $cell_line,
         bioSamplesAccession => $cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id,
         cellType => $cell_type,
         diseaseStatus => $disease,
         sex => $cgap_tissue->donor->gender,
-      });
+    );
+
+    if ($cgap_ips_line) {
+      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc1', date =>$file_set->{date});
+      $sample{growingConditions} = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
+                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
+                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
+                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
+                        : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
+                        : die "could not get growing conditions for $cell_line";
+
+    }
+    else {
+      $sample{growingConditions} = $cell_type;
+    }
+    
+    push(@samples, \%sample);
   }
 
   my ($basename) = $fam_file->filename =~ /^(.*)\.fam$/;

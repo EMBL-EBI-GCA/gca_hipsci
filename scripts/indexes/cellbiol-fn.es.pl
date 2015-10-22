@@ -93,6 +93,9 @@ while (my ($cell_line, $files) = each %cell_line_files) {
                       : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                       : die "could not get growing conditions for $cell_line";
   }
+  else {
+    $growing_conditions = $cell_type;
+  }
 
   my $disease = $cgap_tissue->donor->disease;
   $disease = $disease eq 'normal' ? 'Normal'
@@ -120,14 +123,12 @@ while (my ($cell_line, $files) = each %cell_line_files) {
       cellType => $cell_type,
       diseaseStatus => $disease,
       sex => $cgap_tissue->donor->gender,
+      growingConditions => $growing_conditions,
     }],
     assay => {
       type => 'Cellular phenotyping',
     }
   };
-  if ($growing_conditions) {
-      $docs{$es_id}{assay}{growingConditions} = $growing_conditions;
-  }
 
   FILE:
     foreach my $file (@$files) {

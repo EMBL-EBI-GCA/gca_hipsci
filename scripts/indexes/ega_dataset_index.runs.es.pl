@@ -98,6 +98,9 @@ foreach my $dataset_id (@dataset_id) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
     }
+    else {
+      $growing_conditions = $cell_type;
+    }
 
     my $filename = fileparse($file->{filename});
     $filename =~ s/\.gpg$//;
@@ -128,15 +131,13 @@ foreach my $dataset_id (@dataset_id) {
         cellType => $cell_type,
         diseaseStatus => $disease,
         sex => $cgap_tissue->donor->gender,
+        growingConditions => $growing_conditions,
       }],
       assay => {
         type => $long_assay,
         description => [ map {$_.'='.$row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
       }
     };
-    if ($growing_conditions) {
-      $docs{$es_id}{assay}{growingConditions} = $growing_conditions;
-    }
     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
     }
