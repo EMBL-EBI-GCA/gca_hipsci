@@ -4,3 +4,7 @@
   -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
   -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
   -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
+
+
+  
+    -exomeseq EGAS00001000969 \

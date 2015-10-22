@@ -19,7 +19,6 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -rnaseq EGAS00001001137 \
   -rnaseq ERP007111 \
   -exomeseq EGAS00001000592 \
-  -exomeseq EGAS00001000969 \
   -exomeseq EGAS00001001140 \
   -exomeseq ERP006946 \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
