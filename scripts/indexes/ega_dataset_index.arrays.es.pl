@@ -170,7 +170,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             cellType => $cell_type,
             diseaseStatus => $disease,
             sex => $cgap_tissue->donor->gender,
-            growing_conditions => $growing_conditions,
+            growingConditions => $growing_conditions,
           }],
           assay => {
             type => $long_assay,

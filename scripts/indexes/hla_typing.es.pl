@@ -26,6 +26,8 @@ my $file_pattern = 'gtarray/hla_typing/%/hipsci.wec.gtarray.%';
 my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
 my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
 
+my %filetype_of = (bed => 'plink', bgl => 'beagle', bim => 'plink', fam => 'plink', dosage => 'beagle', nosex => 'beagle');
+
 &GetOptions(
     'es_host=s' => \$es_host,
     'dbhost=s'      => \$dbhost,
@@ -134,10 +136,13 @@ foreach my $file_set (values %file_sets) {
   my @files;
   foreach my $file (@{$file_set->{files}}) {
     my ($ext) = $file->filename =~ /^$basename\.(.*)$/;
+    $ext =~ s/\..*//;
+    my $filetype = $filetype_of{$ext};
+    die "no file type for $ext" if !$filetype;
     push(@files, {
       name => $file->filename,
       md5 => $file->md5,
-      type => $ext,
+      type => $filetype,
     });
   }
 
