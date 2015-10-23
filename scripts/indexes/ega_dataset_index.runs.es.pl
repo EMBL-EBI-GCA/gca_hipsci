@@ -71,12 +71,6 @@ foreach my $dataset_id (@dataset_id) {
 
   ROW:
   while (my $row = $sth_run->fetchrow_hashref) {
-
-    # temporary fix while EGA is wrong
-    if ($row->{BIOSAMPLE_ID} eq 'SAMEA2201452') {
-      $row->{BIOSAMPLE_ID} = 'SAMEA2399275';
-    }
-
     my $xml_hash = XMLin($row->{RUN_XML});
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
     my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
