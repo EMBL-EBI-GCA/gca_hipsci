@@ -49,15 +49,17 @@ foreach my $study_id (@study_id) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? 'exomeseq'
             : die "did not recognise assay for $study_id";
-  my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
+  my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
             : die "did not recognise disease for $study_id";
+  my $filename_disease = lc($disease);
+  $filename_disease =~ s{[ -]}{_}g;
 
-  my $output = join('.', 'ENA', $study_id, $assay, $disease, 'run_files', 'tsv');
+  my $output = join('.', 'ENA', $study_id, $assay, $filename_disease, 'run_files', 'tsv');
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##ENA study title: ', $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}, "\n";
   print $fh "##ENA study ID: $study_id\n";
@@ -93,6 +95,9 @@ foreach my $study_id (@study_id) {
     if ($cgap_ips_line) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+    }
+    else {
+      $growing_conditions = $cell_type;
     }
 
     print $fh join("\t",

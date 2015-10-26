@@ -68,18 +68,20 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? 'gtarray'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? 'mtarray'
             : die "did not recognise assay for $study_id";
-  my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
+  my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
             : die "did not recognise disease for $study_id";
+  my $filename_disease = lc($disease);
+  $filename_disease =~ s{[ -]}{_}g;
 
   open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
   <$in_fh>;
 
-  my $output = join('.', 'EGA', $dataset_id, $assay, $disease, 'tsv');
+  my $output = join('.', 'EGA', $dataset_id, $assay, $filename_disease, 'tsv');
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##EGA study title: ', $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}, "\n";
   print $fh "##EGA dataset ID: $dataset_id\n";
@@ -122,6 +124,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                         : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                         : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                         : die "could not get growing conditions for @files";
+    }
+    else {
+      $growing_conditions = $cell_type;
     }
 
     FILE:

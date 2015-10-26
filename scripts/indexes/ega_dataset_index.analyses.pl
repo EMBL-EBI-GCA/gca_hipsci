@@ -60,15 +60,17 @@ foreach my $dataset_id (@dataset_id) {
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? 'exomeseq'
             : die "did not recognise assay for $dataset_id";
-  my $disease = $xml_hash->{DATASET}{TITLE} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{DATASET}{TITLE} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{DATASET}{TITLE} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /healthy/i ? 'healthy_volunteers'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /bardet\W*biedl/i ? 'bardet_biedl_syndrome'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /diabetes/i ? 'neonatal_diabetes_mellitus'
+  my $disease = $xml_hash->{DATASET}{TITLE} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{DATASET}{TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{DATASET}{TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
             : die "did not recognise disease for $dataset_id";
+  my $filename_disease = lc($disease);
+  $filename_disease =~ s{[ -]}{_}g;
 
-  my $output = join('.', 'EGA', $dataset_id, $assay, $disease, 'analysis_files', 'tsv');
+  my $output = join('.', 'EGA', $dataset_id, $assay, $filename_disease, 'analysis_files', 'tsv');
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##EGA dataset title: ', $xml_hash->{DATASET}{TITLE}, "\n";
   print $fh "##EGA dataset ID: $dataset_id\n";
@@ -111,6 +113,9 @@ foreach my $dataset_id (@dataset_id) {
     if ($cgap_ips_line) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+    }
+    else {
+      $growing_conditions = $cell_type;
     }
 
     FILE:
