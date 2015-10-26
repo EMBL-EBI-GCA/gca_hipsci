@@ -76,11 +76,9 @@ sub has_values {
   return (scalar grep {defined $_} values %$self) ? 1 : 0;
 }
 
-my %override_fd_qc1_lines;
-foreach my $override_line (qw(HPSI1113i-ieki_2 HPSI0513i-giuf_1 HPSI0913i-bulb_1 HPSI0513i-leeh_3 HPSI0513i-giuf_3 HPSI1113i-ieki_3
-          HPSI0713i-aehn_2 HPSI0613i-febc_2 HPSI0413i-iakz_1 HPSI1113i-nibo_3 HPSI1013i-funy_1 HPSI1113i-bima_2 HPSI0813i-iill_3
-          HPSI1013i-funy_3 HPSI0813i-iill_1 HPSI0713i-dard_2 HPSI1113i-bima_1 HPSI1113i-qolg_1 HPSI1113i-qolg_3)) {
-  $override_fd_qc1_lines{$override_line} = 1;
+my %override_ff_qc2_lines;
+foreach my $override_line (qw(HPSI0314i-sojd_2 HPSI0913i-lise_2 HPSI0314i-xugn_2)) {
+  $override_ff_qc2_lines{$override_line} = 1;
 }
 
 sub BUILD {
@@ -94,18 +92,16 @@ sub BUILD {
     push(@releases, ReseqTrack::Tools::HipSci::CGaPReport::Release->new(type => $types[$i], goal_time => $goal_times[$i], cell_state => $cell_states[$i]));
   }
 
-=cut
 
   # This is a temporary override and should be removed when lines in LIMs are fixed.
-  if ($override_fd_qc1_lines{$self->name}) {
+  if ($override_ff_qc2_lines{$self->name}) {
     foreach my $release (@releases) {
-      if ($release->is_qc1 && $release->is_feeder_free) {
-        $release->cell_state('FD induced pluripotent stem cell');
+      if ($release->is_qc2 && !$release->is_feeder_free) {
+        $release->cell_state('FF induced pluripotent stem cell');
       }
     }
   }
 
-=cut
 
   $self->release([sort {$b->goal_time cmp $a->goal_time} @releases]);
 }
