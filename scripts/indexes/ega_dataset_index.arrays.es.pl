@@ -140,9 +140,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
 
       my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'Imputed and phased genotypes'
                           : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
-                          : $ext eq 'idat' ? 'Array signal intensity signal data'
+                          : $ext eq 'idat' ? 'Array signal intensity data'
                           : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
-                          : $ext eq 'txt' && $short_assay eq 'gexarray' && $software ? $software.' Text file'
+                          : $ext eq 'txt' && $short_assay eq 'gexarray' && $software ? $software.' text file'
                           : die "did not recognise type of $filename";
 
       $files{$ext}{$file_description}{$filename} = $files[0];
@@ -187,8 +187,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
 }
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
-  type => 'assay',
+  type => 'file',
   search_type => 'scan',
+  scroll => '5m',
   size => 500,
   body => {
     query => {
@@ -206,8 +207,8 @@ my $scroll = $elasticsearch->call('scroll_helper', (
 my $date = strftime('%Y%m%d', localtime);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  next ES_DOC if $es_doc->{_source}{file}{accessionType} && CORE::fc($es_doc->{_source}{file}{accessionType}) eq CORE::fc('ANALYSIS_ID');
-  next ES_DOC if $es_doc->{_source}{file}{accessionType} && CORE::fc($es_doc->{_source}{file}{accessionType}) eq CORE::fc('RUN_ID');
+  next ES_DOC if $es_doc->{_source}{archive}{accessionType} && CORE::fc($es_doc->{_source}{archive}{accessionType}) eq CORE::fc('ANALYSIS_ID');
+  next ES_DOC if $es_doc->{_source}{archive}{accessionType} && CORE::fc($es_doc->{_source}{archive}{accessionType}) eq CORE::fc('RUN_ID');
   my $new_doc = $docs{$es_doc->{_id}};
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
@@ -219,7 +220,7 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
   $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_assay(id => $es_doc->{_id}, body => $new_doc);
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
 while (my ($es_id, $new_doc) = each %docs) {
   $new_doc->{_indexCreated} = $date;

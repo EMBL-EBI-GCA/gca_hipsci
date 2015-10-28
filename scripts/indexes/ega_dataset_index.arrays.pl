@@ -144,7 +144,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
 
       my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'imputed and phased genotypes'
                           : $ext eq 'vcf' ? 'genotype calls vcf format'
-                          : $ext eq 'idat' ? 'array signal intensity signal data'
+                          : $ext eq 'idat' ? 'array signal intensity data'
                           : $ext eq 'gtc' ? 'genotype calls gtc format'
                           : $ext eq 'txt' && $assay eq 'mtarray' ? 'text file with probe intensities'
                           : undef;

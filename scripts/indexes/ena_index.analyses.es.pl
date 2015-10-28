@@ -169,7 +169,7 @@ foreach my $study_id (@study_id) {
 }
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
-  type => 'assay',
+  type => 'file',
   search_type => 'scan',
   size => 500,
   body => {
@@ -204,7 +204,7 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
   $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_assay(id => $es_doc->{_id}, body => $new_doc);
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
 while (my ($es_id, $new_doc) = each %docs) {
   $new_doc->{_indexCreated} = $date;
