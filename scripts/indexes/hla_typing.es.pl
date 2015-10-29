@@ -103,7 +103,7 @@ foreach my $file_set (values %file_sets) {
     my $disease = $cgap_tissue->donor->disease;
     $disease = $disease eq 'normal' ? 'Normal'
             : $disease =~ /bardet-/ ? 'Bardet-Biedl'
-            : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
+            : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
             : die "did not recognise disease $disease";
 
     my %sample = (

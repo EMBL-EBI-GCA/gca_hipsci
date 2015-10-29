@@ -69,7 +69,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
                   : die "did not recognise disease $disease";
       my $disease_value = $disease eq 'normal' ? 'Normal'
                   : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
-                  : $disease eq 'neonatal diabetes' ? 'Neonatal diabetes mellitus'
+                  : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
                   : die "did not recognise disease $disease";
 
       $donor_update->{diseaseStatus} = {
