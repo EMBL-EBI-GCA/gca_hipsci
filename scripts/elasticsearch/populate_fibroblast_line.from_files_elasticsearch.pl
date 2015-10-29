@@ -48,12 +48,12 @@ my %nonipsc_celllines;
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'file',
     search_type => 'scan',
     size        => 500
   );
   TISSUE:
   while ( my $doc = $scroll->next ) {
-    next TISSUE if ($$doc{'_type'} ne 'file');
     SAMPLE:
     foreach my $sample (@{$$doc{'_source'}{'samples'}}){
       next SAMPLE if $$sample{'cellType'} eq 'iPSC';

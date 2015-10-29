@@ -51,13 +51,13 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $donor_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'donor',
     search_type => 'scan',
     size        => 500
   );
 
   DONOR:
   while ( my $doc = $scroll->next ) {
-    next DONOR if ($$doc{'_type'} ne 'donor');
     my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
     my $donor_name = $$doc{'_source'}{'name'};
     my $donor_update = {};

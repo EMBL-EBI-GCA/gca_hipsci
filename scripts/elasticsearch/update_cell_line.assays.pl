@@ -99,13 +99,13 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'cellLine',
     search_type => 'scan',
     size        => 500
   );
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
-    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
     my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
     my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
     foreach my $key (keys %assay_name_map){
