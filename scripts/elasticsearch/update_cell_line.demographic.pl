@@ -37,6 +37,8 @@ my $cgap_donors = read_cgap_report()->{donors};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %donors;
+my %all_updates_donor;
+my %all_update_cellline;
 
 my %cgap_donors_hash;
 DONOR:
@@ -45,59 +47,73 @@ foreach my $donor (@{$cgap_donors}) {
   $cgap_donors_hash{$donor->biosample_id}=$donor;
 }
 
+my $scroll = $elasticsearch{$es_host[0]}->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'donor',
+  search_type => 'scan',
+  size        => 500
+);
+
+DONOR:
+while ( my $doc = $scroll->next ) {
+  my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
+  my $donor_name = $$doc{'_source'}{'name'};
+  my $donor_update = {};
+  my $cell_line_update = {};
+  if (my $disease = $donor->disease) {
+    my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
+                : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
+                : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
+                : die "did not recognise disease $disease";
+    my $disease_value = $disease eq 'normal' ? 'Normal'
+                : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
+                : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
+                : die "did not recognise disease $disease";
+
+    $donor_update->{diseaseStatus} = {
+      value => $disease_value,
+      ontologyPURL => $purl,
+    };
+    $cell_line_update->{diseaseStatus} = $donor_update->{diseaseStatus};
+  }
+  if (my $sex = $donor->gender) {
+    my %sex_hash = (
+      value => ucfirst($sex),
+      ontologyPURL => $sex eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
+                      : $sex eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
+                      : undef,
+    );
+    $donor_update->{sex} = \%sex_hash;
+    $cell_line_update->{donor}{sex} = \%sex_hash;
+  }
+  if (my $age = $donor->age) {
+    $donor_update->{age} = $age;
+    $cell_line_update->{donor}{age} = $age;
+  }
+  if (my $ethnicity = $donor->ethnicity) {
+    $ethnicity = Text::Capitalize::capitalize($ethnicity);
+    $donor_update->{ethnicity} = $ethnicity;
+    $cell_line_update->{donor}{ethnicity} = $ethnicity;
+  }
+  $all_updates_donor{$$doc{'_source'}{'name'}} = $donor_update;
+  $all_update_cellline{$$doc{'_source'}{'name'}} = $cell_line_update;
+}
+
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
   my $cell_uptodate = 0;
   my $donor_updated = 0;
   my $donor_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
-    index       => 'hipsci',
-    type        => 'donor',
-    search_type => 'scan',
-    size        => 500
+  index       => 'hipsci',
+  type        => 'donor',
+  search_type => 'scan',
+  size        => 500
   );
-
-  DONOR:
   while ( my $doc = $scroll->next ) {
+    my $donor_update = $all_updates_donor{$$doc{'_source'}{'name'}};
+    my $cell_line_update = $all_update_cellline{$$doc{'_source'}{'name'}};
     my $donor = $cgap_donors_hash{$$doc{'_source'}{'bioSamplesAccession'}};
-    my $donor_name = $$doc{'_source'}{'name'};
-    my $donor_update = {};
-    my $cell_line_update = {};
-    if (my $disease = $donor->disease) {
-      my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
-                  : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                  : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
-                  : die "did not recognise disease $disease";
-      my $disease_value = $disease eq 'normal' ? 'Normal'
-                  : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
-                  : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
-                  : die "did not recognise disease $disease";
-
-      $donor_update->{diseaseStatus} = {
-        value => $disease_value,
-        ontologyPURL => $purl,
-      };
-      $cell_line_update->{diseaseStatus} = $donor_update->{diseaseStatus};
-    }
-    if (my $sex = $donor->gender) {
-      my %sex_hash = (
-        value => ucfirst($sex),
-        ontologyPURL => $sex eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
-                        : $sex eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
-                        : undef,
-      );
-      $donor_update->{sex} = \%sex_hash;
-      $cell_line_update->{donor}{sex} = \%sex_hash;
-    }
-    if (my $age = $donor->age) {
-      $donor_update->{age} = $age;
-      $cell_line_update->{donor}{age} = $age;
-    }
-    if (my $ethnicity = $donor->ethnicity) {
-      $ethnicity = Text::Capitalize::capitalize($ethnicity);
-      $donor_update->{ethnicity} = $ethnicity;
-      $cell_line_update->{donor}{ethnicity} = $ethnicity;
-    }
     my $update = clone $doc;
     delete $$update{'_source'}{'diseaseStatus'};
     delete $$update{'_source'}{'sex'};
@@ -110,7 +126,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       $donor_uptodate++;
     }else{ 
       $$update{'_source'}{'_indexUpdated'} = $date;
-        $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
+        $elasticsearchserver->index_donor(id => $$doc{'_source'}{'name'}, body => $$update{'_source'});
       $donor_updated++;
     }
     foreach my $tissue (@{$donor->tissues}) {

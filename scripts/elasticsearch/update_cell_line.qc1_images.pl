@@ -45,52 +45,52 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -dbname => $dbname,
   -pass => $dbpass,
 );
-while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
-  my %cell_line_updates;
-  my $fa = $db->get_FileAdaptor;
-  foreach my $file_type (@file_types) {
-    CELL_LINE:
-    foreach my $file (@{$fa->fetch_by_type($file_type)}) {
-      next CELL_LINE if $file->withdrawn;
-      my $filepath = $file->name;
-      next CELL_LINE if $filepath !~ /\.png$/;
-      next CELL_LINE if $filepath =~ /withdrawn/;
-      next CELL_LINE if $filepath !~ m{/qc1_images/};
-      my $filename = fileparse($filepath);
-      my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
-      next CELL_LINE if !$sample_name;
-      my @cell_line_names = ($sample_name);
-      if ($sample_name =~ /HPSI-/) {
-        my $donor_exists = $elasticsearchserver->call('exists',
-          index => 'hipsci',
-          type => 'donor',
-          id => $sample_name
-        );
-        next CELL_LINE if !$donor_exists;
-        my $donor = $elasticsearchserver->fetch_donor_by_name($sample_name);
-        @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
-      }
 
-      $filepath =~ s{$trim}{};
-      foreach my $cell_line_name (@cell_line_names) {
-        if ($filename =~ /\.pluritest\.novelty_score\./) {
-          $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
-        }
-        elsif ($filename =~ /\.pluritest\.pluripotency_score\./) {
-          $cell_line_updates{$cell_line_name}{pluritest}{pluripotency_image} = $filepath;
-        }
-        elsif ($filename =~ /\.copy_number\./) {
-          $cell_line_updates{$cell_line_name}{cnv}{summary_image} = $filepath;
-        }
-        elsif ($filename =~ /\.cnv_aberrant_regions\./) {
-          $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
-          push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
-        }
+my %cell_line_updates;
+my $fa = $db->get_FileAdaptor;
+foreach my $file_type (@file_types) {
+  CELL_LINE:
+  foreach my $file (@{$fa->fetch_by_type($file_type)}) {
+    next CELL_LINE if $file->withdrawn;
+    my $filepath = $file->name;
+    next CELL_LINE if $filepath !~ /\.png$/;
+    next CELL_LINE if $filepath =~ /withdrawn/;
+    next CELL_LINE if $filepath !~ m{/qc1_images/};
+    my $filename = fileparse($filepath);
+    my ($sample_name) = $filename =~ /^(HPSI[^\.]*)\./;
+    next CELL_LINE if !$sample_name;
+    my @cell_line_names = ($sample_name);
+    if ($sample_name =~ /HPSI-/) {
+      my $donor_exists = $elasticsearch{$es_host[0]}->call('exists',
+        index => 'hipsci',
+        type => 'donor',
+        id => $sample_name
+      );
+      next CELL_LINE if !$donor_exists;
+      my $donor = $elasticsearch{$es_host[0]}->fetch_donor_by_name($sample_name);
+      @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
+    }
+
+    $filepath =~ s{$trim}{};
+    foreach my $cell_line_name (@cell_line_names) {
+      if ($filename =~ /\.pluritest\.novelty_score\./) {
+        $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
+      }
+      elsif ($filename =~ /\.pluritest\.pluripotency_score\./) {
+        $cell_line_updates{$cell_line_name}{pluritest}{pluripotency_image} = $filepath;
+      }
+      elsif ($filename =~ /\.copy_number\./) {
+        $cell_line_updates{$cell_line_name}{cnv}{summary_image} = $filepath;
+      }
+      elsif ($filename =~ /\.cnv_aberrant_regions\./) {
+        $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
+        push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
       }
     }
   }
+}
 
-
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
   my $cell_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
