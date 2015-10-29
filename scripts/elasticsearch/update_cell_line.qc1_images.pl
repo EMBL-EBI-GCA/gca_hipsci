@@ -78,6 +78,9 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
         elsif ($filename =~ /\.pluritest\.pluripotency_score\./) {
           $cell_line_updates{$cell_line_name}{pluritest}{pluripotency_image} = $filepath;
         }
+        elsif ($filename =~ /\.copy_number\./) {
+          $cell_line_updates{$cell_line_name}{cnv}{summary_image} = $filepath;
+        }
         elsif ($filename =~ /\.cnv_aberrant_regions\./) {
           $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
           push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
@@ -100,6 +103,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
     my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
     delete $$update{'_source'}{'cnv'}{aberrant_images};
+    delete $$update{'_source'}{'cnv'}{summary_image};
     if (! scalar keys $$update{'_source'}{'cnv'}){
       delete $$update{'_source'}{'cnv'};
     }
@@ -108,8 +112,14 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     if (! scalar keys $$update{'_source'}{'pluritest'}){
       delete $$update{'_source'}{'pluritest'};
     }
-    if ($cell_line_updates{$$doc{'_source'}{'name'}}){
-      my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};
+    if (my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}}){
+
+      # Only add a cnv summary image if we know the cell line has cnv information
+      # We do this because cnv images are per-donor
+      if ($lineupdate->{cnv}{summary_image} && !$update->{_source}{cnv}) {
+        delete $lineupdate->{cnv}{summary_image};
+      }
+
       foreach my $field (keys $lineupdate){
         foreach my $subfield (keys $$lineupdate{$field}){
           $$update{'_source'}{$field}{$subfield} = $$lineupdate{$field}{$subfield};
