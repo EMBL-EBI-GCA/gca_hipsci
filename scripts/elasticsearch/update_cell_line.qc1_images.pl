@@ -8,6 +8,7 @@ use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(fileparse);
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -101,7 +102,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
-    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    my $update = clone $doc;
     delete $$update{'_source'}{'cnv'}{aberrant_images};
     delete $$update{'_source'}{'cnv'}{summary_image};
     if (! scalar keys $$update{'_source'}{'cnv'}){

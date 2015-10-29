@@ -9,6 +9,7 @@ use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use List::Util qw();
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -176,7 +177,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     );
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_line_by_name($sample_index->{name});
-      my $update = $elasticsearchserver->fetch_line_by_name($sample_index->{name});
+      my $update = clone $original;
       delete $$update{'_source'}{'name'}; 
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'donor'}{'name'}; 
@@ -240,7 +241,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     );
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_donor_by_name($donor_name);
-      my $update = $elasticsearchserver->fetch_donor_by_name($donor_name);
+      my $update = clone $original;
       delete $$update{'_source'}{'name'}; 
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'cellLines'}; 

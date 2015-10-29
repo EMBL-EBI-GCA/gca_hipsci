@@ -8,8 +8,7 @@ use Getopt::Long;
 use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Data::Compare;
-use Data::Dumper;
-
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -115,7 +114,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     );
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_line_by_name($nonipsc_linename);
-      my $update = $elasticsearchserver->fetch_line_by_name($nonipsc_linename);
+      my $update = clone $original;
       delete $$update{'_source'}{'name'}; 
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'donor'}{'name'}; 

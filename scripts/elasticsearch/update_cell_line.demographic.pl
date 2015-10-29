@@ -9,6 +9,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(impro
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Text::Capitalize qw();
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -97,7 +98,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       $donor_update->{ethnicity} = $ethnicity;
       $cell_line_update->{donor}{ethnicity} = $ethnicity;
     }
-    my $update = $elasticsearchserver->fetch_donor_by_name($donor_name);
+    my $update = clone $doc;
     delete $$update{'_source'}{'diseaseStatus'};
     delete $$update{'_source'}{'sex'};
     delete $$update{'_source'}{'age'};
@@ -122,7 +123,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
         );
         next CELL_LINE if !$line_exists;
         my $original = $elasticsearchserver->fetch_line_by_name($cell_line);
-        my $update = $elasticsearchserver->fetch_line_by_name($cell_line);
+        my $update = clone $original;
         delete $$update{'_source'}{'diseaseStatus'};
         delete $$update{'_source'}{'donor'}{'sex'};
         delete $$update{'_source'}{'donor'}{'age'};

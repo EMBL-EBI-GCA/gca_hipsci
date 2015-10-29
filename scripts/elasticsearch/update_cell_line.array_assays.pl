@@ -8,6 +8,7 @@ use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use File::Basename qw(fileparse);
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -79,7 +80,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
     my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
-    my $update = $elasticsearchserver ->fetch_line_by_name($$doc{'_source'}{'name'});
+    my $update = clone $doc;
     foreach my $key (keys %assay_name_map){
       delete $$update{'_source'}{'assays'}{$key};
     }
