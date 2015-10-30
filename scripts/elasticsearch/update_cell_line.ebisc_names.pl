@@ -7,6 +7,7 @@ use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::EBiSC::hESCreg;
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -55,14 +56,14 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'cellLine',
     search_type => 'scan',
     size        => 500
   );
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
-    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    my $update = clone $doc;
     delete $$update{'_source'}{'ebiscName'};
     if ($ebisc_names{$$doc{'_source'}{'name'}}){
       $$update{'_source'}{'ebiscName'} = $ebisc_names{$$doc{'_source'}{'name'}};

@@ -51,12 +51,12 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_uptodate = 0;
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'file',
     search_type => 'scan',
     size        => 500
   );
   TISSUE:
   while ( my $doc = $scroll->next ) {
-    next TISSUE if ($$doc{'_type'} ne 'file');
     SAMPLE:
     foreach my $sample (@{$$doc{'_source'}{'samples'}}){
       next SAMPLE if $$sample{'cellType'} eq 'iPSC';
@@ -73,26 +73,35 @@ my $alert_message = 0;
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $scroll = $elasticsearchserver->call('scroll_helper',
   index       => 'hipsci',
+  type        => 'cellLine',
   search_type => 'scan',
   size        => 500
   );
   while ( my $doc = $scroll->next ) {
-    if ($$doc{'_type'} eq 'cellLine') {
-      if ($cellLines{$$doc{'_source'}{'bioSamplesAccession'}}){
-        $cell_uptodate++;
-      }else{
-        print_alert() if !$alert_message;
-        print "curl -XDELETE http://$host/hipsci/$$doc{'_type'}/$$doc{'_source'}{'name'}\n";
-        $cell_deleted++;
-      }
-    }elsif ($$doc{'_type'} eq 'donor') {
-      if ($donors{$$doc{'_source'}{'bioSamplesAccession'}}) {
-        $donor_uptodate++;
-      }else{
-        print_alert() if !$alert_message;
-        print "curl -XDELETE http://$host/hipsci/$$doc{'_type'}/$$doc{'_source'}{'name'}\n";
-        $donor_deleted++;
-      }
+    if ($cellLines{$$doc{'_source'}{'bioSamplesAccession'}}){
+      $cell_uptodate++;
+    }else{
+      print_alert() if !$alert_message;
+      print "curl -XDELETE http://$host/hipsci/$$doc{'_type'}/$$doc{'_source'}{'name'}\n";
+      $cell_deleted++;
+    }
+  }
+}
+
+while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+  my $scroll = $elasticsearchserver->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'donor',
+  search_type => 'scan',
+  size        => 500
+  );
+  while ( my $doc = $scroll->next ) {
+    if ($donors{$$doc{'_source'}{'bioSamplesAccession'}}) {
+      $donor_uptodate++;
+    }else{
+      print_alert() if !$alert_message;
+      print "curl -XDELETE http://$host/hipsci/$$doc{'_type'}/$$doc{'_source'}{'name'}\n";
+      $donor_deleted++;
     }
   }
 }

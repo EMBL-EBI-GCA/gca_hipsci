@@ -8,6 +8,7 @@ use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(dirname);
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -82,14 +83,14 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
 
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'cellLine',
     search_type => 'scan',
     size        => 500
   );
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
-    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    my $update = clone $doc;
     delete $$update{'_source'}{'hlaTyping'};
     if ($cell_line_updates{$$doc{'_source'}{'name'}}){
       my $lineupdate = $cell_line_updates{$$doc{'_source'}{'name'}};

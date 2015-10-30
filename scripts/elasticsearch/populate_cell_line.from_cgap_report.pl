@@ -9,6 +9,7 @@ use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use List::Util qw();
 use Data::Compare;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -39,6 +40,128 @@ foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 
+my %all_samples;
+my %donors;
+CELL_LINE:
+foreach my $ips_line (@{$cgap_ips_lines}) {
+  next CELL_LINE if ! $ips_line->biosample_id;
+  next CELL_LINE if $ips_line->name !~ /^HPSI\d{4}i-/;
+  my $biosample = BioSD::fetch_sample($ips_line->biosample_id);
+  next CELL_LINE if !$biosample;
+  my $tissue = $ips_line->tissue;
+  my $donor = $tissue->donor;
+  my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
+  my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
+  my $source_material = $tissue->tissue_type;
+  my $sample_index = {};
+  $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
+  $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
+  $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
+                            bioSamplesAccession => $donor->biosample_id};
+  
+  $sample_index->{'cellType'}->{value} = "iPSC";
+  $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
+  
+  $sample_index->{'sourceMaterial'} = {
+    value => $source_material,
+  };
+  if (my $cell_type_property = $tissue_biosample->property('cell type')) {
+    my $cell_type_qual_val = $cell_type_property->qualified_values()->[0];
+    my $cell_type_purl = $cell_type_qual_val->term_source()->term_source_id();
+    if ($cell_type_purl !~ /^http:/) {
+      $cell_type_purl = $cell_type_qual_val->term_source()->uri() . $cell_type_purl;
+    }
+    if (ucfirst(lc($cell_type_qual_val->value())) eq "Pbmc"){
+      $sample_index->{'sourceMaterial'}->{cellType} = "PBMC";
+    }else{
+      $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
+    }
+    $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
+  }
+
+=cut 
+
+  if (my $qc1_release = List::Util::first {$_->is_qc1} @{$ips_line->release}) {
+    $sample_index->{'growingConditionsQC1'} = $qc1_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
+  }
+  if (my $qc2_release = List::Util::first {$_->is_qc2} @{$ips_line->release}) {
+    $sample_index->{'growingConditionsQC2'} = $qc2_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
+  }
+
+=cut
+
+  if (my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
+                          || (List::Util::first {$_->type =~ /ebisc/i } @{$ips_line->release})
+                          || $ips_line->genomics_selection_status ? (List::Util::first {$_->is_qc2 } @{$ips_line->release}) : undef
+                                                                  ) {
+    if ($bank_release->is_feeder_free) {
+      $sample_index->{'culture'} = {
+        medium => 'E8 media',
+        passageMethod => 'EDTA clump passaging',
+        surfaceCoating => 'vitronectin',
+        CO2 => '5%',
+      };
+    }
+    else {
+      $sample_index->{'culture'} = {
+        medium => 'KOSR',
+        passageMethod => 'collagenase and dispase',
+        surfaceCoating => 'Mouse embryo fibroblast (MEF) feeder cells',
+        CO2 => '5%',
+      };
+    }
+  }
+
+  if (my $method_property = $biosample->property('method of derivation')) {
+    my $method_of_derivation = $method_property->values->[0];
+
+    if ($method_of_derivation =~ /cytotune/i) {
+      $sample_index->{'reprogramming'} = {
+        methodOfDerivation => $method_of_derivation,
+        type => 'non-integrating virus',
+        virus => 'sendai',
+      }
+    }
+    elsif ($method_of_derivation =~ /episomal/i) {
+      $sample_index->{'reprogramming'} = {
+        methodOfDerivation => $method_of_derivation,
+        type => 'non-integrating vector',
+        vector => 'episomal',
+      }
+    }
+    elsif ($method_of_derivation =~ /retrovirus/i) {
+      $sample_index->{'reprogramming'} = {
+        methodOfDerivation => $method_of_derivation,
+        type => 'integrating virus',
+        virus => 'retrovirus',
+      }
+    }
+  }
+  if (my $date_property = $biosample->property('date of derivation')) {
+    $sample_index->{'reprogramming'}{'dateOfDerivation'} = $date_property->values->[0];
+  }
+
+  if (my $biomaterial_provider = $biomaterial_provider_hash{$donor->hmdmc}) {
+    $sample_index->{'tissueProvider'} = $biomaterial_provider;
+  }
+  $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
+
+  my @bankingStatus;
+  push(@bankingStatus, 'Banked at ECACC') if 0;
+  push(@bankingStatus, 'Banked at EBiSC') if 0;
+  if ($ips_line->genomics_selection_status) {
+    push(@bankingStatus, 'Selected for banking');
+  }
+  elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
+    push(@bankingStatus, 'Not selected');
+  }
+  else {
+    push(@bankingStatus, 'Pending selection');
+  }
+  push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && $sample_index->{'openAccess'};
+  $sample_index->{'bankingStatus'} = \@bankingStatus;
+  $all_samples{$ips_line} = $sample_index;
+}
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_created = 0;
@@ -47,8 +170,6 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $donor_created = 0;
   my $donor_updated = 0;
   my $donor_uptodate = 0;
-
-  my %donors;
   CELL_LINE:
   foreach my $ips_line (@{$cgap_ips_lines}) {
     next CELL_LINE if ! $ips_line->biosample_id;
@@ -57,118 +178,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     next CELL_LINE if !$biosample;
     my $tissue = $ips_line->tissue;
     my $donor = $tissue->donor;
-    my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
-    my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
-    my $source_material = $tissue->tissue_type;
-    my $sample_index = {};
-    $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
-    $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
-    $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
-                              bioSamplesAccession => $donor->biosample_id};
-    
-    $sample_index->{'cellType'}->{value} = "iPSC";
-    $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
-    
-    $sample_index->{'sourceMaterial'} = {
-      value => $source_material,
-    };
-    if (my $cell_type_property = $tissue_biosample->property('cell type')) {
-      my $cell_type_qual_val = $cell_type_property->qualified_values()->[0];
-      my $cell_type_purl = $cell_type_qual_val->term_source()->term_source_id();
-      if ($cell_type_purl !~ /^http:/) {
-        $cell_type_purl = $cell_type_qual_val->term_source()->uri() . $cell_type_purl;
-      }
-      if (ucfirst(lc($cell_type_qual_val->value())) eq "Pbmc"){
-        $sample_index->{'sourceMaterial'}->{cellType} = "PBMC";
-      }else{
-        $sample_index->{'sourceMaterial'}->{cellType} = ucfirst(lc($cell_type_qual_val->value()));
-      }
-      $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
-    }
-
-=cut 
-
-    if (my $qc1_release = List::Util::first {$_->is_qc1} @{$ips_line->release}) {
-      $sample_index->{'growingConditionsQC1'} = $qc1_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
-    }
-    if (my $qc2_release = List::Util::first {$_->is_qc2} @{$ips_line->release}) {
-      $sample_index->{'growingConditionsQC2'} = $qc2_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
-    }
-
-=cut
-
-    if (my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
-                            || (List::Util::first {$_->type =~ /ebisc/i } @{$ips_line->release})
-                            || $ips_line->genomics_selection_status ? (List::Util::first {$_->is_qc2 } @{$ips_line->release}) : undef
-                                                                    ) {
-      if ($bank_release->is_feeder_free) {
-        $sample_index->{'culture'} = {
-          medium => 'E8 media',
-          passageMethod => 'EDTA clump passaging',
-          surfaceCoating => 'vitronectin',
-          CO2 => '5%',
-        };
-      }
-      else {
-        $sample_index->{'culture'} = {
-          medium => 'KOSR',
-          passageMethod => 'collagenase and dispase',
-          surfaceCoating => 'Mouse embryo fibroblast (MEF) feeder cells',
-          CO2 => '5%',
-        };
-      }
-    }
-
-    if (my $method_property = $biosample->property('method of derivation')) {
-      my $method_of_derivation = $method_property->values->[0];
-
-      if ($method_of_derivation =~ /cytotune/i) {
-        $sample_index->{'reprogramming'} = {
-          methodOfDerivation => $method_of_derivation,
-          type => 'non-integrating virus',
-          virus => 'sendai',
-        }
-      }
-      elsif ($method_of_derivation =~ /episomal/i) {
-        $sample_index->{'reprogramming'} = {
-          methodOfDerivation => $method_of_derivation,
-          type => 'non-integrating vector',
-          vector => 'episomal',
-        }
-      }
-      elsif ($method_of_derivation =~ /retrovirus/i) {
-        $sample_index->{'reprogramming'} = {
-          methodOfDerivation => $method_of_derivation,
-          type => 'integrating virus',
-          virus => 'retrovirus',
-        }
-      }
-    }
-    if (my $date_property = $biosample->property('date of derivation')) {
-      $sample_index->{'reprogramming'}{'dateOfDerivation'} = $date_property->values->[0];
-    }
-
-    if (my $biomaterial_provider = $biomaterial_provider_hash{$donor->hmdmc}) {
-      $sample_index->{'tissueProvider'} = $biomaterial_provider;
-    }
-    $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
-
-    my @bankingStatus;
-    push(@bankingStatus, 'Banked at ECACC') if 0;
-    push(@bankingStatus, 'Banked at EBiSC') if 0;
-    if ($ips_line->genomics_selection_status) {
-      push(@bankingStatus, 'Selected for banking');
-    }
-    elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
-      push(@bankingStatus, 'Not selected');
-    }
-    else {
-      push(@bankingStatus, 'Pending selection');
-    }
-    push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && $sample_index->{'openAccess'};
-    $sample_index->{'bankingStatus'} = \@bankingStatus;
-
-
+    my $sample_index = $all_samples{$ips_line};
     my $line_exists = $elasticsearchserver->call('exists',
       index => 'hipsci',
       type => 'cellLine',
@@ -176,7 +186,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     );
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_line_by_name($sample_index->{name});
-      my $update = $elasticsearchserver->fetch_line_by_name($sample_index->{name});
+      my $update = clone $original;
       delete $$update{'_source'}{'name'}; 
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'donor'}{'name'}; 
@@ -240,7 +250,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     );
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_donor_by_name($donor_name);
-      my $update = $elasticsearchserver->fetch_donor_by_name($donor_name);
+      my $update = clone $original;
       delete $$update{'_source'}{'name'}; 
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'cellLines'}; 

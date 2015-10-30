@@ -10,6 +10,7 @@ use File::Basename qw(fileparse);
 use Data::Compare;
 use Data::Dumper;
 use File::Basename;
+use Clone qw(clone);
 use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
@@ -62,14 +63,14 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
 
   my $scroll = $elasticsearchserver->call('scroll_helper',
     index       => 'hipsci',
+    type        => 'cellLine',
     search_type => 'scan',
     size        => 500
   );
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
-    next CELL_LINE if ($$doc{'_type'} ne 'cellLine');
-    my $update = $elasticsearchserver->fetch_line_by_name($$doc{'_source'}{'name'});
+    my $update = clone $doc;
     delete $$update{'_source'}{'certificateOfAnalysis'};
     if ($coa_urls{$$doc{'_source'}{'name'}}){
       $$update{'_source'}{'certificateOfAnalysis'}{'url'} = $coa_urls{$$doc{'_source'}{'name'}};
