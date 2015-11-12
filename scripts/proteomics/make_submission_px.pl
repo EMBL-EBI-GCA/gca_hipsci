@@ -4,12 +4,10 @@ use strict;
 
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(dirname fileparse);
-use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
-use BioSD;
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use Getopt::Long;
 use JSON;
-
-#$BioSD::root_url = 'http://beans.ebi.ac.uk:8280/biosamples/xml';
+use feature 'fc';
 
 $| = 1;
 
@@ -19,6 +17,7 @@ my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
 my $json_file = 'dev_exp.json';
+my $es_host='ves-pg-e3:9200';
 my $peptracker_id;
 
 &GetOptions( 
@@ -27,8 +26,12 @@ my $peptracker_id;
 	    'dbuser=s'      => \$dbuser,
 	    'dbpass=s'      => \$dbpass,
 	    'dbport=s'      => \$dbport,
+	    'json_file=s'   => \$json_file,
 	    'peptracker_id=s'      => \$peptracker_id,
+            'es_host=s' => \$es_host,
     );
+
+my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my %fasta_map = (
               #contaminant => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/contaminant_proteins.fasta',
@@ -36,7 +39,7 @@ my %fasta_map = (
               uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_sp_human_120712.contam.rev-nonsense.decoy.fasta',
               );
 my %disease_map = (
-  'neonatal diabetes' => 'DOID:11717',
+  'monogenic diabetes' => 'DOID:9351',
   'bardet-biedl syndrome' => 'DOID:1935',
 );
 
@@ -56,15 +59,42 @@ my $dundee_json = parse_json($json_file);
   #exit;
 #}
 my ($sample_set) = grep {$_->{sample_groups}->[0]->{samples}->[0]->{sample_identifier} =~ $peptracker_id} @{$dundee_json->{sample_sets}};
-my $cell_line_short_name = $sample_set->{sample_groups}->[0]->{details}->{ips_cells}->[0]->{name};
-die "did not get cell line short name" if !$cell_line_short_name;
-my ($ips_line) = grep {$_->name =~ /${cell_line_short_name}$/} @{read_cgap_report()->{ips_lines}};
-die "did not get cell line short name" if !$ips_line;
-my $ips_biosample = BioSD::fetch_sample($ips_line->biosample_id);
-die 'did not get biosample '.$ips_line->biosample_id if !$ips_biosample;
-my $cell_line_name = $ips_line->name;
-my $tissue = $ips_line->tissue;
-my $donor = $tissue->donor;
+my $cell_line_name = $sample_set->{sample_groups}->[0]->{details}->{ips_cells}->[0]->{name};
+die "did not get cell line name" if !$cell_line_name;
+print $cell_line_name, "\n";
+
+my $ips_line = $elasticsearch->call('search',(
+  index => 'hipsci', type => 'cellLine',
+  body => {
+    query => {
+      match => {
+        'searchable.fixed' => $cell_line_name
+      }
+    }
+  }
+))->{hits}{hits}->[0];
+
+my $donor = $elasticsearch->fetch_donor_by_name($ips_line->{_source}{donor}{name});
+my $proteomics_files = $elasticsearch->call('search',(
+  index => 'hipsci', type => 'file',
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          and => [
+            {term => {
+              'assay.type' => 'Proteomics'
+            }},
+            {term => {
+              'samples.name' => $cell_line_name
+            }},
+          ]
+        }
+      }
+    }
+  }
+));
+my $proteomics_file = $proteomics_files->{hits}{hits}->[0];
 
 my $fa = $db->get_FileAdaptor;
 my $files = $fa->fetch_by_filename('%'.$peptracker_id.'%');
@@ -156,11 +186,11 @@ print join("\t", 'MTD', 'lab_head_email', 'a.i.lamond@dundee.ac.uk'), "\n";
 print join("\t", 'MTD', 'lab_head_affiliation', 'College of Life Sciences, University of Dundee'), "\n";
 print join("\t", 'MTD', 'submitter_pride_login', 'hipsci@ebi.ac.uk'), "\n";
 print join("\t", 'MTD', 'project_title', "$cell_line_name IPS cell line from HipSci"), "\n";
-print join("\t", 'MTD', 'project_description', return_project_description(biosample => $ips_biosample)), "\n";
+print join("\t", 'MTD', 'project_description', return_project_description(cell_line => $ips_line, donor => $donor, file => $proteomics_file)), "\n";
 print join("\t", 'MTD', 'project_tag', 'HipSci'), "\n";
 print join("\t", 'MTD', 'sample_processing_protocol', return_sample_procesesing_protocol(num_raw_files=>scalar @{$files{raw}})), "\n";
 print join("\t", 'MTD', 'data_processing_protocol', return_data_procesesing_protocol()), "\n";
-print join("\t", 'MTD', 'other_omics_link', 'http://www.ebi.ac.uk/biosamples/sample/'.$ips_line->biosample_id), "\n";
+print join("\t", 'MTD', 'other_omics_link', 'http://www.ebi.ac.uk/biosamples/sample/'.$ips_line->{_source}{bioSamplesAccession}), "\n";
 print join("\t", 'MTD', 'keywords', 'Human, IPS cells, pluripotent, HPLC fractionation (SAX), label free quantitative proteomics'), "\n";
 print join("\t", 'MTD', 'submission_type', 'COMPLETE'), "\n";
 print join("\t", 'MTD', 'experiment_type', '[PRIDE, PRIDE:0000429, Shotgun proteomics,]'), "\n";
@@ -168,9 +198,9 @@ print join("\t", 'MTD', 'species', '[NEWT, 9606, Homo sapiens (Human),]'), "\n";
 print join("\t", 'MTD', 'tissue', '[PRIDE, PRIDE:0000442, Tissue not applicable to dataset,]'), "\n";
 print join("\t", 'MTD', 'cell_type', '[CL, CL:0001034, cell in vitro,]'), "\n";
 
-my $disease = $ips_biosample->property('disease state')->values()->[0];
-if ($disease ne 'normal') {
-  my $disease_id = $disease_map{$disease};
+my $disease = $ips_line->{_source}{diseaseStatus}{value};
+if (fc($disease) ne fc('normal')) {
+  my $disease_id = $disease_map{lc($disease)};
   die "did not recognise disease $disease" if !$disease_id;
   print join("\t", 'MTD', 'disease', sprintf('[DOID, %s, %s]', $disease_id, $disease)), "\n";
 }
@@ -217,7 +247,7 @@ foreach my $fasta_id (sort {$a <=> $b} keys %fasta_pride_ids) {
 
 print "\n";
 my @SMH_headers = qw(SMH file_id species tissue cell_type instrument);
-if ($disease ne 'normal') {
+if (fc($disease) ne fc('normal')) {
   push(@SMH_headers, 'disease');
 }
 push(@SMH_headers, map {'modification'} @modifications);
@@ -281,24 +311,27 @@ PROTOCOL
 
 sub return_project_description {
   my (%options) = @_;
-  my $biosample = $options{biosample};
-  my $tissue_type = $biosample->derived_from->[0]->property('cell type')->values()->[0];
-  my $growth_conditions = $biosample->property('growing conditions')->values()->[0];
+  my $es_cell_line = $options{cell_line};
+  my $es_file = $options{file};
+  my $es_donor = $options{donor};
+  my $tissue_type = $es_cell_line->{_source}{sourceMaterial}{cellType};
+
+  my ($growth_conditions) = map {$_->{growingConditions}} grep {$_->{name} eq $es_cell_line->{_source}{name}} @{$es_file->{_source}{samples}};
   my $string = <<"PROJECT";
 %s is an induced pluripotent stem cell line generated by the HipSci project.
-The tissue donor is %s in the age range %s years with the disease state %s.
+The tissue donor is %s%s with the disease state %s.
 The iPS cell line was derived from %s by the %s method and grown on %s.
 HipSci brings together diverse constituents in genomics, proteomics, cell biology and
 clinical genetics to create a UK national iPS cell resource and use it to carry
 out cellular genetic studies.
 PROJECT
-$string = sprintf($string, $biosample->property('Sample Name')->values()->[0],
-            $biosample->property('Sex')->values()->[0],
-            $biosample->property('age')->values()->[0],
-            $biosample->property('disease state')->values()->[0],
-            ($tissue_type eq 'fibroblast' ? 'fibroblasts' : $tissue_type),
-            $biosample->property('method of derivation')->values()->[0],
-            ($growth_conditions =~ /feeder/ ? 'feeder cells' : 'E8 media'),
+$string = sprintf($string, $es_cell_line->{_source}{name},
+            $es_donor->{_source}{sex}{value},
+            $es_donor->{_source}{age} ? sprintf(' in the age range %s years', $es_donor->{_source}{age}) : '',
+            $es_donor->{_source}{diseaseStatus}{value},
+            (fc($tissue_type) eq fc('fibroblast') ? 'fibroblasts' : $tissue_type),
+            $es_cell_line->{_source}{reprogramming}{methodOfDerivation},
+            ($growth_conditions =~ /feeder/i ? 'feeder cells' : 'E8 media'),
           );
   $string =~ s/\n/ /g;
   return $string;
