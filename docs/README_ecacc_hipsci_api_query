@@ -3,7 +3,7 @@
 # This is the command to be run by ECACC to retrieve HipSci cell line data
 # It queries the HipSci API for cell lines that have been shipped to ECACC
 
-curl -H "Content-Type: application/json" -XPOST http://www.hipsci.org/lines/api/cellLine/_search.csv -d ' { "fields": [ "name", "bioSamplesAccession", "ebiscName", "donor.bioSamplesAccession", "donor.sex.value", "donor.age", "diseaseStatus.ontologyPURL", "diseaseStatus.value", "sourceMaterial.cellType", "sourceMaterial.value", "reprogramming.type", "reprogramming.vector", "reprogramming.virus", "culture.medium", "culture.passageMethod", "culture.surfaceCoating", "culture.CO2", "openAccess" , "certificateOfAnalysis.url"], "from": 0, "query": { "filtered": { "filter": { "term": { "bankingStatus": "Shipped to ECACC" } } } }, "size": 10000 }'
+curl -H "Content-Type: application/json" -XPOST http://www.hipsci.org/lines/api/cellLine/_search.csv -d ' { "fields": [ "name", "bioSamplesAccession", "ebiscName", "donor.bioSamplesAccession", "donor.sex.value", "donor.age", "diseaseStatus.ontologyPURL", "diseaseStatus.value", "sourceMaterial.cellType", "sourceMaterial.value", "reprogramming.type", "reprogramming.vector", "reprogramming.virus", "culture.medium", "culture.passageMethod", "culture.surfaceCoating", "culture.CO2", "openAccess" , "certificateOfAnalysis.url", "ecaccCatalogNumber"], "from": 0, "query": { "filtered": { "filter": { "term": { "bankingStatus": "Shipped to ECACC" } } } }, "size": 10000 }'
 
 # The command returns comma-delimited text with the following columns
 # name (e.g. HPSI0114i-eipl_1)
@@ -25,3 +25,4 @@ curl -H "Content-Type: application/json" -XPOST http://www.hipsci.org/lines/api/
 # culture.CO2 (e.g. 5%)
 # openAccess (1 = open access; 0 = managed access)
 # certificateOfAnalysis.url (e.g. http://ftp.hipsci.ebi.ac.uk/vol1/ftp/technical/certificate_of_analysis/HPSI0114i-lexy_1.CofA.20150826.pdf)
+# ecaccCatalogNumber (e.g. 66540004) 
