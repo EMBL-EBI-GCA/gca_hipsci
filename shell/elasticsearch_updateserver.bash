@@ -51,4 +51,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.coa.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
-  -trim /nfs/hipsci
+  -trim /nfs/hipsci \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.ecacc_cat_no.pl \
+  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -ecacc_index_file $HIPSCI_CODE/tracking_resources/ecacc_catalog_numbers.tsv
