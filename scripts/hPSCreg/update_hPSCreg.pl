@@ -78,10 +78,9 @@ while (my $es_doc = $es_scroll->next) {
   my $line = $es_doc->{_source};
   my $ebisc_name = $line->{name};
   next LINE if $ebisc_name !~ /^WTSI/;
-  my $hipsci_name = List::Util::first { /^HPSI\d{4}i-[a-z]{4}_\d+$/ } @{$line->{alternate_name}};
-  next LINE if !$hipsci_name;
-  my $cgap_line = List::Util::first {$_->name eq $hipsci_name}  @{$cgap_ips_lines};
-  die "no cgap line matches $hipsci_name" if !$cgap_line;
+  my $cgap_line = List::Util::first {$_->biosample_id && $line->{biosamples_id} && $_->biosample_id eq $line->{biosamples_id}}  @{$cgap_ips_lines};
+  next LINE if !$cgap_line;
+  my $hipsci_name = $cgap_line->name;
 
   #next LINE if $line->{id} != 1210;
   #next LINE if $line->{id} != 1211;
@@ -90,10 +89,10 @@ while (my $es_doc = $es_scroll->next) {
   my $method_property = $biosample->property('method of derivation');
   die "no method property for $hipsci_name" if !$method_property;
 
-  if (!$open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
-    print STDERR "$ebisc_name $hipsci_name: this script is set up only for open access lines\n";
-    next LINE;
-  }
+#  if (!$open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
+#    print STDERR "$ebisc_name $hipsci_name: this script is set up only for open access lines\n";
+#    next LINE;
+#  }
 
   my $tissue_biosample = BioSD::fetch_sample($cgap_line->tissue->biosample_id);
   my $donor_biosample = BioSD::fetch_sample($cgap_line->tissue->donor->biosample_id);
@@ -265,49 +264,51 @@ while (my $es_doc = $es_scroll->next) {
 
 
 ##ethics:
-  $post_hash->{hips_consent_obtained_from_donor_of_tissue_flag} .= 1;
-  $post_hash->{hips_no_pressure_stat_flag} .= 1;
-  $post_hash->{hips_no_inducement_stat_flag} .= 1;
-  $post_hash->{hips_informed_consent_flag} .= 0;
-  $post_hash->{hips_provide_copy_of_donor_consent_information_english_flag} .= 1;
-  $post_hash->{hips_provide_copy_of_donor_consent_english_flag} .= 1;
-  $post_hash->{hips_consent_permits_ips_derivation_flag} .= 1;
-  $post_hash->{hips_consent_pertains_specific_research_project_flag} .= 0;
-  $post_hash->{hips_consent_permits_future_research_flag} .= 1;
-  $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
-  $post_hash->{hips_consent_permits_clinical_treatment_flag} .= 0;
-  $post_hash->{hips_formal_permission_for_distribution_flag} .= 1;
-  $post_hash->{hips_consent_permits_research_by_academic_institution_flag} .= 1;
-  $post_hash->{hips_consent_permits_research_by_for_profit_company_flag} .= 1;
-  $post_hash->{hips_consent_permits_research_by_non_profit_company_flag} .= 1;
-  $post_hash->{hips_consent_permits_research_by_public_org_flag} .= 1;
-  $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
-  $post_hash->{hips_consent_expressly_prevents_commercial_development_flag} .= 0;
-  $post_hash->{hips_further_constraints_on_use_flag} .= 0;
-  $post_hash->{hips_consent_expressly_permits_indefinite_storage_flag} .= 1;
-  $post_hash->{hips_consent_prevents_availiability_to_worldwide_research_flag} .= 0;
-  $post_hash->{hips_derived_information_influence_personal_future_treatment_flag} .= 0;
-  $post_hash->{hips_donor_data_protection_informed_flag} .= 1;
-  $post_hash->{hips_donated_material_code_flag} .= 1;
-  $post_hash->{hips_donated_material_rendered_unidentifiable_flag} .= 0;
-  $post_hash->{hips_donor_identity_protected_rare_disease_flag} .= 1;
-  $post_hash->{hips_approval_flag} .= 1;
-  $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
-  $post_hash->{hips_approval_number} .= '15/YH/0391';
-  $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} = 1;
-  $post_hash->{hips_third_party_obligations_flag} .= 0;
-  $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
-  $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
-  $post_hash->{hips_arrange_obtain_new_consent_form_flag} .= 0;
-  $post_hash->{hips_donor_recontact_agreement_flag} .= 0;
-  $post_hash->{hips_consent_expressly_prevents_financial_gain_flag} .= 0;
-  $post_hash->{hips_consent_permits_access_medical_records_flag} .= 1;
-  $post_hash->{hips_consent_permits_access_other_clinical_source_flag} .= 0;
-  $post_hash->{usage_approval_flag} = ['research_only'];
-  $post_hash->{hips_consent_permits_stop_of_derived_material_use_flag} .= 0;
-  $post_hash->{hips_consent_permits_delivery_of_information_and_data_flag} .= 0;
-  $post_hash->{hips_consent_permits_genetic_testing_flag} .= 1;
-  $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
+  if ($open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
+    $post_hash->{hips_consent_obtained_from_donor_of_tissue_flag} .= 1;
+    $post_hash->{hips_no_pressure_stat_flag} .= 1;
+    $post_hash->{hips_no_inducement_stat_flag} .= 1;
+    $post_hash->{hips_informed_consent_flag} .= 0;
+    $post_hash->{hips_provide_copy_of_donor_consent_information_english_flag} .= 1;
+    $post_hash->{hips_provide_copy_of_donor_consent_english_flag} .= 1;
+    $post_hash->{hips_consent_permits_ips_derivation_flag} .= 1;
+    $post_hash->{hips_consent_pertains_specific_research_project_flag} .= 0;
+    $post_hash->{hips_consent_permits_future_research_flag} .= 1;
+    $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
+    $post_hash->{hips_consent_permits_clinical_treatment_flag} .= 0;
+    $post_hash->{hips_formal_permission_for_distribution_flag} .= 1;
+    $post_hash->{hips_consent_permits_research_by_academic_institution_flag} .= 1;
+    $post_hash->{hips_consent_permits_research_by_for_profit_company_flag} .= 1;
+    $post_hash->{hips_consent_permits_research_by_non_profit_company_flag} .= 1;
+    $post_hash->{hips_consent_permits_research_by_public_org_flag} .= 1;
+    $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
+    $post_hash->{hips_consent_expressly_prevents_commercial_development_flag} .= 0;
+    $post_hash->{hips_further_constraints_on_use_flag} .= 0;
+    $post_hash->{hips_consent_expressly_permits_indefinite_storage_flag} .= 1;
+    $post_hash->{hips_consent_prevents_availiability_to_worldwide_research_flag} .= 0;
+    $post_hash->{hips_derived_information_influence_personal_future_treatment_flag} .= 0;
+    $post_hash->{hips_donor_data_protection_informed_flag} .= 1;
+    $post_hash->{hips_donated_material_code_flag} .= 1;
+    $post_hash->{hips_donated_material_rendered_unidentifiable_flag} .= 0;
+    $post_hash->{hips_donor_identity_protected_rare_disease_flag} .= 1;
+    $post_hash->{hips_approval_flag} .= 1;
+    $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
+    $post_hash->{hips_approval_number} .= '15/YH/0391';
+    $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} = 1;
+    $post_hash->{hips_third_party_obligations_flag} .= 0;
+    $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
+    $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
+    $post_hash->{hips_arrange_obtain_new_consent_form_flag} .= 0;
+    $post_hash->{hips_donor_recontact_agreement_flag} .= 0;
+    $post_hash->{hips_consent_expressly_prevents_financial_gain_flag} .= 0;
+    $post_hash->{hips_consent_permits_access_medical_records_flag} .= 1;
+    $post_hash->{hips_consent_permits_access_other_clinical_source_flag} .= 0;
+    $post_hash->{usage_approval_flag} = ['research_only'];
+    $post_hash->{hips_consent_permits_stop_of_derived_material_use_flag} .= 0;
+    $post_hash->{hips_consent_permits_delivery_of_information_and_data_flag} .= 0;
+    $post_hash->{hips_consent_permits_genetic_testing_flag} .= 1;
+    $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
+  }
 
 =cut 
 

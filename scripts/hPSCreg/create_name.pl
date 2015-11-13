@@ -38,8 +38,8 @@ die "did not get the elasticsearch max id" if !$max_id;
 my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
   user => $hESCreg_user,
   pass => $hESCreg_pass,
-  host => 'test.hescreg.eu',
-  realm => 'hESCreg Development'
+  #host => 'test.hescreg.eu',
+  #realm => 'hESCreg Development'
 );
 my ($cgap_ips_lines) =  read_cgap_report()->{ips_lines};
 
@@ -53,6 +53,9 @@ foreach my $hESCreg_name (@{$hESCreg->find_lines}) {
 
 LINE:
 foreach my $hipsci_name (@cell_line_names) {
+  my ($cgap_line) = grep {$_->name eq $hipsci_name} @$cgap_ips_lines;
+  die "did not find cgap line for $hipsci_name" if !$cgap_line;
+
   my $es_response = $elasticsearch->search(
     index => 'hescreg',
     type => 'line',
@@ -68,9 +71,10 @@ foreach my $hipsci_name (@cell_line_names) {
       }
     }
   );
-  next LINE if $es_response->{hits}{total};
-  my ($cgap_line) = grep {$_->name eq $hipsci_name} @$cgap_ips_lines;
-  die "did not find cgap line for $hipsci_name" if !$cgap_line;
+  if ($es_response->{hits}{total}) {
+    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}), "\n";
+    next LINE;
+  }
 
   $es_response = $elasticsearch->search(
     index => 'hescreg',
@@ -87,7 +91,10 @@ foreach my $hipsci_name (@cell_line_names) {
       }
     }
   );
-  next LINE if $es_response->{hits}{total};
+  if ($es_response->{hits}{total}) {
+    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}), "\n";
+    next LINE;
+  }
 
   my $same_donor_cell_line_id;
   COUSIN:
@@ -100,59 +107,36 @@ foreach my $hipsci_name (@cell_line_names) {
           filtered => {
             filter => {
               term => {
-                alternate_name => $cousin_line->name,
+                biosamples_id => $cousin_line->biosample_id,
               }
             }
           }
         }
       }
     );
-    print $cousin_line->name, "\n";
+    next COUSIN if !$es_response->{hits}{total};
     $same_donor_cell_line_id = $es_response->{hits}{hits}->[0]->{_source}{name};
     last COUSIN;
   }
   my $new_name = $hESCreg->create_name(provider_id => 437, same_donor_cell_line_id => $same_donor_cell_line_id);
-  #print $new_name, "\n";
+  print join("\t", $hipsci_name, $cgap_line->biosample_id, $new_name), "\n";
 
-  my $new_line_id;
   NEWLINE:
-  foreach my $id (($max_id+1)..2000) {
-    my $new_line = eval{$hESCreg->get_line($id);};
+  while ($max_id < 2000) {
+    $max_id += 1;
+    my $new_line = eval{$hESCreg->get_line($max_id);};
+    print $new_line ? 'yes' : 'no'; print "\n";
     next LINE if !$new_line || $@;
+    if ($new_line->{name} eq $new_name) {
+      $new_line->{alternate_name} = [$hipsci_name];
+      $new_line->{biosamples_id} = $cgap_line->biosample_id;
+    }
     $elasticsearch->index(
       index => 'hescreg',
       type => 'line',
-      id => $id,
+      id => $max_id,
       body => $new_line,
     );
-    if ($new_line->{name} eq $new_name) {
-      $new_line_id = $id;
-      last NEWLINE;
-    }
+    last NEWLINE if $new_line->{name} eq $new_name;
   }
-
-  my $new_line = eval{$hESCreg->get_line($new_line_id);};
-
-  my $post_hash = $hESCreg->blank_post_hash();
-  $post_hash->{biosamples_id} = $cgap_line->biosample_id;
-  $post_hash->{biosamples_donor_id} = $cgap_line->tissue->donor->biosample_id;
-  $post_hash->{form_finished_flag} .= 1;
-  $post_hash->{migration_status} .= 1;
-  $post_hash->{final_name_generated_flag} .= 1;
-  $post_hash->{final_submit_flag} .= 0;
-  $post_hash->{id} .= $new_line->{id};
-  $post_hash->{validation_status} .= 3;
-  $post_hash->{name} = $new_name;
-  push(@{$post_hash->{alternate_name}}, $hipsci_name);
-  $post_hash->{type} .= 1;
-  $post_hash->{donor_number} = $new_name =~ /WTSIi(\d+)/ ? $1 +0 : die "no donor number for $new_name";
-  $post_hash->{donor_cellline_number} .= $new_name =~ /-([A-Z]+)/ ? ord($1) - 64 : die "no donor cellline number for $new_name";
-  $post_hash->{donor_cellline_subclone_number} .= 0;
-  $post_hash->{same_donor_cell_line_flag} = $new_line->{same_donor_cell_line_flag};
-  $post_hash->{same_donor_derived_from_flag} = $new_line->{same_donor_derived_from_flag};
-  $post_hash->{provider_generator} .= 437;
-  $post_hash->{provider_owner} .= 437;
-
-  print $new_line_id, "\n";
-  print $hESCreg->post_line($post_hash), "\n";
 }
