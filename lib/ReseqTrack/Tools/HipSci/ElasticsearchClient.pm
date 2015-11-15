@@ -19,20 +19,24 @@ sub _build_client {
 
 sub fetch_line_by_name {
   my ($self, $name) = @_;
-  return $self->_client->get(
+  my $es_line;
+  eval { $es_line = $self->_client->get(
     index => 'hipsci',
     type => 'cellLine',
     id => $name,
-  );
+  );};
+  return $es_line;
 }
 
 sub fetch_donor_by_name {
   my ($self, $name) = @_;
-  return $self->_client->get(
+  my $donor;
+  eval {$donor = $self->_client->get(
     index => 'hipsci',
     type => 'donor',
     id => $name,
-  );
+  );};
+  return $donor;
 }
 
 sub fetch_line_by_biosample_id {
