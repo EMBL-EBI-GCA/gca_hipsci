@@ -20,9 +20,9 @@ my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_track';
-my $file_type = 'PROTEOMICS_RAW';
+my @file_types = ('PROTEOMICS_RAW', 'PROTEOMICS_MZML');
 my $trim = '/nfs/hipsci';
-my $description = 'Thermo raw mass spectrometry';
+my $description = 'Mass spectrometry';
 
 &GetOptions(
     'es_host=s' => \$es_host,
@@ -31,7 +31,7 @@ my $description = 'Thermo raw mass spectrometry';
     'dbuser=s'      => \$dbuser,
     'dbpass=s'      => \$dbpass,
     'dbport=s'      => \$dbport,
-    'file_type=s'      => \$file_type,
+    'file_type=s'      => \@file_types,
     'trim=s'      => \$trim,
     'demographic_file=s' => \$demographic_filename,
 );
@@ -58,28 +58,38 @@ foreach my $cell_line (@$cgap_ips_lines) {
 }
 
 my %dundee_id_files;
-FILE:
-foreach my $file (@{$fa->fetch_by_type($file_type)}) {
-  my $dundee_id = $file->filename =~ /^PT\d+/ ? $&
-        : die 'did not recognise dundee_id for file '.$file->name;
-  $dundee_id_files{$dundee_id} //= [];
-  next FILE if $file->name !~ /$trim/ || $file->name =~ m{/withdrawn/};
-  push(@{$dundee_id_files{$dundee_id}}, $file);
+TYPE:
+foreach my $file_type (@file_types) {
+  FILE:
+  foreach my $file (@{$fa->fetch_by_type($file_type)}) {
+    my $dundee_id = $file->filename =~ /^PT\d+/ ? $&
+          : die 'did not recognise dundee_id for file '.$file->name;
+    next FILE if $file->name !~ /$trim/ || $file->name =~ m{/withdrawn/};
+    $dundee_id_files{$dundee_id}{$file_type} //= [];
+    push(@{$dundee_id_files{$dundee_id}{$file_type}}, $file);
+  }
 }
 
 my %docs;
 SAMPLE:
-while (my ($dundee_id, $files) = each %dundee_id_files) {
-  my $dir = dirname($files->[0]->name);
+foreach my $dundee_id (keys %dundee_id_files) {
+  my @filetypes = keys %{$dundee_id_files{$dundee_id}};
+
+  my @files;
+  foreach my $filetype (@filetypes) {
+    push(@files, @{$dundee_id_files{$dundee_id}{$filetype}});
+  }
+  @files = sort {$a->created cmp $b->created} @files;
+
+  my $dir = dirname($files[0]->name);
   next SAMPLE if $dir =~ m{/zumy\b};
   next SAMPLE if $dir =~ m{/qifc\b};
   my ($sample_name) = $dir =~ m{/(HPSI[^/]*)};
-  die 'did not recognise cell line '.$files->[0]->name if !$sample_name;
+  die "'did not recognise cell line $dir" if !$sample_name;
   my @cell_lines = ($sample_name);
   if (my $composites = $composite_names{$sample_name}) {
     @cell_lines = @$composites;
   }
-  $dir =~ s{$trim}{};
 
   my @samples;
   foreach my $cell_line (@cell_lines) {
@@ -109,7 +119,7 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
     );
 
     if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
+      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files[0]->created);
       $sample{growingConditions} = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
                         : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
                         : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
@@ -125,35 +135,40 @@ while (my ($dundee_id, $files) = each %dundee_id_files) {
   }
 
 
+  foreach my $filetype (@filetypes) {
+    my $filetype_dir = dirname($dundee_id_files{$dundee_id}{$filetype}->[0]->name);
+    $filetype_dir =~ s{$trim}{};
+    my ($ext) = $dundee_id_files{$dundee_id}{$filetype}->[0]->name =~ /\.(\w+)(?:\.gz)?$/;
 
-  my $es_id = join('-', $sample_name, 'proteomics', 'raw', $dundee_id);
-  $es_id =~ s/\s/_/g;
-  $docs{$es_id} = {
-    description => $description,
-    files => [
-    ],
-    archive => {
-      name => 'HipSci FTP',
-      url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      openAccess => 1,
-    },
-    samples => \@samples,
-    assay => {
-      type => 'Proteomics',
-    }
-  };
+    my $es_id = join('-', $sample_name, 'proteomics', $ext, $dundee_id);
+    $es_id =~ s/\s/_/g;
+    $docs{$es_id} = {
+      description => "$description $ext",
+      files => [
+      ],
+      archive => {
+        name => 'HipSci FTP',
+        url => "ftp://ftp.hipsci.ebi.ac.uk$filetype_dir",
+        ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$filetype_dir",
+        openAccess => 1,
+      },
+      samples => \@samples,
+      assay => {
+        type => 'Proteomics',
+      }
+    };
 
-  FILE:
-    foreach my $file (@$files) {
+    FILE:
+    foreach my $file (@{$dundee_id_files{$dundee_id}{$filetype}}) {
       push(@{$docs{$es_id}{files}}, 
           {
             name => $file->filename,
             md5 => $file->md5,
-            type => 'raw',
+            type => $ext,
           }
         );
     }
+  }
 }
 
 my $scroll = $elasticsearch->call('scroll_helper', (
