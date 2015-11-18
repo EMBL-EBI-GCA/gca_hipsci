@@ -74,11 +74,12 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     index       => 'hipsci',
     type        => 'cellLine',
     search_type => 'scan',
-    size        => 500
+    size        => 500,
   );
 
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
+    next CELL_LINE if $doc->{_source}{openAccess};
     my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
     my $update = clone $doc;
     foreach my $key (keys %assay_name_map){

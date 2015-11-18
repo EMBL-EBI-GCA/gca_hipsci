@@ -21,6 +21,8 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -exomeseq EGAS00001000592 \
   -exomeseq EGAS00001001140 \
   -exomeseq ERP006946 \
+  -gtarray ERP013161 \
+  -gtarray ERP013162 \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
   -pluritest /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data/hipsci.qc1.pluritest.tsv \

@@ -28,17 +28,20 @@ sub study_id_handler {
     'rnaseq=s' =>\&study_id_handler,
     'chipseq=s' =>\&study_id_handler,
     'exomeseq=s' =>\&study_id_handler,
+    'gtarray=s' =>\&study_id_handler,
 );
 
 my %assay_name_map = (
   rnaseq => 'RNA-seq',
   exomeseq => 'Exome-seq',
   chipseq => 'ChIP-seq',
+  gtarray => 'Genotyping array',
 );
 my %ontology_map = (
   rnaseq => 'http://www.ebi.ac.uk/efo/EFO_0002770',
   exomeseq => 'http://www.ebi.ac.uk/efo/EFO_0005396',
   chipseq => 'http://www.ebi.ac.uk/efo/EFO_0002692',
+  gtarray => 'http://www.ebi.ac.uk/efo/EFO_0002767',
 );
 
 my %elasticsearch;
@@ -62,10 +65,20 @@ my $sql_ena =  '
   and e.study_id=? group by sa.biosample_id
   ';
 
+my $sql_ena_analysis =  "
+  select s.biosample_id
+  from sample s, analysis_sample ans, analysis a, submission sub
+  where s.sample_id=ans.sample_id and ans.analysis_id=a.analysis_id
+  and a.submission_id=sub.submission_id
+  and a.status_id=4
+  and a.study_id=?
+  ";
+
 my %cell_line_updates;
 my $era_db = get_erapro_conn(@era_params);
 my $sth_ega = $era_db->dbc->prepare($sql_ega) or die "could not prepare $sql_ega";
 my $sth_ena = $era_db->dbc->prepare($sql_ena) or die "could not prepare $sql_ena";
+my $sth_ena_analysis = $era_db->dbc->prepare($sql_ena_analysis) or die "could not prepare $sql_ena";
 while (my ($assay, $study_ids) = each %study_ids) {
   foreach my $study_id (@$study_ids) {
     if ($study_id =~ /^EGA/) {
@@ -91,6 +104,18 @@ while (my ($assay, $study_ids) = each %study_ids) {
           'ontologyPURL' => $ontology_map{$assay},
         };
       }
+
+
+      $sth_ena_analysis->bind_param(1, $study_id);
+      $sth_ena_analysis->execute or die "could not execute";
+      while (my $row = $sth_ena_analysis->fetchrow_arrayref) {
+        $cell_line_updates{$row->[0]}{assays}{$assay} = {
+          'archive' => 'ENA',
+          'study' => $study_id,
+          'name' => $assay_name_map{$assay},
+          'ontologyPURL' => $ontology_map{$assay},
+        };
+      }
     }
   }
 }
@@ -109,8 +134,10 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   while ( my $doc = $scroll->next ) {
     my $biosample_id = $$doc{'_source'}{'bioSamplesAccession'};
     my $update = clone $doc;
-    foreach my $key (keys %assay_name_map){
-      delete $$update{'_source'}{'assays'}{$key};
+    ASSAY:
+    foreach my $assay (keys %assay_name_map){
+      next ASSAY if $assay eq 'gtarray' && !$doc->{_source}{openAccess};
+      delete $$update{'_source'}{'assays'}{$assay};
     }
     if (! scalar keys $$update{'_source'}{'assays'}){
       delete $$update{'_source'}{'assays'};
