@@ -162,6 +162,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
           archive => {
             name => 'EGA',
             url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
+            ftpUrl => 'secure access via EGA',
             openAccess => 0,
           },
           samples => [{

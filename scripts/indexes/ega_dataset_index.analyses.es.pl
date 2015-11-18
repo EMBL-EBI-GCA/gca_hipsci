@@ -135,6 +135,7 @@ foreach my $dataset_id (@dataset_id) {
         accession => $row->{ANALYSIS_ID},
         accessionType => 'ANALYSIS_ID',
         url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
+        ftpUrl => 'secure access via EGA',
         openAccess => 0,
       },
       samples => [{
