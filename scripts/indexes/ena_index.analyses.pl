@@ -56,8 +56,10 @@ foreach my $study_id (@study_id) {
   my $xml_hash = XMLin($row->{STUDY_XML});
   my $assay = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /exome\W*seq/i ? 'exomeseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /rna\W*seq/i ? 'rnaseq'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /genotyping\W*array/i ? 'gtarray'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? 'exomeseq'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /genotyping\W*array/i ? 'gtarray'
             : die "did not recognise assay for $study_id";
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
@@ -73,7 +75,7 @@ foreach my $study_id (@study_id) {
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##ENA study title: ', $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}, "\n";
   print $fh "##ENA study ID: $study_id\n";
-  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : die "did not recognise assay $assay"), "\n";
+  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : $assay eq 'gtarray' ? 'Genotyping array' : die "did not recognise assay $assay"), "\n";
   print $fh "##Disease cohort: $disease\n";
   print $fh '#', join("\t", qw(
     file_url md5 cell_line biosample_id analysis_id description archive_submission_date cell_type source_material sex growing_conditions
@@ -98,30 +100,54 @@ foreach my $study_id (@study_id) {
                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                   : die "did not recognise source material $source_material";
 
-    $sth_run->bind_param(1, $row->{SAMPLE_ID});
-    $sth_run->bind_param(2, $study_id);
-    $sth_run->execute or die "could not execute";
-    my $run_rows = $sth_run->fetchall_arrayref;
-    die 'no run objects for '.$row->{BIOSAMPLE_ID} if !@$run_rows;
-    my $run_time = DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90);
+    my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
+    $files = ref($files) eq 'ARRAY' ? $files : [$files];
+
     my $growing_conditions;
     if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-      $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      if ($assay =~ /seq$/) {
+        $sth_run->bind_param(1, $row->{SAMPLE_ID});
+        $sth_run->bind_param(2, $study_id);
+        $sth_run->execute or die "could not execute";
+        my $run_rows = $sth_run->fetchall_arrayref;
+        die 'no run objects for '.$row->{BIOSAMPLE_ID} if !@$run_rows;
+        my $run_time = DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90);
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      }
+      else {
+        my @dates;
+        FILE:
+        foreach my $filename (map {$_->{filename}} @$files) {
+          my ($date) = $filename =~ /\.(\d{8})\./;
+          next FILE if !$date;
+          push(@dates, $date);
+        }
+        die "no file dates" if ! scalar @dates;
+        my ($filedate) = sort {$a <=> $b} @dates;
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc1', date =>$filedate);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      }
     }
     else {
       $growing_conditions = $cell_type;
     }
 
 
-    my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
-    $files = ref($files) eq 'ARRAY' ? $files : [$files];
     FILE:
     foreach my $file (@$files) {
       next FILE if $file->{filetype} eq 'bai';
       next FILE if $file->{filetype} eq 'tbi';
+      next FILE if $file->{filetype} eq 'tabix';
+
+      next FILE if $row->{ANALYSIS_ID} eq 'ERZ127336' && $file->{filename} =~ /\.ped$/;
+      next FILE if $row->{ANALYSIS_ID} eq 'ERZ127571' && $file->{filename} =~ /\.ped$/;
+
+      my $filename = $file->{filename};
+      $filename =~ s{.*/}{};
+
       print $fh join("\t",
-        sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s/%s/%s', substr($row->{ANALYSIS_ID}, 0, 6), $row->{ANALYSIS_ID}, $file->{filename}),
+        sprintf('ftp://ftp.sra.ebi.ac.uk/vol1/%s/%s/%s', substr($row->{ANALYSIS_ID}, 0, 6), $row->{ANALYSIS_ID}, $filename),
         $file->{checksum},
         $sample_name,
         $row->{BIOSAMPLE_ID},

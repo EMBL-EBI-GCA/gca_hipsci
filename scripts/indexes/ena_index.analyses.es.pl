@@ -65,8 +65,10 @@ foreach my $study_id (@study_id) {
   my $xml_hash = XMLin($row->{STUDY_XML});
   my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /genotyping\W*array/i ? ('gtarray', 'Genotyping array')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /genotyping\W*array/i ? ('gtarray', 'Genotyping array')
             : die "did not recognise assay for $study_id";
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
@@ -94,30 +96,62 @@ foreach my $study_id (@study_id) {
                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                   : die "did not recognise source material $source_material";
 
-    $sth_run->bind_param(1, $row->{SAMPLE_ID});
-    $sth_run->bind_param(2, $study_id);
-    $sth_run->execute or die "could not execute";
-    my $run_row = $sth_run->fetchrow_hashref;
-    die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
-    my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
-    my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
-    my $growing_conditions;
-    if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-      $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
-    }
-    else {
-      $growing_conditions = $cell_type;
-    }
-
     my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
     $files = ref($files) eq 'ARRAY' ? $files : [$files];
-    $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
+    $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix' && $_->{filetype} ne 'tbi'} @$files];
+
+    if ($row->{ANALYSIS_ID} eq 'ERZ127336' || $row->{ANALYSIS_ID} eq 'ERZ127571') {
+      $files = [grep {$_->{filename} !~ /\.ped/} @$files];
+    }
+
+    my ($growing_conditions, $assay_description, $exp_protocol);
+    if ($short_assay =~ /seq$/) {
+      $sth_run->bind_param(1, $row->{SAMPLE_ID});
+      $sth_run->bind_param(2, $study_id);
+      $sth_run->execute or die "could not execute";
+      my $run_row = $sth_run->fetchrow_hashref;
+      die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
+      my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
+      my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
+      $assay_description = [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)];
+
+      if ($cgap_ips_line) {
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      }
+      else {
+        $growing_conditions = $cell_type;
+      }
+
+      $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL};
+    }
+    else {
+      if ($cgap_ips_line) {
+        my @dates;
+        FILE:
+        foreach my $filename (map {$_->{filename}} @$files) {
+          my ($date) = $filename =~ /\.(\d{8})\./;
+          next FILE if !$date;
+          push(@dates, $date);
+        }
+        die "no file dates" if ! scalar @dates;
+        my ($filedate) = sort {$a <=> $b} @dates;
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc1', date =>$filedate);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      }
+      else {
+        $growing_conditions = $cell_type;
+      }
+      if (my $platform = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION}{PLATFORM}) {
+        $assay_description = ["PLATFORM=$platform"];
+      }
+    }
 
     my $description = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bstar\b/i ? 'Splice-aware STAR alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
+                    : $short_assay eq 'gtarray' && $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bGenotype calls\b/i ? 'Genotyping array calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
@@ -145,10 +179,12 @@ foreach my $study_id (@study_id) {
       }],
       assay => {
         type => $long_assay,
-        description => [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
       }
     };
-    if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
+    if ($assay_description) {
+      $docs{$es_id}{assay}{description} = $assay_description;
+    }
+    if ($exp_protocol) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
     }
 
