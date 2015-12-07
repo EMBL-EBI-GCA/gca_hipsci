@@ -89,8 +89,8 @@ if ($assay eq 'gexarray'){
     if ($filename_disease eq 'normal'){$filename_disease = 'healthy_volunteers';}
     $arrayexpress{$cellline} = [$raw_ftp_link."/".$raw_file, $processed_ftp_link."/".$processed_file];
   }
-  my @rawoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'array_files',  'tsv'), 0];
-  my @processedoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'processed_files',  'tsv'), 1];
+  my @rawoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'raw', 'array_files',  'tsv'), 0];
+  my @processedoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'processed', 'array_files',  'tsv'), 1];
   push(@filestoprocess, @rawoutput);
   push(@filestoprocess, @processedoutput);
 }elsif($assay eq 'mtarray'){
@@ -101,7 +101,7 @@ if ($assay eq 'gexarray'){
     my $mt_file = $parts[34];
     $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
     $filename_disease = $parts[8];
-    #Get specific version
+    #Get specific methylation version
     $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
           : die "did not recognise platform for $study_title in file $mt_file";
     if ($filename_disease eq 'normal'){$filename_disease = 'healthy_volunteers';}

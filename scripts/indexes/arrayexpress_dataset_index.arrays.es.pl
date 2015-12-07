@@ -10,8 +10,9 @@ use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(fileparse);
 use Data::Compare qw(Compare);
 use LWP::Simple;
-use Getopt::Long;
 use POSIX qw(strftime);
+use Getopt::Long;
+
 
 my $dataset_id;
 my $outfolder;
@@ -23,6 +24,12 @@ my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
 my $es_host='ves-hx-e3:9200';
+
+my $short_assay;
+my $long_assay;
+my $disease;
+my $study_title;
+my $platform;
 
 GetOptions(
     'dataset_id=s'    => \$dataset_id,
@@ -49,12 +56,6 @@ my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
-my $short_assay;
-my $long_assay;
-my $disease;
-my $study_title;
-my $platform;
-
 my $sdrf = "http://www.ebi.ac.uk/arrayexpress/files/".$dataset_id."/".$dataset_id.".sdrf.txt";
 my $idf = "http://www.ebi.ac.uk/arrayexpress/files/".$dataset_id."/".$dataset_id.".idf.txt";
 
@@ -80,7 +81,7 @@ open( SDRF, '<', \$sdrf_file );
 
 my %arrayexpress;
 my @sdrflines = <SDRF>;
-shift(@sdrflines);
+shift(@sdrflines);  # Remove title line
 if ($short_assay eq 'gexarray'){
   foreach my $line (@sdrflines) {
     my @parts = split("\t", $line);
@@ -104,7 +105,7 @@ if ($short_assay eq 'gexarray'){
     my $mt_ftp_link = $parts[35];
     my $mt_file = $parts[34];
     $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
-    #Get specific version
+    #Get specific methylation version
     $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
           : die "did not recognise platform for $study_title in file $mt_file";
     $disease = $parts[8] =~ /normal/i ? 'Normal'
@@ -127,13 +128,13 @@ foreach my $cell_line (keys %arrayexpress){
                 : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
                 : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                 : die "did not recognise source material $source_material";
-  
-  my @fullfiles = @{$arrayexpress{$cell_line}};
   my @files;
-  foreach my $file (@fullfiles){
+  my %zip_file;
+  foreach my $file (@{$arrayexpress{$cell_line}}){
     my @fileparts = split("/", $file);
     my $filename = $fileparts[-1];
     push(@files, $filename);
+    $zip_file{$filename} = $fileparts[-2];
   }
   my @dates;
   foreach my $file (@files) {
@@ -173,7 +174,7 @@ foreach my $cell_line (keys %arrayexpress){
                         : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
                         : $ext eq 'idat' ? 'Array signal intensity data'
                         : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
-                        : $ext eq 'txt' && $short_assay eq 'gexarray' ? 'Text file with array signal intensity signal data'
+                        : $ext eq 'txt' && $short_assay eq 'gexarray' ? 'GenomeStudio text file'
                         : die "did not recognise type of $filename";
 
     $files{$ext}{$file_description}{$filename} = $files[0];
@@ -192,8 +193,8 @@ foreach my $cell_line (keys %arrayexpress){
         ],
         archive => {
           name => 'ArrayExpress',
-          url => 'http://www.ebi.ac.uk/arrayexpress/files/'.$dataset_id,
-          ftpUrl => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/'.$folderid."/".$dataset_id,
+          url => 'http://www.ebi.ac.uk/arrayexpress/experiments/'.$dataset_id.'/',
+          ftpUrl => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/'.$folderid."/".$dataset_id.'/',
           openAccess => 1,
         },
         samples => [{
@@ -210,7 +211,7 @@ foreach my $cell_line (keys %arrayexpress){
         }
       };
       while (my ($filename, $file_object) = each %$file_hash) {
-        push(@{$docs{$es_id}{files}}, {name => $filename, md5 => $file_object->md5, type => $ext});
+        push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
       }
     }
   }
