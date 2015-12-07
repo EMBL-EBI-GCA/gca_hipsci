@@ -89,8 +89,8 @@ if ($assay eq 'gexarray'){
     if ($filename_disease eq 'normal'){$filename_disease = 'healthy_volunteers';}
     $arrayexpress{$cellline} = [$raw_ftp_link."/".$raw_file, $processed_ftp_link."/".$processed_file];
   }
-  my @rawoutput = [$outfolder.join('.', 'ARRAYEXPRESS', $dataset_id, $assay, $filename_disease, 'raw_files',  'tsv'), 0];
-  my @processedoutput = [$outfolder.join('.', 'ARRAYEXPRESS', $dataset_id, $assay, $filename_disease, 'processed_files',  'tsv'), 1];
+  my @rawoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'array_files',  'tsv'), 0];
+  my @processedoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'processed_files',  'tsv'), 1];
   push(@filestoprocess, @rawoutput);
   push(@filestoprocess, @processedoutput);
 }elsif($assay eq 'mtarray'){
@@ -107,7 +107,7 @@ if ($assay eq 'gexarray'){
     if ($filename_disease eq 'normal'){$filename_disease = 'healthy_volunteers';}
     $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
   }
-    my @mtoutput = [$outfolder.join('.', 'ARRAYEXPRESS', $dataset_id, $assay, $filename_disease, 'array_files',  'tsv'), 0];
+    my @mtoutput = [$outfolder.join('.', 'ArrayExpress', $dataset_id, $assay, $filename_disease, 'array_files',  'tsv'), 0];
     push(@filestoprocess, @mtoutput);
 }
 
@@ -115,8 +115,8 @@ close(SDRF);
 
 for my $outputfile (@filestoprocess){
   open my $fh, '>', @$outputfile[0] or die "could not open $outputfile $!";
-  print $fh "##ARRAYEXPRESS study title: $study_title\n";
-  print $fh "##ARRAYEXPRESS dataset ID: $dataset_id\n";
+  print $fh "##ArrayExpress study title: $study_title\n";
+  print $fh "##ArrayExpress dataset ID: $dataset_id\n";
   print $fh '##Assay: ', ($assay eq 'gtarray' ? 'Genotyping array' : $assay eq 'gexarray' ? 'Expression array' : $assay eq 'mtarray' ? 'Methylation array' : die "did not recognise assay $assay"), "\n";
   print $fh "##Disease cohort: $filename_disease\n";
   print $fh '#', join("\t", qw(
