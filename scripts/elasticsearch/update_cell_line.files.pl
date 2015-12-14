@@ -10,7 +10,6 @@ use Data::Compare;
 use Getopt::Long;
 use POSIX qw(strftime);
 use Clone qw(clone);
-use Data::Dumper;
 
 my $date = strftime('%Y%m%d', localtime);
 
@@ -61,7 +60,6 @@ my %archive_map = (
 my %cell_line_updates;
 while ( my $doc = $scroll->next ) {
   SAMPLE:
-  #print Dumper($doc);
   foreach my $sample (@{$$doc{'_source'}{'samples'}}){
     my $sample = $$sample{name};
     my $assay = $$doc{'_source'}{assay}{type};
@@ -71,18 +69,17 @@ while ( my $doc = $scroll->next ) {
         'name' => $assay,
         'ontologyPURL' => $ontology_map{$assay},
     };
-    if ($$doc{'_source'}{archive}{name} ne 'EGA'){
+    if ($$doc{'_source'}{archive}{name} ne 'EGA' and $$doc{'_source'}{archive}{name} ne 'ENA'){
       my $ftpurl = $$doc{'_source'}{archive}{url};
       $ftpurl =~ s?ftp\:\/\/ftp\.hipsci\.ebi\.ac\.uk??;
+      $ftpurl =~ s?raw_open_data?raw_data?;
       $cell_line_updates{$sample}{assays}{$assay_name_map{$assay}}{path} = $ftpurl;
     }
-    if ($assay ne 'Cellular phenotyping'){
-      $cell_line_updates{$sample}{assays}{$assay_name_map{$assay}}{study} = $urlparts[-1];
-    }
+    #NOTE Condsider including study ID. Would need to look it up in EGA, ENA using dataset ID from files table.
   }
 }
 
-#NOTE Non file based linking such as peptracker will need to be added seperately
+#NOTE Non file based linking such as peptracker will need to be added seperately here
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
@@ -115,6 +112,6 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     }
   }
   print "\n$host\n";
-  print "03 Availible Files update\n";
+  print "07_Availible_Files_update\n";
   print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }

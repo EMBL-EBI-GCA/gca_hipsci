@@ -136,6 +136,6 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     }
   }
   print "\n$host\n";
-  print "06update_qc1_images\n";
+  print "05_update_qc1_images\n";
   print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
 }

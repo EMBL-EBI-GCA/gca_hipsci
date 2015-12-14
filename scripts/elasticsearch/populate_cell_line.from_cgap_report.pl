@@ -280,7 +280,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     }
   }
   print "\n$host\n";
-  print "01populate_from_cgap\n";
+  print "01_populate_from_cgap\n";
   print "Cell lines: $cell_created created, $cell_updated updated, $cell_uptodate unchanged.\n";
   print "Donors: $donor_created created, $donor_updated updated, $donor_uptodate unchanged.\n";
 }
