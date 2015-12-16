@@ -9,7 +9,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
-  -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2015-05-19.csv \
+  -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2015-12-16.csv \
 && source /nfs/production/reseq-info/work/hipdcc/oracle_env_hinxton.sh \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.assays.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
