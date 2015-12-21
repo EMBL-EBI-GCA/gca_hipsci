@@ -159,6 +159,6 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     }
   }
   print "\n$host\n";
-  print "12populate_fibroblast_line\n";
+  print "02_populate_fibroblast_line\n";
   print "File cell lines: $cell_created created, $cell_updated updated, $cell_uptodate unchanged.\n";
 }

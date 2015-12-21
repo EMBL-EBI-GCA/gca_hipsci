@@ -63,7 +63,7 @@ while ( my $doc = $scroll->next ) {
   if (my $disease = $donor->disease) {
     my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
                 : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_224'
+                : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
                 : die "did not recognise disease $disease";
     my $disease_value = $disease eq 'normal' ? 'Normal'
                 : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
@@ -163,7 +163,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     }
   }
   print "\n$host\n";
-  print "02update_demographics\n";
+  print "03_update_demographics\n";
   print "Cell lines: $cell_updated updated, $cell_uptodate unchanged.\n";
   print "Donors: $donor_updated updated, $donor_uptodate unchanged.\n";
 }
