@@ -46,12 +46,15 @@ foreach my $study_id (@study_id) {
   my $xml_hash = XMLin($row->{STUDY_XML});
   my $assay = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /exome\W*seq/i ? 'exomeseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /rna\W*seq/i ? 'rnaseq'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? 'exomeseq'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : die "did not recognise assay for $study_id";
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /reference_set/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
@@ -63,7 +66,7 @@ foreach my $study_id (@study_id) {
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##ENA study title: ', $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}, "\n";
   print $fh "##ENA study ID: $study_id\n";
-  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : die "did not recognise assay $assay"), "\n";
+  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : $assay eq 'wgs' ? 'Whole genome sequencing' : die "did not recognise assay $assay"), "\n";
   print $fh "##Disease cohort: $disease\n";
   print $fh '#', join("\t", qw(
     file_url md5 cell_line biosample_id run_id experiment_id study_id archive_submission_date cell_type source_material sex growing_conditions 
@@ -112,7 +115,7 @@ foreach my $study_id (@study_id) {
       $cgap_tissue->donor->gender || '',
       $growing_conditions || '',
       @{$row}{qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)},
-      $experiment_xml_hash->{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOCOL},
+      $experiment_xml_hash->{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOCOL} || '',
     ), "\n";
   }
 

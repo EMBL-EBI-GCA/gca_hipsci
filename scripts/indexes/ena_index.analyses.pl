@@ -10,12 +10,14 @@ use Getopt::Long;
 use XML::Simple qw(XMLin);
 
 my @era_params = ('ops$laura', undef, 'ERAPRO');
-my @study_id;
+my @sequencing_study_id;
+my %analysis_study_id;
 my $demographic_filename;
 
 GetOptions(
     'era_password=s'    => \$era_params[1],
-    'study_id=s'    => \@study_id,
+    'sequencing_study_id=s'    => \@sequencing_study_id,
+    'analysis_study_id=s'    => \%analysis_study_id,
     'demographic_file=s' => \$demographic_filename,
 );
 
@@ -48,7 +50,7 @@ my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
-foreach my $study_id (@study_id) {
+foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
   my $row = $sth_study->fetchrow_hashref;
@@ -57,13 +59,16 @@ foreach my $study_id (@study_id) {
   my $assay = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /exome\W*seq/i ? 'exomeseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /genotyping\W*array/i ? 'gtarray'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? 'rnaseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? 'exomeseq'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /genotyping\W*array/i ? 'gtarray'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : die "did not recognise assay for $study_id";
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /reference_set/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
@@ -75,7 +80,7 @@ foreach my $study_id (@study_id) {
   open my $fh, '>', $output or die "could not open $output $!";
   print $fh '##ENA study title: ', $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}, "\n";
   print $fh "##ENA study ID: $study_id\n";
-  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : $assay eq 'gtarray' ? 'Genotyping array' : die "did not recognise assay $assay"), "\n";
+  print $fh '##Assay: ', ($assay eq 'exomeseq' ? 'Exome-seq' : $assay eq 'rnaseq' ? 'RNA-seq' : $assay eq 'gtarray' ? 'Genotyping array' : $assay eq 'wgs' ? 'Whole genome sequencing' :  die "did not recognise assay $assay"), "\n";
   print $fh "##Disease cohort: $disease\n";
   print $fh '#', join("\t", qw(
     file_url md5 cell_line biosample_id analysis_id description archive_submission_date cell_type source_material sex growing_conditions
@@ -105,9 +110,10 @@ foreach my $study_id (@study_id) {
 
     my $growing_conditions;
     if ($cgap_ips_line) {
-      if ($assay =~ /seq$/) {
+      if ($assay =~ /seq$/ || $assay eq 'wgs') {
+        my $run_study_id = $analysis_study_id{$study_id} || $study_id;
         $sth_run->bind_param(1, $row->{SAMPLE_ID});
-        $sth_run->bind_param(2, $study_id);
+        $sth_run->bind_param(2, $run_study_id);
         $sth_run->execute or die "could not execute";
         my $run_rows = $sth_run->fetchall_arrayref;
         die 'no run objects for '.$row->{BIOSAMPLE_ID} if !@$run_rows;
@@ -139,9 +145,7 @@ foreach my $study_id (@study_id) {
       next FILE if $file->{filetype} eq 'bai';
       next FILE if $file->{filetype} eq 'tbi';
       next FILE if $file->{filetype} eq 'tabix';
-
-      next FILE if $row->{ANALYSIS_ID} eq 'ERZ127336' && $file->{filename} =~ /\.ped$/;
-      next FILE if $row->{ANALYSIS_ID} eq 'ERZ127571' && $file->{filename} =~ /\.ped$/;
+      next FILE if $file->{filename} =~ /\.ped$/;
 
       my $filename = $file->{filename};
       $filename =~ s{.*/}{};

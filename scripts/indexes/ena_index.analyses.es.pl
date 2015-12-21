@@ -105,9 +105,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
     $files = ref($files) eq 'ARRAY' ? $files : [$files];
     $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix' && $_->{filetype} ne 'tbi'} @$files];
 
-    if ($row->{ANALYSIS_ID} eq 'ERZ127336' || $row->{ANALYSIS_ID} eq 'ERZ127571') {
-      $files = [grep {$_->{filename} !~ /\.ped/} @$files];
-    }
+    $files = [grep {$_->{filename} !~ /\.ped/} @$files];
 
     my ($growing_conditions, $assay_description, $exp_protocol);
     if ($short_assay =~ /seq$/ || $short_assay eq 'wgs' ) {
