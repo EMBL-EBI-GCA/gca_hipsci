@@ -14,13 +14,15 @@ use POSIX qw(strftime);
 use File::Basename qw(fileparse);
 
 my @era_params = ('ops$laura', undef, 'ERAPRO');
-my @study_id;
+my @sequencing_study_id;
+my %analysis_study_id;
 my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
 
 GetOptions(
     'era_password=s'    => \$era_params[1],
-    'study_id=s'    => \@study_id,
+    'sequencing_study_id=s'    => \@sequencing_study_id,
+    'analysis_study_id=s'    => \%analysis_study_id,
     'demographic_file=s' => \$demographic_filename,
     'es_host=s' => \$es_host,
 );
@@ -57,7 +59,7 @@ my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ip
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
-foreach my $study_id (@study_id) {
+foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
   my $row = $sth_study->fetchrow_hashref;
@@ -66,13 +68,16 @@ foreach my $study_id (@study_id) {
   my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /genotyping\W*array/i ? ('gtarray', 'Genotyping array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /whole\W*genome\W*sequencing/i ? ('gtarray', 'Genotyping array')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /genotyping\W*array/i ? ('gtarray', 'Genotyping array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /whole\W*genome\W*sequencing/i ? ('wgs', 'Whole genome sequencing')
             : die "did not recognise assay for $study_id";
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'Monogenic diabetes'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /reference_set/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'Normal'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'Monogenic diabetes'
@@ -105,9 +110,10 @@ foreach my $study_id (@study_id) {
     }
 
     my ($growing_conditions, $assay_description, $exp_protocol);
-    if ($short_assay =~ /seq$/) {
+    if ($short_assay =~ /seq$/ || $short_assay eq 'wgs' ) {
+      my $run_study_id = $analysis_study_id{$study_id} || $study_id;
       $sth_run->bind_param(1, $row->{SAMPLE_ID});
-      $sth_run->bind_param(2, $study_id);
+      $sth_run->bind_param(2, $run_study_id);
       $sth_run->execute or die "could not execute";
       my $run_row = $sth_run->fetchrow_hashref;
       die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
