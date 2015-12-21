@@ -54,7 +54,7 @@ foreach my $study_id (@study_id) {
   my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /reference_set/i ? 'Normal'
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /reference_set/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
