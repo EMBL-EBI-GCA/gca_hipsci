@@ -176,6 +176,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
           assay => {
             type => $long_assay,
             description => ["PLATFORM=$platform",],
+            instrument => $platform
           }
         };
         while (my ($filename, $file_object) = each %$file_hash) {

@@ -127,6 +127,7 @@ while (my ($cell_line, $files) = each %cell_line_files) {
     }],
     assay => {
       type => 'Cellular phenotyping',
+      instrument => 'PerkinElmer Operetta'
     }
   };
 

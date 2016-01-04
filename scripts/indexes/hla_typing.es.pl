@@ -161,7 +161,8 @@ foreach my $file_set (values %file_sets) {
     samples => \@samples,
     assay => {
       type => 'Genotyping array',
-      description => 'SOFTWARE=SNP2HLA',
+      description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+      instrument => 'Illumina beadchip HumanCoreExome-12',
     }
   };
 }

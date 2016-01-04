@@ -208,6 +208,7 @@ foreach my $dataset_id (@dataset_id) {
           assay => {
             type => $long_assay,
             description => ["PLATFORM=$platform",],
+            instrument => $platform
           }
         };
         while (my ($filename, $file_object) = each %$file_hash) {

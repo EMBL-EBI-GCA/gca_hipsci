@@ -107,7 +107,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
 
     $files = [grep {$_->{filename} !~ /\.ped/} @$files];
 
-    my ($growing_conditions, $assay_description, $exp_protocol);
+    my ($growing_conditions, $assay_description, $exp_protocol, $instrument);
     if ($short_assay =~ /seq$/ || $short_assay eq 'wgs' ) {
       my $run_study_id = $analysis_study_id{$study_id} || $study_id;
       $sth_run->bind_param(1, $row->{SAMPLE_ID});
@@ -118,6 +118,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
       my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
       my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
       $assay_description = [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)];
+      $instrument = $run_row->{INSTRUMENT_MODEL};
 
       if ($cgap_ips_line) {
         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
@@ -148,6 +149,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
       }
       if (my $platform = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION}{PLATFORM}) {
         $assay_description = ["PLATFORM=$platform"];
+        $instrument = $platform;
       }
     }
 
@@ -190,6 +192,9 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
     }
     if ($exp_protocol) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
+    }
+    if ($instrument) {
+      $docs{$es_id}{assay}{instrument} = $instrument;
     }
 
     FILE:

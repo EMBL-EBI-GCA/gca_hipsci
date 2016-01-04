@@ -155,6 +155,7 @@ foreach my $dundee_id (keys %dundee_id_files) {
       samples => \@samples,
       assay => {
         type => 'Proteomics',
+        instrument => 'Thermo Scientific Q Exactive'
       }
     };
 
