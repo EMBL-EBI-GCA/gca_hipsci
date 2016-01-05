@@ -155,6 +155,10 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
         my $es_id = join('-', $sample_name, $short_assay, lc($file_description), $ext);
         $es_id =~ s/\s/_/g;
 
+        #Hardfix of instrument for consistency
+        if ($platform =~ /HumanCoreExome-12/){
+          $platform = 'Illumina beadchip HumanCoreExome-12'
+        }
         $docs{$es_id} = {
           description => $file_description,
           files => [
