@@ -37,7 +37,7 @@ while (my $line = <$fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
   next LINE if !$split_line[0] || !$split_line[1];
-  $allowed_samples_gtarray{join('_', @split_line[0,1])} = 1;
+  $allowed_samples_gtarray{$split_line[0]}{join('_', @split_line[0,1])} = 1;
 }
 close $fh;
 
@@ -48,7 +48,7 @@ while (my $line = <$fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
   next LINE if !$split_line[0] || !$split_line[1];
-  $allowed_samples_gexarray{join('_', @split_line[0,1])} = 1;
+  $allowed_samples_gexarray{$split_line[0]}{join('_', @split_line[0,1])} = 1;
 }
 close $fh;
 
@@ -59,9 +59,9 @@ LINE:
 while (my $line = <$pluri_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  next LINE if !$allowed_samples_gexarray{$split_line[0]};
   my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
   next LINE if !$sample;
+  next LINE if ($allowed_samples_gexarray{$sample} && !$allowed_samples_gexarray{$sample}{$split_line[0]});
   $qc1_details{$sample}{pluritest}{pluripotency} = $split_line[1];
   $qc1_details{$sample}{pluritest}{novelty} = $split_line[3];
 }
@@ -73,9 +73,9 @@ LINE:
 while (my $line = <$cnv_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  next LINE if !$allowed_samples_gtarray{$split_line[0]};
   my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
   next LINE if !$sample;
+  next LINE if ($allowed_samples_gtarray{$sample} && !$allowed_samples_gtarray{$sample}{$split_line[0]});
   $qc1_details{$sample}{cnv}{num_different_regions} = $split_line[1];
   $qc1_details{$sample}{cnv}{length_different_regions_Mbp} = $split_line[2];
   $qc1_details{$sample}{cnv}{length_shared_differences} = $split_line[3];
