@@ -7,6 +7,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
 use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use LWP::Simple qw(get);
 use List::Util qw();
 use Data::Compare;
 use Clone qw(clone);
@@ -14,8 +15,14 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my @es_host;
+my $ecacc_index_file;
+&GetOptions(
+    'es_host=s' =>\@es_host,
+    'ecacc_index_file=s'      => \$ecacc_index_file,
+);
+
+my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my %biomaterial_provider_hash = (
   'H1288' => 'Cambridge BioResource',
   '13_042' => 'Cambridge BioResource',
@@ -31,14 +38,22 @@ my %open_access_hash = (
   '14_025' => 0,
 );
 
-&GetOptions(
-    'es_host=s' =>\@es_host,
-);
-
 my %elasticsearch;
 foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
+
+
+my %catalog_numbers;
+open my $fh, '<', $ecacc_index_file or die "could not open $ecacc_index_file $!";
+LINE:
+while (my $line = <$fh>) {
+  next LINE if $line =~ /^#/;
+  chomp $line;
+  my ($cell_line, $ecacc_cat_no) = split("\t", $line);
+  $catalog_numbers{$cell_line} = $ecacc_cat_no;
+}
+close $fh;
 
 my %all_samples;
 my %donors;
@@ -147,7 +162,6 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   my @bankingStatus;
-  push(@bankingStatus, 'Banked at ECACC') if 0;
   push(@bankingStatus, 'Banked at EBiSC') if 0;
   if ($ips_line->genomics_selection_status) {
     push(@bankingStatus, 'Selected for banking');
@@ -159,6 +173,14 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     push(@bankingStatus, 'Pending selection');
   }
   push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && $sample_index->{'openAccess'};
+  if (my $ecacc_cat_no = $catalog_numbers{$sample_index->{name}}) {
+    $sample_index->{ecaccCatalogNumber} = $ecacc_cat_no;
+    my $html_content = get(sprintf('http://www.phe-culturecollections.org.uk/products/celllines/ipsc/detail.jsp?refId=%s&collection=ecacc_ipsc',
+          $ecacc_cat_no));
+    if ($html_content && $html_content =~ /[\s>]$ecacc_cat_no[\s<]/) {
+      push(@bankingStatus, 'Banked at ECACC');
+    };
+  }
   $sample_index->{'bankingStatus'} = \@bankingStatus;
   $all_samples{$ips_line} = $sample_index;
 }
