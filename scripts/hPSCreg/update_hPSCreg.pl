@@ -171,6 +171,11 @@ while (my $es_doc = $es_scroll->next) {
       $post_hash->{disease_flag} .= 0;
       push(@{$post_hash->{disease_associated_phenotypes}}, 'normal');
     }
+    elsif ($disease =~ /bardet/i) {
+      $post_hash->{disease_flag} .= 1;
+      $post_hash->{disease_doid} .= 'http://www.orpha.net/ORDO/Orphanet_110';
+      $post_hash->{disease_doid_name} .= 'Bardet-Biedl syndrome';
+    }
     else {
       $post_hash->{disease_flag} .= 1;
     }
@@ -185,6 +190,8 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{primary_celltype_name} = $cell_type_qual_val->value();
     if ($cell_type_property->values->[0] =~ /fibroblast/i) {
       $post_hash->{location_primary_tissue_procurement} = 'arm';
+      $post_hash->{primary_celltype_ont_id} = 'http://purl.obolibrary.org/obo/CL_0002551';
+      $post_hash->{primary_celltype_name} = 'Dermal Fibroblast';
     }
   }
   $post_hash->{selection_of_clones} = 'Morphology';
@@ -264,7 +271,8 @@ while (my $es_doc = $es_scroll->next) {
 
 
 ##ethics:
-  if ($open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
+  if ($open_access_hash{$cgap_line->tissue->donor->hmdmc}
+    || $cgap_line->tissue->donor->hmdmc eq 'H1288') {
     $post_hash->{hips_consent_obtained_from_donor_of_tissue_flag} .= 1;
     $post_hash->{hips_no_pressure_stat_flag} .= 1;
     $post_hash->{hips_no_inducement_stat_flag} .= 1;
@@ -274,14 +282,12 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{hips_consent_permits_ips_derivation_flag} .= 1;
     $post_hash->{hips_consent_pertains_specific_research_project_flag} .= 0;
     $post_hash->{hips_consent_permits_future_research_flag} .= 1;
-    $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
     $post_hash->{hips_consent_permits_clinical_treatment_flag} .= 0;
     $post_hash->{hips_formal_permission_for_distribution_flag} .= 1;
     $post_hash->{hips_consent_permits_research_by_academic_institution_flag} .= 1;
     $post_hash->{hips_consent_permits_research_by_for_profit_company_flag} .= 1;
     $post_hash->{hips_consent_permits_research_by_non_profit_company_flag} .= 1;
     $post_hash->{hips_consent_permits_research_by_public_org_flag} .= 1;
-    $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
     $post_hash->{hips_consent_expressly_prevents_commercial_development_flag} .= 0;
     $post_hash->{hips_further_constraints_on_use_flag} .= 0;
     $post_hash->{hips_consent_expressly_permits_indefinite_storage_flag} .= 1;
@@ -308,6 +314,8 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{hips_consent_permits_delivery_of_information_and_data_flag} .= 0;
     $post_hash->{hips_consent_permits_genetic_testing_flag} .= 1;
     $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
+    $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
+    $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
   }
 
 =cut 
