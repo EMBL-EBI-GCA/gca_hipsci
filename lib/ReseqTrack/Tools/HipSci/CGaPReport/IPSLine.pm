@@ -104,6 +104,16 @@ sub get_release_for {
     my ($release) = sort {$b->goal_time cmp $a->goal_time}
                     grep {$_->is_qc2 && $_->goal_time lt $date}
                     @{$self->release};
+    if (!$release && $self->tissue->colony_picking && $self->tissue->colony_picking gt '2014-12-01') {
+      ($release) = sort {$b->goal_time cmp $a->goal_time}
+                    grep {$_->is_qc1 && $_->goal_time lt $date}
+                    @{$self->release};
+    }
+    if (!$release && $self->split_line && $self->split_line gt '2014-12-01') {
+      ($release) = sort {$b->goal_time cmp $a->goal_time}
+                    grep {$_->is_qc1 && $_->goal_time lt $date}
+                    @{$self->release};
+    }
     return $release;
   }
 }
