@@ -7,7 +7,9 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
 use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::EBiSC::hESCreg;
 use LWP::Simple qw(get);
+use LWP::UserAgent;
 use List::Util qw();
 use Data::Compare;
 use Clone qw(clone);
@@ -17,9 +19,12 @@ my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
 my $ecacc_index_file;
+my ($hESCreg_user, $hESCreg_pass);
 &GetOptions(
     'es_host=s' =>\@es_host,
     'ecacc_index_file=s'      => \$ecacc_index_file,
+    'hESCreg_user=s' => \$hESCreg_user,
+    'hESCreg_pass=s' => \$hESCreg_pass,
 );
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
@@ -42,6 +47,22 @@ my %elasticsearch;
 foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
+
+
+my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
+  user => $hESCreg_user,
+  pass => $hESCreg_pass,
+);
+my %ebisc_names;
+LINE:
+foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
+  next LINE if $ebisc_name !~ /^WTSI/;
+  my $line = eval{$hESCreg->get_line($ebisc_name);};
+  next LINE if !$line || $@;
+  next LINE if !$line->{biosamples_id};
+  $ebisc_names{$line->{biosamples_id}} = $ebisc_name;
+}
+my $ua = LWP::UserAgent->new();
 
 
 my %catalog_numbers;
@@ -162,7 +183,6 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   my @bankingStatus;
-  push(@bankingStatus, 'Banked at EBiSC') if 0;
   if ($ips_line->genomics_selection_status) {
     push(@bankingStatus, 'Selected for banking');
   }
@@ -179,6 +199,13 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
           $ecacc_cat_no));
     if ($html_content && $html_content =~ /[\s>]$ecacc_cat_no[\s<]/) {
       push(@bankingStatus, 'Banked at ECACC');
+    };
+  }
+  if (my $ebisc_name = $ebisc_names{$sample_index->{bioSamplesAccession}}) {
+    $sample_index->{ebiscName} = $ebisc_name;
+    my $http_response = $ua->get(sprintf('https://cells.ebisc.org/%s', $ebisc_name));
+    if ($http_response->is_success) {
+      push(@bankingStatus, 'Banked at EBiSC');
     };
   }
   $sample_index->{'bankingStatus'} = \@bankingStatus;
@@ -227,6 +254,8 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       delete $$update{'_source'}{'tissueProvider'}; 
       delete $$update{'_source'}{'openAccess'};  
       delete $$update{'_source'}{'bankingStatus'};    
+      delete $$update{'_source'}{'ecaccCatalogNumber'};    
+      delete $$update{'_source'}{'ebiscName'};    
       foreach my $field (keys %$sample_index){
         my $subfield = $$sample_index{$field};
         if (ref($subfield) eq 'HASH'){
