@@ -33,6 +33,13 @@ my %open_access_hash = (
   '13_058' => 0,
   '14_001' => 0,
   '14_025' => 0,
+  '14_036' => 0,
+  '15_097' => 0,
+  '15_098' => 0,
+  '15_099' => 0,
+  '15_093' => 0,
+  '16_010' => 0,
+  '16_011' => 0,
 );
 
 my $era_db = get_erapro_conn(@era_params);
@@ -72,8 +79,6 @@ my $es_scroll = $elasticsearch->scroll_helper(
 );
 
 LINE:
-#foreach my $hPSCreg_id (1000..2000) {
-#foreach my $hPSCreg_id (1389..2000) {
 while (my $es_doc = $es_scroll->next) {
   my $line = $es_doc->{_source};
   my $ebisc_name = $line->{name};
@@ -82,8 +87,16 @@ while (my $es_doc = $es_scroll->next) {
   next LINE if !$cgap_line;
   my $hipsci_name = $cgap_line->name;
 
-  #next LINE if $line->{id} != 1210;
-  #next LINE if $line->{id} != 1211;
+    my $is_error = $line->{name} eq 'WTSIi082-A' && $line->{biosamples_id} eq 'SAMEA2609972' ? 1
+          : $line->{name} eq 'WTSIi085-A' && $line->{biosamples_id} eq 'SAMEA2398319' ? 1
+          : $line->{name} eq 'WTSIi098-A' && $line->{biosamples_id} eq 'SAMEA2420642' ? 1
+          : $line->{name} eq 'WTSIi103-A' && $line->{biosamples_id} eq 'SAMEA2398858' ? 1
+          : $line->{name} eq 'WTSIi105-A' && $line->{biosamples_id} eq 'SAMEA2398024' ? 1
+          : $line->{name} eq 'WTSIi108-A' && $line->{biosamples_id} eq 'SAMEA2399058' ? 1
+          : undef;
+    next LINE if $is_error;
+
+  next LINE if $line->{id} < 1553;
 
   my $biosample = BioSD::fetch_sample($cgap_line->biosample_id);
   my $method_property = $biosample->property('method of derivation');
@@ -136,7 +149,6 @@ while (my $es_doc = $es_scroll->next) {
     );
   }
   elsif ($method_property->values->[0] =~ /episomal/i) {
-    die "All open access lines are sendai.  Ask Anja why this line is episomal";
     $post_hash->{vector_type} = 'non_integrating';
     $post_hash->{non_integrating_vector} = 'episomal';
     push(@{$post_hash->{non_integrating_vector_gene_list}}, 
@@ -149,7 +161,6 @@ while (my $es_doc = $es_scroll->next) {
     );
   }
   elsif ($method_property->values->[0] =~ /retrovirus/i) {
-    die "All open access lines are sendai.  Ask Anja why this line is retrovirus";
     $post_hash->{vector_type} = 'integrating';
     $post_hash->{integrating_vector} = 'virus';
     $post_hash->{integrating_vector_virus_type} = 'retrovirus';
@@ -191,7 +202,8 @@ while (my $es_doc = $es_scroll->next) {
     if ($cell_type_property->values->[0] =~ /fibroblast/i) {
       $post_hash->{location_primary_tissue_procurement} = 'arm';
       $post_hash->{primary_celltype_ont_id} = 'http://purl.obolibrary.org/obo/CL_0002551';
-      $post_hash->{primary_celltype_name} = 'Dermal Fibroblast';
+      $post_hash->{primary_celltype_name} = 'fibroblast of dermis';
+      $post_hash->{primary_celltype_name_freetext} = 'Dermal Fibroblast';
     }
   }
   $post_hash->{selection_of_clones} = 'Morphology';
@@ -337,4 +349,5 @@ while (my $es_doc = $es_scroll->next) {
   }
   print $ebisc_name, "\n";
   print $response, "\n";
+  sleep(1);
 }

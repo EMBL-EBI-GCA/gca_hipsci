@@ -34,6 +34,13 @@ my %biomaterial_provider_hash = (
   '13_058' => 'University College London',
   '14_001' => 'University College London',
   '14_025' => 'University of Exeter Medical School',
+  '14_036' => 'NIH Human Embryonic Stem Cell Registry',
+  '15_097' => 'University College London',
+  '15_098' => 'University College London',
+  '15_099' => 'University of Manchester',
+  '15_093' => 'University College London',
+  '16_010' => 'University College London',
+  '16_011' => 'University College London',
 );
 my %open_access_hash = (
   'H1288' => 0,
@@ -41,6 +48,13 @@ my %open_access_hash = (
   '13_058' => 0,
   '14_001' => 0,
   '14_025' => 0,
+  '14_036' => 0,
+  '15_097' => 0,
+  '15_098' => 0,
+  '15_099' => 0,
+  '15_093' => 0,
+  '16_010' => 0,
+  '16_011' => 0,
 );
 
 my %elasticsearch;
