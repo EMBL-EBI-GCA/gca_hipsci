@@ -16,7 +16,7 @@ use Exporter 'import';
 use vars qw(@EXPORT_OK);
 @EXPORT_OK = qw(improve_donors improve_tissues improve_ips_lines);
 
-my %disease_map = (bbs => 'bardet-biedl syndrome', 'nd' => 'neonatal diabetes', 'normal' => 'normal');
+my %disease_map = (bbs => 'bardet-biedl syndrome', 'nd' => 'neonatal diabetes', 'normal' => 'normal', 'usher' => 'usher syndrome', 'ataxia' => 'ataxia');
 
 sub improve_donors {
   my (%args) = @_;

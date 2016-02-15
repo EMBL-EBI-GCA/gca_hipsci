@@ -64,10 +64,14 @@ while ( my $doc = $scroll->next ) {
     my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
                 : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
                 : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
+                : $disease eq 'ataxia' ? 'http://www.orpha.net/ORDO/Orphanet_183518'
+                : $disease eq 'usher syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_886'
                 : die "did not recognise disease $disease";
     my $disease_value = $disease eq 'normal' ? 'Normal'
                 : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
                 : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
+                : $disease eq 'ataxia' ? 'Rare hereditary ataxia'
+                : $disease eq 'usher syndrome' ? 'Usher syndrome'
                 : die "did not recognise disease $disease";
 
     $donor_update->{diseaseStatus} = {

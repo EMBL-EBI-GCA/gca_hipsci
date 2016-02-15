@@ -30,7 +30,7 @@ foreach my $donor (@$donors) {
   }
 
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
-    print join("\t", $biosample->id, 'characteristic[donor_id]', $donor->biosample_id, 'NULL', 'NULL',  'NULL', 'NULL', 'NULL'), "\n";
+    print join("\t", $biosample->id, 'characteristic[subject_id]', $donor->biosample_id, 'NULL', 'NULL',  'NULL', 'NULL', 'NULL'), "\n";
 
     my @phenotype_strings;
 
@@ -38,7 +38,15 @@ foreach my $donor (@$donors) {
       push(@phenotype_strings, $disease eq 'normal' ? 'PATO:0000461'
                   : $disease =~ /bardet-/ ? 'Orphanet:110'
                   : $disease eq 'neonatal diabetes' ? 'Orphanet:552'
+                  : $disease eq 'ataxia' ? 'Orphanet:183518'
+                  : $disease eq 'usher syndrome' ? 'Orphanet:886'
                   : die "did not recognise disease $disease ".$biosample->id);
+    }
+    if (my $gender = $donor->gender) {
+      my $efo_term = $gender eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
+                  : $gender eq 'female' ? 'http://www.ebi.ac.uk/efo/EFO_0001265'
+                  : die "did not recognise gender $gender";
+        print join("\t", $biosample->id, 'characteristic[gender]', $gender, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
     }
     if (my $cell_type_property = $biosample->property('cell type')) {
       foreach my $phenotype_string (map {$_->term_source->term_source_id} @{$cell_type_property->qualified_values()}) {
