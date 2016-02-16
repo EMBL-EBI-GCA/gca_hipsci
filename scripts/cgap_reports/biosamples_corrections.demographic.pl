@@ -34,9 +34,10 @@ foreach my $donor (@$donors) {
 
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
     if (my $disease = $donor->disease) {
+      if ($disease = 'neonatal diabetes'){$disease = 'monogenic diabetes'}
       my $efo_term = $disease eq 'normal' ? 'http://www.ebi.ac.uk/efo/EFO_0000761'
                   : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                  : $disease eq 'neonatal diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
+                  : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
                   : $disease eq 'ataxia' ? 'http://www.orpha.net/ORDO/Orphanet_183518'
                   : $disease eq 'usher syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_886'
                   : die "did not recognise disease $disease ".$biosample->id;
@@ -45,9 +46,9 @@ foreach my $donor (@$donors) {
       if (!$biosd_disease) {
         print join("\t", $biosample->id, 'characteristic[disease state]', $disease, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
       }
-      elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
-        die "disagreement for disease $disease ".$biosample->id;
-      }
+      #elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
+      #  die "disagreement for disease $disease ".$biosample->id;
+      #}
     }
     if (my $gender = $donor->gender) {
       my $efo_term = $gender eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
