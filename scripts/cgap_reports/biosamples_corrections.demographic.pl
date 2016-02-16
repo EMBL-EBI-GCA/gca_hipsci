@@ -34,7 +34,7 @@ foreach my $donor (@$donors) {
 
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
     if (my $disease = $donor->disease) {
-      if ($disease = 'neonatal diabetes'){$disease = 'monogenic diabetes'}
+      if ($disease eq 'neonatal diabetes'){$disease = 'monogenic diabetes'}
       my $efo_term = $disease eq 'normal' ? 'http://www.ebi.ac.uk/efo/EFO_0000761'
                   : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
                   : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
