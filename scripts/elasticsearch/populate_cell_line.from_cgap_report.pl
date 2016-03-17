@@ -102,7 +102,6 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my $donor = $tissue->donor;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
-  my $source_material = $tissue->tissue_type;
   my $sample_index = {};
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
@@ -112,9 +111,9 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'cellType'}->{value} = "iPSC";
   $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
   
-  $sample_index->{'sourceMaterial'} = {
-    value => $source_material,
-  };
+  if (my $source_material = $tissue->tissue_type) {
+    $sample_index->{'sourceMaterial'} = { value => $source_material };
+  }
   if (my $cell_type_property = $tissue_biosample->property('cell type')) {
     my $cell_type_qual_val = $cell_type_property->qualified_values()->[0];
     my $cell_type_purl = $cell_type_qual_val->term_source()->term_source_id();
