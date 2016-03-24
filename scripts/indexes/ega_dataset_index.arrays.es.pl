@@ -215,8 +215,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
 my $date = strftime('%Y%m%d', localtime);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  next ES_DOC if $es_doc->{_source}{archive}{accessionType} && CORE::fc($es_doc->{_source}{archive}{accessionType}) eq CORE::fc('ANALYSIS_ID');
-  next ES_DOC if $es_doc->{_source}{archive}{accessionType} && CORE::fc($es_doc->{_source}{archive}{accessionType}) eq CORE::fc('RUN_ID');
+  next ES_DOC if $es_doc->{_id} =~ /-ER[RZ]\d+$/;
   my $new_doc = $docs{$es_doc->{_id}};
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});

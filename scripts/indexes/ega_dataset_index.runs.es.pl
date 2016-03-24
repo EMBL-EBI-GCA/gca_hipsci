@@ -114,8 +114,8 @@ foreach my $dataset_id (@dataset_id) {
       ],
       archive => {
         name => 'EGA',
-        accession => $row->{RUN_ID},
-        accessionType => 'RUN_ID',
+        accession => $dataset_id,
+        accessionType => 'DATASET_ID',
         url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
         ftpUrl => 'secure access via EGA',
         openAccess => 0,
@@ -150,14 +150,9 @@ my $scroll = $elasticsearch->call('scroll_helper', (
     query => {
       filtered => {
         filter => {
-          and => [
-            {term => {
-              'archive.name' => 'EGA',
-            }},
-            {term => {
-              'file.accessionType' => 'RUN_ID',
-            }}
-          ]
+          term => {
+            'archive.name' => 'EGA',
+          },
         }
       }
     }
@@ -167,6 +162,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
 my $date = strftime('%Y%m%d', localtime);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
+  next ES_DOC if $es_doc->{_id} !~ /-ERR\d+$/;
   my $new_doc = $docs{$es_doc->{_id}};
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
