@@ -193,6 +193,8 @@ foreach my $dataset_id (@dataset_id) {
           ],
           archive => {
             name => 'ArrayExpress',
+            accession => $dataset_id,
+            accessionType => 'EXPERIMENT_ID',
             url => 'http://www.ebi.ac.uk/arrayexpress/experiments/'.$dataset_id.'/',
             ftpUrl => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/'.$folderid."/".$dataset_id.'/',
             openAccess => 1,

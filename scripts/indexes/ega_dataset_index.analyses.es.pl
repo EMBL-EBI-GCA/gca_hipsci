@@ -120,6 +120,7 @@ foreach my $dataset_id (@dataset_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{PROCESSED_READS} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bkallisto\b/i ? 'Abundances of transcripts'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
