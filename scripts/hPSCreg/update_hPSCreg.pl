@@ -18,12 +18,14 @@ my ($hESCreg_user, $hESCreg_pass);
 my $demographic_filename;
 my $es_host='vg-rs-dev1:9200';
 my @era_params = ('ops$laura', undef, 'ERAPRO');
+my $final_submit = 0;
 
 GetOptions("hESCreg_user=s" => \$hESCreg_user,
     "hESCreg_pass=s" => \$hESCreg_pass,
     'demographic_file=s' => \$demographic_filename,
     'es_host=s' =>\$es_host,
     'era_password=s'    => \$era_params[1],
+    'final_submit'    => \$final_submit,
 );
 die "missing credentials" if !$hESCreg_user || !$hESCreg_pass;
 
@@ -87,16 +89,6 @@ while (my $es_doc = $es_scroll->next) {
   next LINE if !$cgap_line;
   my $hipsci_name = $cgap_line->name;
 
-    my $is_error = $line->{name} eq 'WTSIi082-A' && $line->{biosamples_id} eq 'SAMEA2609972' ? 1
-          : $line->{name} eq 'WTSIi085-A' && $line->{biosamples_id} eq 'SAMEA2398319' ? 1
-          : $line->{name} eq 'WTSIi098-A' && $line->{biosamples_id} eq 'SAMEA2420642' ? 1
-          : $line->{name} eq 'WTSIi103-A' && $line->{biosamples_id} eq 'SAMEA2398858' ? 1
-          : $line->{name} eq 'WTSIi105-A' && $line->{biosamples_id} eq 'SAMEA2398024' ? 1
-          : $line->{name} eq 'WTSIi108-A' && $line->{biosamples_id} eq 'SAMEA2399058' ? 1
-          : undef;
-    next LINE if $is_error;
-
-  next LINE if $line->{id} < 1553;
 
   my $biosample = BioSD::fetch_sample($cgap_line->biosample_id);
   my $method_property = $biosample->property('method of derivation');
@@ -116,7 +108,7 @@ while (my $es_doc = $es_scroll->next) {
   $post_hash->{form_finished_flag} .= 1;
   $post_hash->{migration_status} .= 1;
   $post_hash->{final_name_generated_flag} .= 1;
-  $post_hash->{final_submit_flag} .= 0;
+  $post_hash->{final_submit_flag} .= $final_submit ? 1 : 0;
   $post_hash->{id} .= $line->{id};
   $post_hash->{validation_status} .= 3;
   $post_hash->{name} = $ebisc_name;
@@ -243,7 +235,7 @@ while (my $es_doc = $es_scroll->next) {
   $post_hash->{fingerprinting_flag} .= 0;
   $post_hash->{genetic_modification_flag} .= 0;
   $post_hash->{derivation_country} = 'GB';
-  $post_hash->{data_accurate_and_complete_flag} .= 0;
+  $post_hash->{data_accurate_and_complete_flag} .= $final_submit ? 1 : 0;
   $post_hash->{ethnicity} = $cgap_line->tissue->donor->ethnicity;
   if ($line->{comparator_cell_line_id}) {
     $post_hash->{comparator_cell_line_id} = $line->{comparator_cell_line_id};

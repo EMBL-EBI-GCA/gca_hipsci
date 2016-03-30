@@ -4,12 +4,14 @@ use strict;
 use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
+use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::EBiSC::hESCreg;
 use Search::Elasticsearch;
 use Getopt::Long;
 
 my ($hESCreg_user, $hESCreg_pass, @cell_line_names);
 my $es_host='vg-rs-dev1:9200';
+my $hipsci_es_host = 'ves-hx-e4:9200';
 
 GetOptions("hESCreg_user=s" => \$hESCreg_user,
     "hESCreg_pass=s" => \$hESCreg_pass,
@@ -35,6 +37,8 @@ my $max_id = $elasticsearch->search(
 )->{aggregations}{max_id}{value};
 die "did not get the elasticsearch max id" if !$max_id;
 
+my $hipsci_es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host=>$hipsci_es_host);
+
 my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
   user => $hESCreg_user,
   pass => $hESCreg_pass,
@@ -56,6 +60,9 @@ foreach my $hipsci_name (@cell_line_names) {
   my ($cgap_line) = grep {$_->name eq $hipsci_name} @$cgap_ips_lines;
   die "did not find cgap line for $hipsci_name" if !$cgap_line;
 
+  my $es_line = $hipsci_es->fetch_line_by_name($hipsci_name);
+  die "did not find es line for $hipsci_name" if !$es_line;
+
   my $es_response = $elasticsearch->search(
     index => 'hescreg',
     type => 'line',
@@ -72,7 +79,7 @@ foreach my $hipsci_name (@cell_line_names) {
     }
   );
   if ($es_response->{hits}{total}) {
-    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}), "\n";
+    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}, ($es_line->{_source}{ecaccCatalogNumber} || '')), "\n";
     next LINE;
   }
 
@@ -92,7 +99,7 @@ foreach my $hipsci_name (@cell_line_names) {
     }
   );
   if ($es_response->{hits}{total}) {
-    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}), "\n";
+    print join("\t", $hipsci_name, $cgap_line->biosample_id, $es_response->{hits}{hits}->[0]->{_source}{name}, ($es_line->{_source}{ecaccCatalogNumber} || '')), "\n";
     next LINE;
   }
 
@@ -119,13 +126,12 @@ foreach my $hipsci_name (@cell_line_names) {
     last COUSIN;
   }
   my $new_name = $hESCreg->create_name(provider_id => 437, same_donor_cell_line_id => $same_donor_cell_line_id);
-  print join("\t", $hipsci_name, $cgap_line->biosample_id, $new_name), "\n";
+  print join("\t", $hipsci_name, $cgap_line->biosample_id, $new_name, ($es_line->{_source}{ecaccCatalogNumber} || '')), "\n";
 
   NEWLINE:
   while ($max_id < 2000) {
     $max_id += 1;
     my $new_line = eval{$hESCreg->get_line($max_id);};
-    print $new_line ? 'yes' : 'no'; print "\n";
     next LINE if !$new_line || $@;
     if ($new_line->{name} eq $new_name) {
       $new_line->{alternate_name} = [$hipsci_name];
@@ -137,6 +143,8 @@ foreach my $hipsci_name (@cell_line_names) {
       id => $max_id,
       body => $new_line,
     );
+    #Important: Elasticsearch has only *near* real-time search
+    sleep(5);
     last NEWLINE if $new_line->{name} eq $new_name;
   }
 }
