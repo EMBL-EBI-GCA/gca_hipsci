@@ -43,13 +43,12 @@ foreach my $donor (@$donors) {
                   : die "did not recognise disease $disease ".$biosample->id;
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
-      #if (!$biosd_disease) {
-      if ($disease eq 'monogenic diabetes'){
+      if (!$biosd_disease) {
         print join("\t", $biosample->id, 'characteristic[disease state]', $disease, 'EFO', $efo_term,  'http://www.ebi.ac.uk/efo', 'NULL', 'NULL'), "\n";
       }
-      #elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
-      #  die "disagreement for disease $disease ".$biosample->id;
-      #}
+      elsif (! grep { /$disease/i } @{$biosd_disease->values}) {
+        die "disagreement for disease $disease ".$biosample->id;
+      }
     }
     if (my $gender = $donor->gender) {
       my $efo_term = $gender eq 'male' ? 'http://www.ebi.ac.uk/efo/EFO_0001266'
