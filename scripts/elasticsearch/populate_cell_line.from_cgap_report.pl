@@ -234,13 +234,10 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $donor_uptodate = 0;
   CELL_LINE:
   foreach my $ips_line (@{$cgap_ips_lines}) {
-    next CELL_LINE if ! $ips_line->biosample_id;
-    next CELL_LINE if $ips_line->name !~ /^HPSI\d{4}i-/;
-    my $biosample = BioSD::fetch_sample($ips_line->biosample_id);
-    next CELL_LINE if !$biosample;
+    my $sample_index = $all_samples{$ips_line};
+    next CELL_LINE if ! $sample_index;
     my $tissue = $ips_line->tissue;
     my $donor = $tissue->donor;
-    my $sample_index = $all_samples{$ips_line};
     my $line_exists = $elasticsearchserver->call('exists',
       index => 'hipsci',
       type => 'cellLine',
