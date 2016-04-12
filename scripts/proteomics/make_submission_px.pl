@@ -86,7 +86,7 @@ my $proteomics_files = $elasticsearch->call('search',(
               'assay.type' => 'Proteomics'
             }},
             {term => {
-              'samples.name' => $cell_line_name
+              'samples.name' => $ips_line->{_source}{name}
             }},
           ]
         }
@@ -185,7 +185,7 @@ print join("\t", 'MTD', 'lab_head_name', 'Angus Lamond'), "\n";
 print join("\t", 'MTD', 'lab_head_email', 'a.i.lamond@dundee.ac.uk'), "\n";
 print join("\t", 'MTD', 'lab_head_affiliation', 'College of Life Sciences, University of Dundee'), "\n";
 print join("\t", 'MTD', 'submitter_pride_login', 'hipsci@ebi.ac.uk'), "\n";
-print join("\t", 'MTD', 'project_title', "$cell_line_name IPS cell line from HipSci"), "\n";
+print join("\t", 'MTD', 'project_title', $ips_line->{_source}{name}." IPS cell line from HipSci"), "\n";
 print join("\t", 'MTD', 'project_description', return_project_description(cell_line => $ips_line, donor => $donor, file => $proteomics_file)), "\n";
 print join("\t", 'MTD', 'project_tag', 'HipSci'), "\n";
 print join("\t", 'MTD', 'sample_processing_protocol', return_sample_procesesing_protocol(num_raw_files=>scalar @{$files{raw}})), "\n";
