@@ -29,9 +29,3 @@ if ($num_old_ips_lines >= $num_today_ips_lines) {
   printf "Number of ips_lines has changed from %i to %i in %i days\n", $num_old_ips_lines, $num_today_ips_lines, $days_old;
 }
 
-my $num_today_sequencescapes = scalar map {@{$_->sequencescape}} @{$today_hash->{ips_lines}};
-my $num_old_sequencescapes = scalar map {@{$_->sequencescape}} @{$old_hash->{ips_lines}};
-if ($num_old_sequencescapes >= $num_today_sequencescapes) {
-  printf "Number of sequencescape objects has changed from %i to %i in %i days\n", $num_old_sequencescapes, $num_today_sequencescapes, $days_old;
-}
-

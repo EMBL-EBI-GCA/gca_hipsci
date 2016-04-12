@@ -37,7 +37,7 @@ my %aliases = (
   frozen_ips => undef,
   #selected_for_genomics => undef,
   genomics_selection_status => undef,
-  #sent_to_genomincs => undef,
+  #sent_to_genomics => undef,
   #sent_to_qc1 => undef,
   ips_created => undef,
   #transfer_to_feeder_free => undef,
@@ -55,13 +55,6 @@ foreach my $attr (keys %aliases) {
 has 'tissue' => (
   is => 'rw',
   isa => 'ReseqTrack::Tools::HipSci::CGaPReport::Tissue',
-);
-
-has 'sequencescape' => (
-  is => 'rw',
-  isa => 'ArrayRef[ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape]',
-  default => sub {[]},
-  lazy => 1,
 );
 
 has 'release' => (

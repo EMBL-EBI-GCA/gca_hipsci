@@ -8,7 +8,6 @@ use Text::Delimited;
 use ReseqTrack::Tools::HipSci::CGaPReport::Donor;
 use ReseqTrack::Tools::HipSci::CGaPReport::Tissue;
 use ReseqTrack::Tools::HipSci::CGaPReport::IPSLine;
-use ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape;
 use DateTime::Format::ISO8601;
 
 use Exporter 'import';
@@ -62,10 +61,6 @@ sub read_cgap_report {
       $ips_lines{$ips_id} = $ips_line;
       push(@{$tissue->ips_lines}, $ips_line);
     }
-
-    my $sequence_scape = ReseqTrack::Tools::HipSci::CGaPReport::SequenceScape->new( %$line_data);
-    next LINE if ! $sequence_scape->has_values;
-    push(@{$ips_line->sequencescape}, $sequence_scape);
 
   }
   $sanger_file->close;

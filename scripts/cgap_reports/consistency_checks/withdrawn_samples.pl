@@ -61,19 +61,3 @@ foreach my $old_ips_line (@{$old_hash->{ips_lines}}) {
 }
 
 
-
-my %today_sequencescape_id;
-foreach my $today_ips_line (@{$today_hash->{ips_lines}}) {
-  foreach my $sequencescape (@{$today_ips_line->sequencescape}) {
-    $today_sequencescape_id{$sequencescape->internal_id} = 1;
-  }
-}
-
-foreach my $old_ips_line (@{$old_hash->{ips_lines}}) {
-  foreach my $old_sequencescape (@{$old_ips_line->sequencescape}) {
-    if (!$today_sequencescape_id{$old_sequencescape->internal_id}) {
-      printf "IPS line %s has sequencescape object removed from cgap report in the last %i days\n", $old_ips_line->biosample_id, $days_old;
-    }
-  }
-}
-
