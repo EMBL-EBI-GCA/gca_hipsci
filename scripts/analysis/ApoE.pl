@@ -18,15 +18,22 @@ foreach my $cell_line (<>) {
 
   my $open_access = $es_line->{_source}{openAccess};
 
-  my $genotypes = $open_access ? get_genotypes($cell_line) : undef;
+  my $study = $open_access ? 'ERP006946'
+            : $es_line->{_source}{diseaseStatus}{value} eq 'Normal' ? 'EGAS00001000592'
+            : $es_line->{_source}{diseaseStatus}{value} =~ /bardet/i ? 'EGAS00001000969'
+            : $es_line->{_source}{diseaseStatus}{value} =~ /diabetes/i ? 'EGAS00001001140'
+            : die "could not find study for $cell_line";
+  my $genotypes = get_genotypes(cell_line => $cell_line, study => $study);
 
   print join("\t", map {$_ || ''} $cell_line, $es_line->{_source}{ebiscName}, ($es_line->{_source}{openAccess} ? 'open' : 'managed'), $es_line->{_source}{donor}{sex}{value}, $es_line->{_source}{donor}{age}, $genotypes), "\n";
 
 }
 
 sub get_genotypes {
-  my ($cell_line) = @_;
-  my $dir = sprintf('/nfs/research2/hipsci/drop/hip-drop/tracked/gtarray/imputed_vcf/PRJEB11752/%s', $cell_line);
+  my %args = @_;
+  my ($cell_line, $study) = @args{qw(cell_line study)};
+  my $base_dir = $study eq 'ERP006946' ? '/nfs/research2/hipsci/drop/hip-drop/tracked/exomeseq/imputed_vcf' : '/nfs/research2/hipsci/controlled/exomeseq/imputed_vcf';
+  my $dir = sprintf('%s/%s/%s', $base_dir, $study, $cell_line);
   return if ! -d $dir;
   opendir(DIR, $dir);
   my @files = grep (/\.vcf.gz$/, readdir(DIR));
