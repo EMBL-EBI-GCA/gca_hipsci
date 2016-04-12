@@ -35,6 +35,7 @@ sub derive_path {
 
   my $destination;
   my $destination_base_dir = $incoming_dirname =~ m{/incoming/lamond} ? $free_base_dir
+      : $filename =~ /\.kallisto\.transcripts\.abundance.*\.(?:tsv|h5)/ ? $free_base_dir
         : $self->derive_destination_base_dir(
               filename =>$filename, 
               controlled_base_dir => $controlled_base_dir, free_base_dir => $free_base_dir,
@@ -45,13 +46,16 @@ sub derive_path {
       $destination = $self->derive_keane_vcf(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
     }
     elsif ($filename =~ /\.bam$/) {
-      $destination = $self->derive_keane_bam(filename => $filename, destination_base_dir => $destination_base_dir);
+      $destination = $self->derive_keane_bam(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
     }
     elsif ($filename =~ /\.gtc$/) {
       $destination = $self->derive_keane_gtc(filename => $filename, destination_base_dir => $destination_base_dir);
     }
     elsif ($filename =~ /\.idat$/) {
       $destination = $self->derive_keane_idat(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
+    }
+    elsif ($filename =~ /\.kallisto\.transcripts\.abundance.*\.(?:tsv|h5)/) {
+      $destination = $self->derive_keane_quantification(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
     }
     elsif ($filename =~ /\.(txt)|(csv)$/) {
       $destination = $self->derive_keane_txt(filename => $filename, destination_base_dir => $destination_base_dir, incoming_dirname => $incoming_dirname);
@@ -141,21 +145,22 @@ sub derive_keane_vcf {
 
   if ($filename =~ /HPSI\d{4}[a-z]+-[a-z]{4}(?:_\d+)?/) {
     my $sample = $&;
+    my ($study) = $options{incoming_dirname} =~ m{/((?:EGAS|ERP)[^/]*)/};
 
     if ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
-      return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+      return "$destination_base_dir/exomeseq/vcf/$study/$sample/$filename";
     }
     elsif ($filename =~ /\.HumanCoreExome.*\.imputed/) {
-      return "$destination_base_dir/gtarray/imputed_vcf/$sample/$filename";
+      return "$destination_base_dir/gtarray/imputed_vcf/$study/$sample/$filename";
     }
     elsif ($filename =~ /\.HumanCoreExome/) {
-      return "$destination_base_dir/gtarray/vcf/$sample/$filename";
+      return "$destination_base_dir/gtarray/vcf/$study/$sample/$filename";
     }
     elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.mpileup/) {
-      return "$destination_base_dir/exomeseq/vcf/$sample/$filename";
+      return "$destination_base_dir/exomeseq/vcf/$study/$sample/$filename";
     }
     elsif ($filename =~ /\.SureSelect_HumanAllExon[^\.]*\.imputed/) {
-      return "$destination_base_dir/exomeseq/imputed_vcf/$sample/$filename";
+      return "$destination_base_dir/exomeseq/imputed_vcf/$study/$sample/$filename";
     }
     else {
       return undef;
@@ -171,45 +176,35 @@ sub derive_keane_vcf {
   }
 }
 
-#sub derive_keane_bai {
-#  my ($self, %options) = @_;
-#  my $filename = $options{filename} or throw("missing filename");
-#  my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
-#  $filename =~ s/\.bai$//;
-#  my $destination = $self->derive_keane_vcf(%options, filename => $filename);
-#  return undef if !$destination;
-#  if ( ! -e $destination) {
-#    $self->reject_message('no bam file for index file');
-#  }
-#  return "$destination.bai";
-#}
-
-#sub derive_keane_tbi {
-#  my ($self, %options) = @_;
-#  my $filename = $options{filename} or throw("missing filename");
-#  my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
-#  $filename =~ s/\.tbi$//;
-#  my $destination = $self->derive_keane_vcf(%options, filename => $filename);
-#  return undef if !$destination;
-#  if ( ! -e $destination) {
-#    $self->reject_message('no vcf file for index file');
-#  }
-#  return "$destination.tbi";
-#}
-#
 sub derive_keane_bam {
   my ($self, %options) = @_;
   my $filename = $options{filename} or throw("missing filename");
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my ($cell_line_name) = $filename =~ /^([^.]+)\./;
   throw("did not recognise cell line name $filename") if !$cell_line_name;
-  my $donor_name = $self->derive_donor($cell_line_name);
   my $date = $self->derive_date($filename) or throw("could not derive date $filename");
+  my ($study) = $options{incoming_dirname} =~ m{/((?:EGAS|ERP)[^/]*)/};
   if ($filename =~ /\.exomeseq\.$date/) {
-    return "$destination_base_dir/exomeseq/alignment/$donor_name/$cell_line_name/$filename";
+    return "$destination_base_dir/exomeseq/alignment/$study/$cell_line_name/$filename";
   }
   if ($filename =~ /\.rnaseq\.$date/) {
-    return "$destination_base_dir/rnaseq/alignment/$donor_name/$cell_line_name/$filename";
+    return "$destination_base_dir/rnaseq/alignment/$study/$cell_line_name/$filename";
+  }
+  else {
+    return undef;
+  }
+}
+
+sub derive_keane_quantification {
+  my ($self, %options) = @_;
+  my $filename = $options{filename} or throw("missing filename");
+  my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
+  my ($cell_line_name) = $filename =~ /^([^.]+)\./;
+  throw("did not recognise cell line name $filename") if !$cell_line_name;
+  my $date = $self->derive_date($filename) or throw("could not derive date $filename");
+  my ($study) = $options{incoming_dirname} =~ m{/((?:EGAS|ERP)[^/]*)/};
+  if ($filename =~ /\.rnaseq\.$date/) {
+    return "$destination_base_dir/rnaseq/transcripts/$study/$cell_line_name/$filename";
   }
   else {
     return undef;
@@ -243,10 +238,9 @@ sub derive_keane_gtc {
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my ($cell_line_name) = $filename =~ /^([^.]+)\./;
   throw("did not recognise cell line name $filename") if !$cell_line_name;
-  my $donor_name = $self->derive_donor($cell_line_name);
   my $date = $self->derive_date($filename) or throw("could not derive date $filename");
   if ($filename =~ /\.gtarray\.$date/) {
-    return "$destination_base_dir/gtarray/primary_data/$donor_name/$cell_line_name/$filename";
+    return "$destination_base_dir/gtarray/primary_data/$cell_line_name/$filename";
   }
   else {
     return undef;
@@ -280,8 +274,6 @@ sub derive_lamond_raw_file {
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my $file_details = $self->param('file');
   my $cell_line_name = $file_details->{'cell_line'};
-  #my $donor_name = $self->derive_donor($cell_line_name);
-  #return "$destination_base_dir/proteomics/raw_data/$donor_name/$cell_line_name/$filename";
   return "$destination_base_dir/proteomics/raw_data/$cell_line_name/$filename";
 }
 
@@ -292,8 +284,6 @@ sub derive_lamond_mzml_file {
   my $destination_base_dir = $options{destination_base_dir} or throw("missing destination_base_dir");
   my $file_details = $self->param('file');
   my $cell_line_name = $file_details->{'cell_line'};
-  #my $donor_name = $self->derive_donor($cell_line_name);
-  #return "$destination_base_dir/proteomics/raw_data/$donor_name/$cell_line_name/$filename";
   return "$destination_base_dir/proteomics/raw_open_data/$cell_line_name/$filename";
 }
 
