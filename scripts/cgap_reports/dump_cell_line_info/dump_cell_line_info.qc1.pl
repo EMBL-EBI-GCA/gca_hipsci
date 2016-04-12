@@ -62,7 +62,7 @@ while (my $line = <$qc1_fh>) {
   chomp $line;
   my @split_line =split("\t", $line);
   next LINE if !$split_line[0] || !$split_line[1];
-  $gexarray_allowed_samples{join('_', @split_line[0,1])} = $split_line[0];
+  $gexarray_allowed_samples{$split_line[0]}{join('_', @split_line[0,1])} = $split_line[0];
 }
 close $qc1_fh;
 
@@ -73,9 +73,10 @@ LINE:
 while (my $line = <$pluri_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  my $allowed_cell_line = $gexarray_allowed_samples{$split_line[0]};
-  next LINE if !$allowed_cell_line;
-  $pluritest_details{$allowed_cell_line} = \@split_line;
+  my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
+  next LINE if !$sample;
+  next LINE if ($gexarray_allowed_samples{$sample} && !$gexarray_allowed_samples{$sample}{$split_line[0]});
+  $pluritest_details{$sample} = \@split_line;
 }
 close $pluri_fh;
 
@@ -209,6 +210,7 @@ foreach my $donor (@$donors) {
     my %output = (name => $tissue->name,
         cell_type => $es_line->{_source}{sourceMaterial}{cellType},
         biosample_id => $tissue->biosample_id,
+        donor => $donor_name,
         donor_biosample_id => $donor->biosample_id,
         gender => lc($es_line->{_source}{donor}{sex}{value} || ''),
         age => $es_line->{_source}{donor}{age},
