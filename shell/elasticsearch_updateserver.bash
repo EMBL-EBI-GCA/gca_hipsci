@@ -16,10 +16,8 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
 && source /nfs/production/reseq-info/work/hipdcc/oracle_env_hinxton.sh \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
-  -pluritest /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data/hipsci.qc1.pluritest.tsv \
-  -cnv /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data/hipsci.qc1.cnv_summary.tsv \
-  -allowed_samples_gtarray /nfs/research2/hipsci/tracking_resources/qc_samples/allowed_samples.gtarray.tsv \
-  -allowed_samples_gexarray /nfs/research2/hipsci/tracking_resources/qc_samples/allowed_samples.gexarray.tsv \
+  -pluritest /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.pluritest.tsv \
+  -cnv /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.cnv_summary.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1_images.pl \
   -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
   -trim /nfs/hipsci \

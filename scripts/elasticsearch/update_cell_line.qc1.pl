@@ -21,8 +21,6 @@ my $allowed_samples_gexarray_file;
   'es_host=s' =>\@es_host,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
-  'allowed_samples_gtarray=s' => \$allowed_samples_gtarray_file,
-  'allowed_samples_gexarray=s' => \$allowed_samples_gexarray_file,
 );
 
 my %elasticsearch;
@@ -30,29 +28,8 @@ foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 
-my %allowed_samples_gtarray;
-open my $fh, '<', $allowed_samples_gtarray_file or die "could not open $allowed_samples_gtarray_file: $!";
-LINE:
-while (my $line = <$fh>) {
-  chomp $line;
-  my @split_line = split("\t", $line);
-  next LINE if !$split_line[0] || !$split_line[1];
-  $allowed_samples_gtarray{$split_line[0]}{join('_', @split_line[0,1])} = 1;
-}
-close $fh;
-
-my %allowed_samples_gexarray;
-open $fh, '<', $allowed_samples_gexarray_file or die "could not open $allowed_samples_gexarray_file: $!";
-LINE:
-while (my $line = <$fh>) {
-  chomp $line;
-  my @split_line = split("\t", $line);
-  next LINE if !$split_line[0] || !$split_line[1];
-  $allowed_samples_gexarray{$split_line[0]}{join('_', @split_line[0,1])} = 1;
-}
-close $fh;
-
-my %qc1_details;
+my %disallow_pluritest;
+my %pluritest_details;
 open my $pluri_fh, '<', $pluritest_filename or die "could not open $pluritest_filename $!";
 <$pluri_fh>;
 LINE:
@@ -61,12 +38,17 @@ while (my $line = <$pluri_fh>) {
   my @split_line = split("\t", $line);
   my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
   next LINE if !$sample;
-  next LINE if ($allowed_samples_gexarray{$sample} && !$allowed_samples_gexarray{$sample}{$split_line[0]});
-  $qc1_details{$sample}{pluritest}{pluripotency} = $split_line[1];
-  $qc1_details{$sample}{pluritest}{novelty} = $split_line[3];
+  if ($pluritest_details{$sample}) {
+    $disallow_pluritest{$sample} = 1;
+    next LINE;
+  }
+  $pluritest_details{$sample}{pluripotency} = $split_line[1];
+  $pluritest_details{$sample}{novelty} = $split_line[3];
 }
 close $pluri_fh;
 
+my %disallow_cnv;
+my %cnv_details;
 open my $cnv_fh, '<', $cnv_filename or die "could not open $cnv_filename $!";
 <$cnv_fh>;
 LINE:
@@ -75,12 +57,27 @@ while (my $line = <$cnv_fh>) {
   my @split_line = split("\t", $line);
   my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
   next LINE if !$sample;
-  next LINE if ($allowed_samples_gtarray{$sample} && !$allowed_samples_gtarray{$sample}{$split_line[0]});
-  $qc1_details{$sample}{cnv}{num_different_regions} = $split_line[1];
-  $qc1_details{$sample}{cnv}{length_different_regions_Mbp} = $split_line[2];
-  $qc1_details{$sample}{cnv}{length_shared_differences} = $split_line[3];
+  if ($cnv_details{$sample}) {
+    $disallow_cnv{$sample} = 1;
+    next LINE;
+  }
+  $cnv_details{$sample}{num_different_regions} = $split_line[1];
+  $cnv_details{$sample}{length_different_regions_Mbp} = $split_line[2];
+  $cnv_details{$sample}{length_shared_differences} = $split_line[3];
 }
 close $cnv_fh;
+
+my %qc1_details;
+SAMPLE:
+while (my ($sample, $pluri_hash) = each %pluritest_details) {
+  next SAMPLE if $disallow_pluritest{$sample};
+  $qc1_details{$sample}{pluritest}=$pluri_hash;
+}
+SAMPLE:
+while (my ($sample, $cnv_hash) = each %cnv_details) {
+  next SAMPLE if $disallow_cnv{$sample};
+  $qc1_details{$sample}{cnv}=$cnv_hash;
+}
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
