@@ -17,7 +17,7 @@ has 'ips_line' => (
   isa => 'ReseqTrack::Tools::HipSci::CGaPReport::IPSLine',
 );
 
-foreach my $has (qw(type goal_time cell_state)) {
+foreach my $has (qw(type goal_time cell_state passage)) {
   has $has => (
       is => 'rw',
       isa => 'Maybe[Str]',

@@ -75,9 +75,15 @@ sub BUILD {
   my @types = split(/\|/, $args->{release_type});
   my @goal_times = split(/\|/, $args->{goal_time});
   my @cell_states = split(/\|/, $args->{release_cell_state});
+  my @passages = split(/\|/, $args->{release_passage});
   my @releases;
   foreach my $i (0..$#types) {
-    push(@releases, ReseqTrack::Tools::HipSci::CGaPReport::Release->new(type => $types[$i], goal_time => $goal_times[$i], cell_state => $cell_states[$i]));
+    push(@releases, ReseqTrack::Tools::HipSci::CGaPReport::Release->new(
+          type => $types[$i],
+          goal_time => $goal_times[$i],
+          cell_state => $cell_states[$i],
+          passage => $passages[$i],
+          ));
   }
 
   $self->release([sort {$b->goal_time cmp $a->goal_time} @releases]);
