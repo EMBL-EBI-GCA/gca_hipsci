@@ -114,12 +114,7 @@ sub derive_destination_base_dir {
       );
   throw "no donor for $filename" if !$donor;
   my $hmdmc = $donor->hmdmc;
-  return $controlled_base_dir if $hmdmc eq 'H1288';
-  return $controlled_base_dir if $hmdmc eq '13_058';
-  return $controlled_base_dir if $hmdmc eq '14_001';
-  return $controlled_base_dir if $hmdmc eq '14_025';
-  return $controlled_base_dir if $hmdmc eq '14_036';
-  
+  return $controlled_base_dir if scalar grep {$_ eq $hmdmc} ( qw( H1288 13_058 14_001 14_025 14_036 15_097 15_098 15_099 15_093 16_010 16_011 16_013 16_014 16_015 16_019 16_027 16_028));
   return $free_base_dir if $hmdmc eq '13_042';
   throw("did not recognise hmdmc $hmdmc for filename $filename");
 }

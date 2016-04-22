@@ -27,6 +27,12 @@ my %biomaterial_provider_hash = (
   '15_093' => 'University College London',
   '16_010' => 'University College London',
   '16_011' => 'University College London',
+  '16_013' =>  'University College London',
+  '16_014' =>  'University of Manchester',
+  '16_015' =>  'Cambridge BioResource',
+  '16_019' =>  'Cambridge BioResource',
+  '16_027' =>  'University College London',
+  '16_028' =>  'University College London',
 );
 my %open_access_hash = (
   'H1288' => 0,
@@ -41,6 +47,12 @@ my %open_access_hash = (
   '15_093' => 0,
   '16_010' => 0,
   '16_011' => 0,
+  '16_013' => 0,
+  '16_014' => 0,
+  '16_015' => 0,
+  '16_019' => 0,
+  '16_027' => 0,
+  '16_028' => 0,
 );
 
 &GetOptions(
