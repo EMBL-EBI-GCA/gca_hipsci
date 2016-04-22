@@ -67,6 +67,7 @@ my $es_scroll = $elasticsearch->scroll_helper(
   index => 'hescreg',
   search_type => 'scan',
   type => 'line',
+  scroll => '5m',
   body => {
     query => {
       filtered => {
@@ -88,6 +89,7 @@ while (my $es_doc = $es_scroll->next) {
   my $cgap_line = List::Util::first {$_->biosample_id && $line->{biosamples_id} && $_->biosample_id eq $line->{biosamples_id}}  @{$cgap_ips_lines};
   next LINE if !$cgap_line;
   my $hipsci_name = $cgap_line->name;
+  next LINE if $line->{final_submit_flag};
 
 
   my $biosample = BioSD::fetch_sample($cgap_line->biosample_id);
@@ -304,7 +306,8 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{hips_approval_flag} .= 1;
     $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
     $post_hash->{hips_approval_number} .= '15/YH/0391';
-    $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} = 1;
+    $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} .= 1;
+    $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 1;
     $post_hash->{hips_third_party_obligations_flag} .= 0;
     $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
     $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
@@ -320,6 +323,13 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
     $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
     $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
+    if ($post_hash->{disease_flag}) {
+      $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 0;
+    }
+    else {
+      $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 1;
+      $post_hash->{hips_medical_records_access_consented_organisation_name} .= 'Cambridge BioResource';
+    }
   }
 
 =cut 

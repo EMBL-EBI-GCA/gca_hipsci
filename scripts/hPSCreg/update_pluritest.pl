@@ -11,7 +11,7 @@ use List::Util qw();
 
 my ($hESCreg_user, $hESCreg_pass);
 my $hescreg_es_host='vg-rs-dev1:9200';
-my $hipsci_es_host='ves-hx-e4:9200';
+my $hipsci_es_host='ves-pg-e4:9200';
 
 GetOptions("hESCreg_user=s" => \$hESCreg_user,
     "hESCreg_pass=s" => \$hESCreg_pass,
@@ -53,8 +53,14 @@ while (my $es_doc = $es_scroll->next) {
   my $ebisc_name = $line->{name};
   next LINE if $ebisc_name !~ /^WTSI/;
   next LINE if !$line->{biosamples_id};
+  next LINE if $line->{final_submit_flag};
 
   my $es_line = $es_hipsci->fetch_line_by_biosample_id($line->{biosamples_id});
+
+  if (!$es_line->{_source}{pluritest}) {
+    print "skipping cell line $ebisc_name\n";
+    next LINE;
+  }
 
   my $gexarray_files = $es_hipsci->call('search', 
     index => 'hipsci',
