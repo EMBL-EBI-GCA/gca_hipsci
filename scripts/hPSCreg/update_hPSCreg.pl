@@ -89,7 +89,7 @@ while (my $es_doc = $es_scroll->next) {
   my $cgap_line = List::Util::first {$_->biosample_id && $line->{biosamples_id} && $_->biosample_id eq $line->{biosamples_id}}  @{$cgap_ips_lines};
   next LINE if !$cgap_line;
   my $hipsci_name = $cgap_line->name;
-  next LINE if $line->{final_submit_flag};
+  #next LINE if $line->{final_submit_flag};
 
 
   my $biosample = BioSD::fetch_sample($cgap_line->biosample_id);
@@ -223,6 +223,9 @@ while (my $es_doc = $es_scroll->next) {
       $post_hash->{passage_method_enzymatic} = 'other';
       $post_hash->{passage_method_enzymatic_other} = 'collagenase and dispase';
     }
+    if ($bank_release->type =~ /ebisc/i && $bank_release->passage) {
+      $post_hash->{passage_number_banked} .= $bank_release->passage;
+    }
   }
   $post_hash->{co2_concentration} .= 5;
   $post_hash->{certificate_of_analysis_flag} .= 0;
@@ -307,7 +310,6 @@ while (my $es_doc = $es_scroll->next) {
     $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
     $post_hash->{hips_approval_number} .= '15/YH/0391';
     $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} .= 1;
-    $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 1;
     $post_hash->{hips_third_party_obligations_flag} .= 0;
     $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
     $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
@@ -342,7 +344,8 @@ while (my $es_doc = $es_scroll->next) {
 =cut
   
   #print encode_json($post_hash), "\n"; exit;
-  #use Data::Dumper; print Dumper $post_hash; exit;
+  #use Data::Dumper; print Dumper $post_hash; next LINE;
+  #use JSON; print encode_json($post_hash), "\n"; next LINE;
   my $response =  $hESCreg->post_line($post_hash);
   if ($response =~ /error/i) {
     print $response;
