@@ -75,7 +75,7 @@ sub BUILD {
   my @types = split(/\|/, $args->{release_type});
   my @goal_times = split(/\|/, $args->{goal_time});
   my @cell_states = split(/\|/, $args->{release_cell_state});
-  my @passages = split(/\|/, $args->{release_passage});
+  my @passages = $args->{release_passage} ? split(/\|/, $args->{release_passage}) || ();
   my @releases;
   foreach my $i (0..$#types) {
     push(@releases, ReseqTrack::Tools::HipSci::CGaPReport::Release->new(
