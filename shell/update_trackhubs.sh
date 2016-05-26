@@ -7,4 +7,5 @@ perl $HIPSCI_CODE/scripts/trackhubs/trackhub.pl \
 -server_url BLAH \
 -exomeseq /nfs/hipsci/vol1/ftp/archive_datasets/ENA.ERP006946.exomeseq.healthy_volunteers.analysis_files.tsv \
 -exomeseq /nfs/hipsci/vol1/ftp/archive_datasets/ENA.ERP013157.exomeseq.healthy_volunteers.analysis_files.tsv \
--exomeseq /nfs/hipsci/vol1/ftp/archive_datasets/ENA.ERP013158.exomeseq.healthy_volunteers.analysis_files.tsv
+-exomeseq /nfs/hipsci/vol1/ftp/archive_datasets/ENA.ERP013158.exomeseq.healthy_volunteers.analysis_files.tsv \
+-do_track_hubs_from_scratch
