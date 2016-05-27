@@ -5,14 +5,9 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
+use Registry; #From plantsTrackHubPipeline (https://github.com/EnsemblGenomes/plantsTrackHubPipeline)
+use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;  #HipSci specifc version of TrackHubCreation module of the plantsTrackHubPipeline
 
-#Existing imports from plantsTrackHubPipeline, could use HipSci specific version
-use Registry;
-
-#HipSci specifc versions of modules, could be merged into universal library with plantsTrackHubPipeline
-use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;
-
-###############################################
 my @exomeseq;
 my ($registry_user_name,$registry_pwd);
 my ($server_dir_full_path, $server_url, $from_scratch);
@@ -33,6 +28,8 @@ if(!$registry_user_name or !$registry_pwd or !$server_dir_full_path or !$server_
 my %cell_lines;
 my %unsuccessful_studies;
 
+#Load data from each datatype and store in single object
+
 foreach my $enaexomeseq (@exomeseq){
   open my $fh, '<', $enaexomeseq or die $!;
   <$fh>;
@@ -40,14 +37,38 @@ foreach my $enaexomeseq (@exomeseq){
     next unless $line =~ /^ftp/;
     chomp $line;
     my @parts = split("\t", $line);
-    if (exists($cell_lines{$parts[2]})){
-      push($cell_lines{$parts[2]}, $parts[0])
+    my $study_id = $cell_lines{$parts[2]};
+    my $ftpdata = $parts[0];
+    if (exists($cell_lines{$study_id})){
+      %cell_lines = HipSciStudy->add($cell_lines{$study_id},$study_id,$ftpdata);
     }else{
-      $cell_lines{$parts[2]} = [$parts[0]]
+      $cell_lines{}HipSciStudy->new($study_id,$ftpdata);
     }
   }
   close $fh;
 }
+
+foreach my $enaexomeseq (@exomeseq){
+  open my $fh, '<', $enaexomeseq or die $!;
+  <$fh>;
+  while (my $line = <$fh>) {
+    next unless $line =~ /^ftp/;
+    chomp $line;
+    my @parts = split("\t", $line);
+    my $study_id = $cell_lines{$parts[2]};
+    my $ftpdata = $parts[0];
+    if (exists($cell_lines{$study_id})){
+      push($cell_lines{$parts[2]}, ftpdata)
+    }else{
+      $cell_lines{$study_id} = [ftpdata]
+    }
+  }
+  close $fh;
+}
+
+print Dumper(%cell_lines;);
+
+exit(0);
 
 my $registry_obj = Registry->new($registry_user_name, $registry_pwd);
 

@@ -1,6 +1,6 @@
 package HipSciTrackHubCreation;
 
-#This is a modified version of the TrackHubCreation module created for the ENSEMBL plants TrackHub Pipeline
+#HipSci specifc version of TrackHubCreation module of the plantsTrackHubPipeline (https://github.com/EnsemblGenomes/plantsTrackHubPipeline)
 
 use strict;
 use warnings;
@@ -21,3 +21,5 @@ sub new {
 
   return bless $self, $class; # this is what makes a reference into an object
 }
+
+1;
