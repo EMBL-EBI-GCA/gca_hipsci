@@ -19,7 +19,41 @@ sub new {
     server_dir_full_path => $server_dir_full_path
   };
 
-  return bless $self, $class; # this is what makes a reference into an object
+  return bless $self, $class;
+}
+
+sub make_track_hub{ # main method, creates the track hub of a study in the folder/server specified
+
+  my $self= shift;
+  my $study_id= $self->{study_id};
+  my $server_dir_full_path = $self->{server_dir_full_path};
+  my $data = shift;
+
+  $self->make_study_dir($server_dir_full_path, $study_id);
+}
+
+sub make_study_dir{
+
+  my $self= shift;
+  my $server_dir_full_path= shift;
+  my $study_id = shift;
+
+  run_system_command("mkdir $server_dir_full_path" . '/' . $study_id)
+    or die "I cannot make dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+}
+
+sub run_system_command {
+
+  my $command = shift;
+
+  `$command`;
+
+  if($? !=0){ # if exit code of the system command is successful returns 0
+    return 0; 
+
+  }else{
+     return 1;
+  }
 }
 
 1;

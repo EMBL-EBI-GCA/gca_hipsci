@@ -26,9 +26,7 @@ if(!$registry_user_name or !$registry_pwd or !$server_dir_full_path or !$server_
 }
 
 my %cell_lines;
-my %unsuccessful_studies;
 
-#Load data from each datatype and store in single object
 #TODO Add other data types
 foreach my $enaexomeseq (@exomeseq){
   open my $fh, '<', $enaexomeseq or die $!;
@@ -57,30 +55,26 @@ if (!-d $server_dir_full_path) {
   system(@args) == 0 or die "system @args failed: $?";
 }
 
-#Count exisitng trackhubs #TODO Decide if this is needed
-#print_registry_registered_number_of_th($registry_obj);
+my $pre_update_trackhub = print_registry_registered_number_of_th($registry_obj);
 
 #TODO Make trackhubs and track whether successful
-my $unsuccessful_studies_href = make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path); 
+my $unsuccessful_studies = make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path); 
 
-# my $counter=0;
+#Check and print reason for errors #TODO Check error calling
+my $counter=0;
+if(scalar (keys %$unsuccessful_studies) >0){
+  print "\nThere were some studies that failed to be made track hubs:\n\n";
+}
+foreach my $reason_of_failure (keys %$unsuccessful_studies){  # hash looks like; $unsuccessful_studies{"Missing all Samples in AE REST API"}{$study_id}= 1;
+  foreach my $failed_study_id (keys $unsuccessful_studies->{$reason_of_failure}){
+    $counter ++;
+    print "$counter. $failed_study_id\t".$reason_of_failure."\n";
+  }
+}
 
-# if(scalar (keys %$unsuccessful_studies_href) >0){
-#   print "\nThere were some studies that failed to be made track hubs:\n\n";
-# }
+my $post_update_trackhub = print_registry_registered_number_of_th($registry_obj);
 
-# foreach my $reason_of_failure (keys %$unsuccessful_studies_href){  # hash looks like; $unsuccessful_studies{"Missing all Samples in AE REST API"}{$study_id}= 1;
-
-#   foreach my $failed_study_id (keys $unsuccessful_studies_href->{$reason_of_failure}){
-
-#     $counter ++;
-#     print "$counter. $failed_study_id\t".$reason_of_failure."\n";
-#   }
-# }
-
-# #Trackhubs post update
-# #print_registry_registered_number_of_th($registry_obj);
-
+#TODO Make a summary output to print to log file, include $pre_update_trackhub_count and $post_update_trackhub_count
 
 ### Methods ###
 sub make_register_THs_with_logging{
@@ -93,7 +87,10 @@ sub make_register_THs_with_logging{
   my $line_counter = 0;
   my %unsuccessful_studies;
 
-  #Remove existing trackhub folders
+  #Remove existing trackhub folders 
+  #TODO Add check for whether trackhub needs updating, 
+  #can just save a copy of %cell_lines from previous run and then compare it to current 
+  #run to see if update is required on per cell line basis
   foreach my $cell_line (keys %$cell_lines_to_register){
     $line_counter++;
     my $ls_output = `ls $server_dir_full_path`  ;
@@ -103,11 +100,11 @@ sub make_register_THs_with_logging{
       my @args = ("rm", "-r", "$server_dir_full_path/$cell_line");
       system(@args) == 0 or die "system @args failed: $?";
     }
+  
+    my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_line,$server_dir_full_path);
+    my $script_output = $track_hub_creator_obj->make_track_hub($cell_lines{$cell_line});
+  
   }
-
-  #my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_line,$server_dir_full_path);
-
-
   return (\%unsuccessful_studies);
 }
 
@@ -117,6 +114,6 @@ sub print_registry_registered_number_of_th{
   my $registry_obj = shift;
 
   my $all_track_hubs_in_registry_href = $registry_obj->give_all_Registered_track_hub_names();
-  print Dumper($all_track_hubs_in_registry_href); #TODO make print statement that counts distinct trackhubs
+  return $all_track_hubs_in_registry_href; #TODO make print statement that counts distinct trackhubs
 
 }
