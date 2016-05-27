@@ -29,46 +29,26 @@ my %cell_lines;
 my %unsuccessful_studies;
 
 #Load data from each datatype and store in single object
-
+#TODO Add other data types
 foreach my $enaexomeseq (@exomeseq){
   open my $fh, '<', $enaexomeseq or die $!;
   <$fh>;
   while (my $line = <$fh>) {
     next unless $line =~ /^ftp/;
+    #TODO filter which specific file to select if not all of them
     chomp $line;
     my @parts = split("\t", $line);
-    my $study_id = $cell_lines{$parts[2]};
+    my $study_id = $parts[2];
     my $ftpdata = $parts[0];
+    #TODO may need to store additional information such as type of data for later
     if (exists($cell_lines{$study_id})){
-      %cell_lines = HipSciStudy->add($cell_lines{$study_id},$study_id,$ftpdata);
+      push($cell_lines{$study_id}, $ftpdata)
     }else{
-      $cell_lines{}HipSciStudy->new($study_id,$ftpdata);
+      $cell_lines{$study_id} = [$ftpdata]
     }
   }
   close $fh;
 }
-
-foreach my $enaexomeseq (@exomeseq){
-  open my $fh, '<', $enaexomeseq or die $!;
-  <$fh>;
-  while (my $line = <$fh>) {
-    next unless $line =~ /^ftp/;
-    chomp $line;
-    my @parts = split("\t", $line);
-    my $study_id = $cell_lines{$parts[2]};
-    my $ftpdata = $parts[0];
-    if (exists($cell_lines{$study_id})){
-      push($cell_lines{$parts[2]}, ftpdata)
-    }else{
-      $cell_lines{$study_id} = [ftpdata]
-    }
-  }
-  close $fh;
-}
-
-print Dumper(%cell_lines;);
-
-exit(0);
 
 my $registry_obj = Registry->new($registry_user_name, $registry_pwd);
 
@@ -77,30 +57,29 @@ if (!-d $server_dir_full_path) {
   system(@args) == 0 or die "system @args failed: $?";
 }
 
-#Count exisitng trackhubs
+#Count exisitng trackhubs #TODO Decide if this is needed
 #print_registry_registered_number_of_th($registry_obj);
 
-#TODO Make trackhubs
-
+#TODO Make trackhubs and track whether successful
 my $unsuccessful_studies_href = make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path); 
 
-my $counter=0;
+# my $counter=0;
 
-if(scalar (keys %$unsuccessful_studies_href) >0){
-  print "\nThere were some studies that failed to be made track hubs:\n\n";
-}
+# if(scalar (keys %$unsuccessful_studies_href) >0){
+#   print "\nThere were some studies that failed to be made track hubs:\n\n";
+# }
 
-foreach my $reason_of_failure (keys %$unsuccessful_studies_href){  # hash looks like; $unsuccessful_studies{"Missing all Samples in AE REST API"}{$study_id}= 1;
+# foreach my $reason_of_failure (keys %$unsuccessful_studies_href){  # hash looks like; $unsuccessful_studies{"Missing all Samples in AE REST API"}{$study_id}= 1;
 
-  foreach my $failed_study_id (keys $unsuccessful_studies_href->{$reason_of_failure}){
+#   foreach my $failed_study_id (keys $unsuccessful_studies_href->{$reason_of_failure}){
 
-    $counter ++;
-    print "$counter. $failed_study_id\t".$reason_of_failure."\n";
-  }
-}
+#     $counter ++;
+#     print "$counter. $failed_study_id\t".$reason_of_failure."\n";
+#   }
+# }
 
-#Trackhubs post update
-#print_registry_registered_number_of_th($registry_obj);
+# #Trackhubs post update
+# #print_registry_registered_number_of_th($registry_obj);
 
 
 ### Methods ###
@@ -126,7 +105,7 @@ sub make_register_THs_with_logging{
     }
   }
 
-  my $track_hub_creator_obj = TrackHubCreation->new($study_id,$server_dir_full_path);
+  #my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_line,$server_dir_full_path);
 
 
   return (\%unsuccessful_studies);
