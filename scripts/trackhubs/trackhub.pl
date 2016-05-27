@@ -10,7 +10,7 @@ use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;  #HipSci speci
 
 my @exomeseq;
 my ($registry_user_name,$registry_pwd);
-my ($server_dir_full_path, $server_url, $from_scratch);
+my ($server_dir_full_path, $server_url, @assemblies, $from_scratch);
 
 GetOptions(
   "THR_username=s"             => \$registry_user_name,
@@ -18,6 +18,7 @@ GetOptions(
   "server_dir_full_path=s"     => \$server_dir_full_path,
   "server_url=s"               => \$server_url,  
   "exomeseq=s"                 => \@exomeseq,
+  "assembly=s"                 => \@assemblies,
   "do_track_hubs_from_scratch" => \$from_scratch,  # flag
 );
 
@@ -58,7 +59,7 @@ if (!-d $server_dir_full_path) {
 my $pre_update_trackhub = print_registry_registered_number_of_th($registry_obj);
 
 #TODO Make trackhubs and track whether successful
-my $unsuccessful_studies = make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path); 
+my $unsuccessful_studies = make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path, \@assemblies); 
 
 #Check and print reason for errors #TODO Check error calling
 my $counter=0;
@@ -82,6 +83,7 @@ sub make_register_THs_with_logging{
   my $registry_obj = shift;
   my $cell_lines_to_register = shift;
   my $server_dir_full_path = shift;
+  my $assemblies = shift;
 
   my $return_string;
   my $line_counter = 0;
@@ -102,7 +104,7 @@ sub make_register_THs_with_logging{
     }
   
     my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_line,$server_dir_full_path);
-    my $script_output = $track_hub_creator_obj->make_track_hub($cell_lines{$cell_line});
+    my $script_output = $track_hub_creator_obj->make_track_hub($cell_lines{$cell_line}, $assemblies);
   
   }
   return (\%unsuccessful_studies);

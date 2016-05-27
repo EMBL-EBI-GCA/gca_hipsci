@@ -28,12 +28,13 @@ sub make_track_hub{ # main method, creates the track hub of a study in the folde
   my $study_id= $self->{study_id};
   my $server_dir_full_path = $self->{server_dir_full_path};
   my $data = shift;
+  my $assemblies = shift;
 
   $self->make_study_dir($server_dir_full_path, $study_id);
-  #TODO decide if needed
-  #$self->make_assemblies_dirs($server_dir_full_path, $study_id, $data);
+  $self->make_assemblies_dirs($server_dir_full_path, $study_id, $assemblies);
 
-  $self->make_hubtxt_file($server_dir_full_path , $study_id);
+  $self->make_hubtxt_file($server_dir_full_path, $study_id);
+  $self->make_genomestxt_file($server_dir_full_path, $study_id);
 }
 
 sub run_system_command {
@@ -60,21 +61,19 @@ sub make_study_dir{
     or die "I cannot make dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
 }
 
-# sub make_assemblies_dirs{
+sub make_assemblies_dirs{
 
-#   my $self= shift;
-#   my $server_dir_full_path= shift;
-#   my $study_id = shift;
-#   my $data = shift;
-  
-#   #FIXME
-#   # For every assembly I make a directory for the study -track hub
-#   foreach my $assembly_name (keys %{$study_obj->get_assembly_names}){
+  my $self= shift;
+  my $server_dir_full_path= shift;
+  my $study_id = shift;
+  my $assemblies = shift;
 
-#     run_system_command("mkdir $server_dir_full_path/$study_id/$assembly_name")
-#       or die "I cannot make directories of assemblies in $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
-#   }
-# }
+  foreach my $assembly (@$assemblies){
+
+    run_system_command("mkdir $server_dir_full_path/$study_id/$assembly")
+      or die "I cannot make directories of assemblies in $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+  }
+}
 
 sub make_hubtxt_file{
 
@@ -96,6 +95,27 @@ sub make_hubtxt_file{
   print $fh "genomesFile genomes.txt\n";
   print $fh "email hipsci-dcc\@ebi.ac.uk\n";
   close($fh);
+}
+
+sub make_genomestxt_file{
+  my $self= shift;
+  my $server_dir_full_path= shift;
+  my $study_id = shift;
+  my $assembly_names_href = $study_obj->get_assembly_names;
+
+  my $genomes_txt_file = "$server_dir_full_path/$study_id/genomes.txt";
+
+  run_system_command("touch $genomes_txt_file")
+    or die "Could not create genomes.txt file in the $server_dir_full_path location\n";
+
+  open(my $fh2, '>', $genomes_txt_file) or die "Could not open file '$genomes_txt_file' $!\n";
+
+  foreach my $assembly_name (keys %{$assembly_names_href}) {
+
+    print $fh2 "genome ".$assembly_name."\n"; 
+    print $fh2 "trackDb ".$assembly_name."/trackDb.txt"."\n\n"; 
+  }
+
 }
 
 1;
