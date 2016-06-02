@@ -55,9 +55,12 @@ foreach my $enaexomeseq (@exomeseq){
       type => $type,
     };
     if (exists($cell_lines{$study_id})){
-      push($cell_lines{$study_id}, $ftpdata)
+      push($cell_lines{$study_id}{data}, $ftpdata)
     }else{
-      $cell_lines{$study_id} = [$ftpdata]
+      $cell_lines{$study_id} = {
+        biosample_id => $parts[3],
+        data => [$ftpdata]
+      }
     }
   }
   close $fh;

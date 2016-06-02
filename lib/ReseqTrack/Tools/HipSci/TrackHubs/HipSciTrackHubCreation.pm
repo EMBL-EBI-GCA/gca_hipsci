@@ -53,9 +53,9 @@ sub make_track_hub{ # main method, creates the track hub of a study in the folde
   $self->make_hubtxt_file($trackhubpath, $hubname, $long_description, $email, $about_url);
   $self->make_genomestxt_file($trackhubpath, $assemblies);
 
-  #foreach my $assembly (@$assemblies){
-  #  $self->make_trackDbtxt_file($server_dir_full_path, $study_id, $assembly, $data);
-  #}
+  foreach my $assembly (@$assemblies){
+    $self->make_trackDbtxt_file($trackhubpath, $assembly, $cell_lines);
+  }
 }
 
 sub run_system_command {
@@ -144,27 +144,31 @@ sub make_genomestxt_file{
 
 sub make_trackDbtxt_file{
   my $self =shift;
-  my $server_dir_full_path = shift;
-  my $study_id = shift;
+  my $trackhubpath = shift;
   my $assembly = shift;
-  my $data = shift;
+  my $cell_lines = shift;
 
-  my $trackDb_txt_file="$server_dir_full_path/$study_id/$assembly/trackDb.txt";
+  my $trackDb_txt_file="$trackhubpath/$assembly/trackDb.txt";
 
   run_system_command("touch $trackDb_txt_file")
-    or die "Could not create trackDb.txt file in the $server_dir_full_path/$study_id/$assembly location\n";       
+    or die "Could not create trackDb.txt file in the $trackhubpath/$assembly location\n";       
 
   open(my $fh, '>', $trackDb_txt_file)
     or die "Error in ".__FILE__." line ".__LINE__." Could not open file '$trackDb_txt_file' $!";
 
   my $counter_of_tracks=0;
+  foreach my $cell_line (keys %$cell_lines){
+    my $super_track_obj = $self->make_biosample_super_track_obj($cell_line, $$cell_lines{$cell_line});
+    $super_track_obj->print_track_stanza($fh);
 
+    my $visibility="off";
+
+    #foreach my $track ($$cell_lines{$cell_line}{data}){
+    #  print Dumper($track);
+    #}
+  }
   
-  #FIXME passing data below is not correct as it is actually a list of multuple data files so cannot just call description and type from it, need other way of creating supertrack, then use data list for subtracks
-  #my $super_track_obj = $self->make_biosample_super_track_obj($study_id, $data);
-  #$super_track_obj->print_track_stanza($fh);
   
-  #my $visibility="off";
 
   #foreach my $track (@$data){
     #print Dumper($track)
@@ -181,18 +185,43 @@ sub make_trackDbtxt_file{
 
 sub make_biosample_super_track_obj{
   my $self= shift;
-  my $study_id = shift;
+  my $cell_line = shift;
   my $data = shift;
 
-  print Dumper($data);
-
-  my $long_label = $$data{description};
+  my $long_label = $cell_line." BioSample ID: ".$$data{biosample_id};
 
   my $date_string = strftime "%a %b %e %H:%M:%S %Y %Z", gmtime;  # date is of this type: "Tue Feb  2 17:57:14 2016 GMT"
-  my $metadata_string="hub_created_date=".printlabel_value($date_string)." biosample_id=".$$data{biosample_id}." sample_alias=".$study_id;
+  my $metadata_string="hub_created_date=".printlabel_value($date_string)." biosample_id=".$$data{biosample_id}." sample_alias=".$cell_line;
 
-  my $super_track_obj = HipSciSuperTrack->new($study_id,$long_label,$metadata_string,$$data{type});
+  my $super_track_obj = HipSciSuperTrack->new($cell_line,$long_label,$metadata_string);
   return $super_track_obj;
+}
+
+# i want they key of the key-value pair of the metadata to have "_" instead of space if they are more than 1 word
+sub printlabel_key {
+
+  my $string = shift ;
+  my @array = split (/ /,$string) ;
+
+  if (scalar @array > 1) {
+    $string =~ s/ /_/g;
+
+  }
+  return $string;
+}
+
+# I want the value of the key-value pair of the metadata to have quotes in the whole string if the value is more than 1 word.
+sub printlabel_value {
+
+  my $string = shift ;
+  my @array = split (/ /,$string) ;
+
+  if (scalar @array > 1) {
+       
+    $string = "\"".$string."\"";  
+
+  }
+  return $string;
 }
 
 1;
