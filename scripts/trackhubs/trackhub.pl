@@ -50,6 +50,7 @@ foreach my $enaexomeseq (@exomeseq){
     my $ftpdata = {
       file_url => $parts[0],
       biosample_id => $parts[3],
+      label => 'exomeseq',
       description => $parts[5],
       archive_submission_date => $parts[6],
       type => $type,

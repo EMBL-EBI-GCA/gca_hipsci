@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use POSIX qw(strftime);
 use ReseqTrack::Tools::HipSci::TrackHubs::HipSciSuperTrack;
+use SubTrack;  # From plantsTrackHubPipeline (https://github.com/EnsemblGenomes/plantsTrackHubPipeline)
 use Data::Dumper;
 
 sub new {
@@ -163,24 +164,18 @@ sub make_trackDbtxt_file{
 
     my $visibility="off";
 
-    #foreach my $track ($$cell_lines{$cell_line}{data}){
-    #  print Dumper($track);
-    #}
+    foreach my $track (@{$$cell_lines{$cell_line}{data}}){
+      # If more than 10 tracks will want to hifde the remainder by default
+      $counter_of_tracks++;
+      if ($counter_of_tracks <=10){
+         $visibility = "on";
+      }else{
+         $visibility = "off";
+      }
+      my $track_obj=$self->make_biosample_sub_track_obj($track, $cell_line, $visibility);
+      $track_obj->print_track_stanza($fh);
+    }
   }
-  
-  
-
-  #foreach my $track (@$data){
-    #print Dumper($track)
-    # $counter_of_tracks++;
-    # if ($counter_of_tracks <=10){
-    #     $visibility = "on";
-    # }else{
-    #     $visibility = "off";
-    # }
-    # my $track_obj=$self->make_biosample_sub_track_obj($study_obj,$biorep_id,$sample_id,$visibility);
-    # $track_obj->print_track_stanza($fh);
-  #}
 }
 
 sub make_biosample_super_track_obj{
@@ -195,6 +190,25 @@ sub make_biosample_super_track_obj{
 
   my $super_track_obj = HipSciSuperTrack->new($cell_line,$long_label,$metadata_string);
   return $super_track_obj;
+}
+
+sub make_biosample_sub_track_obj{ 
+# i need 5 pieces of data to make the track obj, to return:  track_name, parent_name, big_data_url , long_label ,file_type
+  my $self= shift;
+  my $track = shift;
+  my $cell_line = shift; #track name
+  my $visibility= shift;
+
+  my $track_name = $cell_line."_".$$track{label};
+  my $parent_name = $cell_line;
+  my $big_data_url = $$track{file_url};;
+  my $short_label= $$track{label};
+  my $long_label= $$track{description};
+  my $type = $$track{type};
+
+  my $track_obj = SubTrack->new($track_name, $parent_name, $big_data_url, $short_label, $long_label, $type, $visibility);
+  return $track_obj;
+
 }
 
 # i want they key of the key-value pair of the metadata to have "_" instead of space if they are more than 1 word
