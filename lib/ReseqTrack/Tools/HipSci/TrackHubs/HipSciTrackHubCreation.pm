@@ -51,7 +51,7 @@ sub make_track_hub{ # main method, creates the track hub of a study in the folde
   $self->make_assemblies_dirs($trackhubpath, $assemblies);
 
   $self->make_hubtxt_file($trackhubpath, $hubname, $long_description, $email, $about_url);
-  #$self->make_genomestxt_file($server_dir_full_path, $study_id, $assemblies);
+  $self->make_genomestxt_file($trackhubpath, $assemblies);
 
   #foreach my $assembly (@$assemblies){
   #  $self->make_trackDbtxt_file($server_dir_full_path, $study_id, $assembly, $data);
@@ -125,14 +125,13 @@ sub make_hubtxt_file{
 
 sub make_genomestxt_file{
   my $self= shift;
-  my $server_dir_full_path= shift;
-  my $study_id = shift;
+  my $trackhubpath= shift;
   my $assemblies = shift;
 
-  my $genomes_txt_file = "$server_dir_full_path/$study_id/genomes.txt";
+  my $genomes_txt_file = "$trackhubpath/genomes.txt";
 
   run_system_command("touch $genomes_txt_file")
-    or die "Could not create genomes.txt file in the $server_dir_full_path location\n";
+    or die "Could not create genomes.txt file in the $trackhubpath location\n";
 
   open(my $fh2, '>', $genomes_txt_file) or die "Could not open file '$genomes_txt_file' $!\n";
 
