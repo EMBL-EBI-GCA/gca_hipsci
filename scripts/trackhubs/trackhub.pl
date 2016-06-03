@@ -5,7 +5,7 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
-use Registry;  # From plantsTrackHubPipeline (https://github.com/EnsemblGenomes/plantsTrackHubPipeline)
+use ReseqTrack::Tools::HipSci::TrackHubs::HipSciRegistry;  # HipSci specifc version of Registry module of the plantsTrackHubPipeline
 use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;  # HipSci specifc version of TrackHubCreation module of the plantsTrackHubPipeline
 
 my @exomeseq;  # Data types
@@ -67,7 +67,9 @@ foreach my $enaexomeseq (@exomeseq){
   close $fh;
 }
 
-my $registry_obj = Registry->new($registry_user_name, $registry_pwd);
+my $registry_obj = HipSciRegistry->new($registry_user_name, 
+                                       $registry_pwd),
+                                       'hidden';  # For testing can make TrackHubs hidden from public view
 
 if (!-d $server_dir_full_path) {
   my @args = ("mkdir", "$server_dir_full_path");
@@ -102,6 +104,20 @@ sub make_register_THs_with_logging{
   
   my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_lines_to_register, $server_dir_full_path, $hubname, $long_description, $email, $assemblies, $about_url);
   $track_hub_creator_obj->make_track_hub();
+
+  $registry_obj->delete_track_hub($hubname);
+  my $output = register_track_hub_in_TH_registry($registry_obj,$hubname);
+}
+
+sub register_track_hub_in_TH_registry{
+  my $registry_obj = shift;
+  my $hubname = shift;
+ 
+  my $hub_txt_url = $server_url . "/" . $hubname . "/hub.txt" ;
+
+  my $output = $registry_obj->register_track_hub($hubname,$hub_txt_url, );
+  return $output;
+  
 }
 
 sub print_registry_registered_number_of_th{
