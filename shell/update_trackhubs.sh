@@ -3,8 +3,8 @@
 perl $HIPSCI_CODE/scripts/trackhubs/trackhub.pl \
 -THR_username $THR_user \
 -THR_password $THR_pass \
--server_dir_full_path /homes/peter/tracktest/\.TrackHubs \
--server_url BLAH \
+-server_dir_full_path /nfs/hipsci/vol1/ftp/\.TrackHubs \
+-server_url ftp://ftp.hipsci.ebi.ac.uk/vol1/ftp/\.TrackHubs \
 -hubname hipsci_hub \
 -long_description 'Human Induced Pluripotent Stem Cells Initiative (HipSci) TrackHub' \
 -email 'hipsci-dcc@ebi.ac.uk' \
