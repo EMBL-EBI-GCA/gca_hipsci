@@ -9,13 +9,10 @@ use ReseqTrack::Tools::HipSci::TrackHubs::HipSciRegistry;  # HipSci specifc vers
 use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;  # HipSci specifc version of TrackHubCreation module of the plantsTrackHubPipeline
 
 my @exomeseq;  # Data types
-my ($registry_user_name,$registry_pwd);
 my ($server_dir_full_path, $server_url, $about_url, $hubname, $long_description, $email);
 my @assemblies;
 
 GetOptions(
-  "THR_username=s"             => \$registry_user_name,
-  "THR_password=s"             => \$registry_pwd,
   "server_dir_full_path=s"     => \$server_dir_full_path,
   "server_url=s"               => \$server_url,
   "hubname=s"                  => \$hubname,
@@ -67,27 +64,14 @@ foreach my $enaexomeseq (@exomeseq){
   close $fh;
 }
 
-my $registry_obj = HipSciRegistry->new($registry_user_name, 
-                                       $registry_pwd,
-                                       'hidden');  # For testing can make TrackHubs hidden from public view
-
 if (!-d $server_dir_full_path) {
   my @args = ("mkdir", "$server_dir_full_path");
   system(@args) == 0 or die "system @args failed: $?";
 }
 
-my $pre_update_trackhub = print_registry_registered_number_of_th($registry_obj);
+make_THs(\%cell_lines , $server_dir_full_path, $hubname, $long_description, $email, \@assemblies); 
 
-make_register_THs_with_logging($registry_obj, \%cell_lines , $server_dir_full_path, $hubname, $long_description, $email, \@assemblies); 
-
-my $post_update_trackhub = print_registry_registered_number_of_th($registry_obj);
-
-#TODO Make a summary output to print to log file, include $pre_update_trackhub_count and $post_update_trackhub_count
-
-### Methods ###
-sub make_register_THs_with_logging{
-
-  my $registry_obj = shift;
+sub make_THs{
   my $cell_lines_to_register = shift;
   my $server_dir_full_path = shift;
   my $hubname = shift;
@@ -105,23 +89,5 @@ sub make_register_THs_with_logging{
   
   my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_lines_to_register, $server_dir_full_path, $hubname, $long_description, $email, $assemblies, $about_url);
   $track_hub_creator_obj->make_track_hub();
-  
-  my $output = register_track_hub_in_TH_registry($registry_obj,$hubname);
-}
-
-sub register_track_hub_in_TH_registry{
-  my $registry_obj = shift;
-  my $hubname = shift;
- 
-  my $hub_txt_url = $server_url . "/" . $hubname . "/hub.txt" ;
-
-  my $output = $registry_obj->register_track_hub($hubname,$hub_txt_url);
-  return $output;
-  
-}
-
-sub print_registry_registered_number_of_th{
-  my $registry_obj = shift;
-  my $all_track_hubs_in_registry_href = $registry_obj->give_all_Registered_track_hub_names();
-  return $all_track_hubs_in_registry_href; #TODO make print statement that counts distinct trackhubs
-}
+}  
+  #TODO Need to archive trackhub folder from staging to archive, must also run cleanup archive
