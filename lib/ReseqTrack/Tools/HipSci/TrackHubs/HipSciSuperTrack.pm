@@ -26,9 +26,14 @@ sub print_track_stanza{
 
   my $self = shift;
   my $fh = shift;
+  my $counter_of_tracks = shift;
 
   print $fh "track ". $self->{track_name}."\n"; 
-  print $fh "superTrack on show\n";
+  if ($counter_of_tracks <=10){
+    print $fh "superTrack on show\n";
+  }else{
+    print $fh "superTrack on hide\n";
+  }
   print $fh "shortLabel ".$self->{track_name}."\n";
   print $fh "longLabel ".$self->{long_label}."\n";
   print $fh "metadata ".$self->{metadata}."\n";

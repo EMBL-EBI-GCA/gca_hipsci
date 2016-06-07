@@ -160,7 +160,7 @@ sub make_trackDbtxt_file{
   my $counter_of_tracks=0;
   foreach my $cell_line (keys %$cell_lines){
     my $super_track_obj = $self->make_biosample_super_track_obj($cell_line, $$cell_lines{$cell_line});
-    $super_track_obj->print_track_stanza($fh);
+    $super_track_obj->print_track_stanza($fh, $counter_of_tracks);
 
     my $visibility="off";
 

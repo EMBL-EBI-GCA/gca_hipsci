@@ -9,12 +9,11 @@ use ReseqTrack::Tools::HipSci::TrackHubs::HipSciRegistry;  # HipSci specifc vers
 use ReseqTrack::Tools::HipSci::TrackHubs::HipSciTrackHubCreation;  # HipSci specifc version of TrackHubCreation module of the plantsTrackHubPipeline
 
 my @exomeseq;  # Data types
-my ($server_dir_full_path, $server_url, $about_url, $hubname, $long_description, $email);
+my ($server_dir_full_path, $about_url, $hubname, $long_description, $email);
 my @assemblies;
 
 GetOptions(
   "server_dir_full_path=s"     => \$server_dir_full_path,
-  "server_url=s"               => \$server_url,
   "hubname=s"                  => \$hubname,
   "long_description=s"         => \$long_description,
   "email=s"                    => \$email,
@@ -23,7 +22,7 @@ GetOptions(
   "exomeseq=s"                 => \@exomeseq,
 );
 
-if(!$registry_user_name or !$registry_pwd or !$server_dir_full_path or !$server_url or !@assemblies or !$hubname){
+if(!$server_dir_full_path or !@assemblies or !$hubname){
   die "\nMissing required options\n";
 }
 
@@ -84,7 +83,6 @@ sub make_THs{
   if($ls_output =~/$hubname/){ # i check if the directory of the study exists already
     my @args = ("rm", "-r", "$server_dir_full_path/$hubname");
     system(@args) == 0 or die "system @args failed: $?";
-    $registry_obj->delete_track_hub($hubname);
   }
   
   my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_lines_to_register, $server_dir_full_path, $hubname, $long_description, $email, $assemblies, $about_url);
