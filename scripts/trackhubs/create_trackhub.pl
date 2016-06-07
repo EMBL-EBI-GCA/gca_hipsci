@@ -34,7 +34,7 @@ foreach my $enaexomeseq (@exomeseq){
   <$fh>;
   while (my $line = <$fh>) {
     next unless $line =~ /^ftp/;
-    #TODO filter which specific file to select if not all of them
+    #TODO filter which specific file to select if not all of them, which exomseq do we want?
     chomp $line;
     my @parts = split("\t", $line);
     my $study_id = $parts[2];
@@ -43,6 +43,9 @@ foreach my $enaexomeseq (@exomeseq){
     if ($type eq 'gz'){
       $type = $type_parts[-2]
     }
+    #TODO Need solution for vcf files need to create a vcfTabix http://genome-test.cse.ucsc.edu/goldenPath/help/trackDb/trackDbHub.html#settingsByType
+    #Skip vcf for now
+    next if $type eq 'vcf';
     my $ftpdata = {
       file_url => $parts[0],
       biosample_id => $parts[3],

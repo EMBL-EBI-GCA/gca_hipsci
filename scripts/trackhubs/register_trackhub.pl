@@ -8,7 +8,7 @@ use Data::Dumper;
 use ReseqTrack::Tools::HipSci::TrackHubs::HipSciRegistry;
 
 my ($registry_user_name,$registry_pwd);
-my ($server_url, $hubname, $update_existing)
+my ($server_url, $hubname, $update_existing);
 
 GetOptions(
   "THR_username=s"             => \$registry_user_name,
@@ -16,7 +16,7 @@ GetOptions(
   "server_url=s"               => \$server_url,
   "hubname=s"                  => \$hubname,
   "update_existing"            => \$update_existing,
-)
+);
 
 if(!$registry_user_name or !$registry_pwd or !$server_url or !$hubname){
   die "\nMissing required options\n";
