@@ -43,7 +43,6 @@ sub register_track_hub{
 
   my $track_hub_id = shift;
   my $trackHub_txt_file_url = shift;
-  my $assembly_name_accession_pairs = shift; 
 
   defined $track_hub_id and $trackHub_txt_file_url
     or print "Some required parameters are missing in order to register track hub the Track Hub Registry\n" and return 0;
