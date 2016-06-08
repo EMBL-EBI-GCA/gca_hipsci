@@ -202,7 +202,7 @@ sub make_biosample_sub_track_obj{
   my $track_name = $cell_line."_".$$track{label};
   my $parent_name = $cell_line;
   my $big_data_url = $$track{file_url};;
-  my $short_label= $$track{label};
+  my $short_label= $cell_line."_".$$track{label};
   my $long_label= $$track{description};
   my $type = $$track{type};
 
