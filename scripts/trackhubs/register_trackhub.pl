@@ -24,7 +24,8 @@ if(!$registry_user_name or !$registry_pwd or !$server_url or !$hubname){
 
 my $registry_obj = HipSciRegistry->new($registry_user_name, 
                                        $registry_pwd,
-                                       'hidden');  # For testing can make TrackHubs hidden from public view
+#                                       'hidden',  # For testing can make TrackHubs hidden from public view
+                                       );  
 
 #If track already exists it should be deleted before the update
 if ($update_existing){
