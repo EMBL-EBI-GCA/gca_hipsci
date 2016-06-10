@@ -4,36 +4,30 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Search::Elasticsearch;
 use ReseqTrack::DBSQL::DBAdaptor;
-use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
-use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
-use File::Basename qw(dirname);
+use LWP::UserAgent;
+use JSON qw(decode_json);
 use Data::Compare;
 use POSIX qw(strftime);
 
-my $es_host='ves-hx-e3:9200';
+my $es_host='ves-hx-e4:9200';
+my $description = 'Mass spectrometry';
+my @datasets;
 my $dbhost = 'mysql-g1kdcc-public';
-my $demographic_filename;
 my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
-my $dbname = 'hipsci_track';
-my @file_types = ('PROTEOMICS_RAW', 'PROTEOMICS_MZML');
-my $trim = '/nfs/hipsci';
-my $description = 'Mass spectrometry';
+my $dbname = 'hipsci_private_track';
 
 &GetOptions(
     'es_host=s' => \$es_host,
+    'dataset=s' => \@datasets,
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,
     'dbpass=s'      => \$dbpass,
     'dbport=s'      => \$dbport,
-    'file_type=s'      => \@file_types,
-    'trim=s'      => \$trim,
-    'demographic_file=s' => \$demographic_filename,
 );
 
 my %composite_names = (HPSI_composite_1503 => []);
@@ -49,127 +43,142 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
     );
 my $fa = $db->get_FileAdaptor;
 
-my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-my (%cgap_ips_line_hash, %cgap_tissues_hash);
-foreach my $cell_line (@$cgap_ips_lines) {
-  $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-}
-
-my %dundee_id_files;
-TYPE:
-foreach my $file_type (@file_types) {
-  FILE:
-  foreach my $file (@{$fa->fetch_by_type($file_type)}) {
-    my $dundee_id = $file->filename =~ /^PT\d+/ ? $&
-          : die 'did not recognise dundee_id for file '.$file->name;
-    next FILE if $file->name !~ /$trim/ || $file->name =~ m{/withdrawn/};
-    $dundee_id_files{$dundee_id}{$file_type} //= [];
-    push(@{$dundee_id_files{$dundee_id}{$file_type}}, $file);
-  }
-}
+my $ua = LWP::UserAgent->new;
 
 my %docs;
-SAMPLE:
-foreach my $dundee_id (keys %dundee_id_files) {
-  my @filetypes = keys %{$dundee_id_files{$dundee_id}};
+foreach my $dataset (@datasets) {
+  my $project_res = $ua->get(sprintf('http://www.ebi.ac.uk/pride/ws/archive/project/%s', $dataset));
+  die $project_res->status_line if !$project_res->is_success;
+  my $project_hash = decode_json($project_res->decoded_content);
 
-  my @files;
-  foreach my $filetype (@filetypes) {
-    push(@files, @{$dundee_id_files{$dundee_id}{$filetype}});
-  }
-  @files = sort {$a->created cmp $b->created} @files;
+  my $file_res = $ua->get(sprintf('http://www.ebi.ac.uk/pride/ws/archive/file/list/project/%s', $dataset));
+  die $file_res->status_line if !$file_res->is_success;
+  my $file_hash = decode_json($file_res->decoded_content);
 
-  my $dir = dirname($files[0]->name);
-  next SAMPLE if $dir =~ m{/zumy\b};
-  next SAMPLE if $dir =~ m{/qifc\b};
-  my ($sample_name) = $dir =~ m{/(HPSI[^/]*)};
-  die "'did not recognise cell line $dir" if !$sample_name;
-  my @cell_lines = ($sample_name);
-  if (my $composites = $composite_names{$sample_name}) {
-    @cell_lines = @$composites;
-  }
+  my ($tsv_file) = grep {$_->{fileName} =~ /sample_index.*\.tsv/} @{$file_hash->{list}};
+  die 'did not find sample index file' if !$tsv_file;
+  my $tsv_res = $ua->get($tsv_file->{downloadLink});
+  die $tsv_res->status_line if !$tsv_res->is_success;
 
-  my @samples;
-  foreach my $cell_line (@cell_lines) {
-    my $cgap_ips_line = $cgap_ips_line_hash{$cell_line};
-    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-                    : $cgap_tissues_hash{$cell_line};
-    die 'did not recognise sample '.$cell_line if !$cgap_tissue;
+  my %samples;
+  my %peptracker_samples;
 
-    my $source_material = $cgap_tissue->tissue_type || '';
-    my $cell_type = $cgap_ips_line ? 'iPSC'
-                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-                  : die "did not recognise source material $source_material";
-
-    my $disease = $cgap_tissue->donor->disease;
-    $disease = $disease eq 'normal' ? 'Normal'
-            : $disease =~ /bardet-/ ? 'Bardet-Biedl'
-            : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
-            : die "did not recognise disease $disease";
-
+  TSV_ROW:
+  foreach my $row (split("\n", $tsv_res->decoded_content)) {
+    next TSV_ROW if !$row;
+    my @cols = split("\t", $row);
+    next TSV_ROW if $cols[0] !~ /^PT[A-Z0-9]+$/;
+    next TSV_ROW if $cols[0] eq 'PT4835'; # reference mixture
+    my $cell_type = $cols[3] =~ /induced pluripotent/i ? 'iPSC' : $cols[3];
     my %sample = (
-      name => $cell_line,
-      bioSamplesAccession => $cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id,
+      name => $cols[1],
+      bioSamplesAccession => $cols[2] || '',
       cellType => $cell_type,
-      diseaseStatus => $disease,
-      sex => $cgap_tissue->donor->gender,
     );
+    if (my $growing_conditions = $cols[6]) {
+      $sample{growingConditions} = ucfirst($growing_conditions);
+    }
+    if (my $sex = $cols[8]) {
+      $sample{sex} = $sex;
+    }
+    if (my $disease_status = $cols[9]) {
+      $sample{diseaseStatus} = $disease_status;
+    }
+    $samples{$cols[1]} //= \%sample;
+    $peptracker_samples{$cols[0]} = \%sample;
+  }
 
-    if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files[0]->created);
-      $sample{growingConditions} = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
-                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
-                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
-                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
-                        : die "could not get growing conditions for $cell_line";
+  my %raw_files;
+  my $search_file;
+  FILE:
+  foreach my $file (@{$file_hash->{list}}) {
+    next FILE if ! scalar grep {$file->{fileType} eq $_} qw(SEARCH RAW);
+    next FILE if $file->{fileName} =~ /PT4835/; # reference mixture
+    my $db_files = $fa->fetch_by_filename($file->{fileName});
+    die 'Unexpected number of files with name '.$file->{fileName} if @$db_files != 1;
+    my $db_file = $db_files->[0];
+    $file->{md5} = $db_file->md5;
+    if ($file->{fileType} eq 'RAW') {
+      my ($dundee_id) = $file->{fileName} =~ /(PT[A-Z0-9]+)/;
+      die 'did not recognise dundee_id '.$db_file->name if !$dundee_id;
 
+      if ($file->{fileName} =~ /\.raw/) {
+        push(@{$raw_files{$dundee_id}{raw}}, $file);
+      }
+      elsif ($file->{fileName} =~ /\.mzML/) {
+        push(@{$raw_files{$dundee_id}{mzML}}, $file);
+      }
+      else {
+        die 'unrecognised file type for '.$file->{fileName};
+      }
     }
     else {
-      $sample{growingConditions} = $cell_type;
+      die "This script cannot handle >1 search file. You should fix it." if $search_file;
+      $search_file = $file;
     }
-
-    push(@samples, \%sample);
   }
 
+  while (my ($dundee_id, $ext_files) = each %raw_files) {
+    my $sample = $peptracker_samples{$dundee_id} || die "did not recognise $dundee_id";
+    while (my ($ext, $raw_files) = each %$ext_files) {
+      my $es_id = join('-', $sample->{name}, 'proteomics', $ext, $dundee_id);
+      $es_id =~ s/\s/_/g;
+      $docs{$es_id} = {
+        description => "$description $ext",
+        files => [
+        ],
+        archive => {
+          name => 'PRIDE',
+          url => "http://www.ebi.ac.uk/pride/archive/projects/$dataset",
+          ftpUrl => "ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2016/06/$dataset",
+          openAccess => 1,
+          accession => $dataset,
+          accessionType => 'PROJECT_ID',
+        },
+        samples => [$sample],
+        assay => {
+          type => 'Proteomics',
+          instrument => join(',', @{$project_hash->{instrumentNames}}),
+        }
+      };
+      foreach my $file (@$raw_files) {
+        push(@{$docs{$es_id}{files}}, {
+          name => $file->{fileName},
+          md5 => $file->{md5},
+          type => $ext
+        });
+      }
+    }
+  }
 
-  foreach my $filetype (@filetypes) {
-    my $filetype_dir = dirname($dundee_id_files{$dundee_id}{$filetype}->[0]->name);
-    $filetype_dir =~ s{$trim}{};
-    my ($ext) = $dundee_id_files{$dundee_id}{$filetype}->[0]->name =~ /\.(\w+)(?:\.gz)?$/;
-
-    my $es_id = join('-', $sample_name, 'proteomics', $ext, $dundee_id);
+  if ($search_file) {
+    my $es_id = join('-', $dataset, 'proteomics', 'search');
     $es_id =~ s/\s/_/g;
+    my $search_type = $search_file->{fileName} =~ /maxquant/i ? 'MaxQuant'
+              : die 'did not recognise search type '.$search_file->{fileName};
     $docs{$es_id} = {
-      description => "$description $ext",
-      files => [
-      ],
+      description => "$description $search_type",
+      files => [{
+        name => $search_file->{fileName},
+        md5 => $search_file->{md5},
+        type => $search_type,
+      }],
       archive => {
-        name => 'HipSci FTP',
-        url => "ftp://ftp.hipsci.ebi.ac.uk$filetype_dir",
-        ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$filetype_dir",
+        name => 'PRIDE',
+        url => "http://www.ebi.ac.uk/pride/archive/projects/$dataset",
+        ftpUrl => "ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2016/06/$dataset",
         openAccess => 1,
+        accession => $dataset,
+        accessionType => 'PROJECT_ID',
       },
-      samples => \@samples,
+      samples => [values %samples],
       assay => {
         type => 'Proteomics',
-        instrument => 'Thermo Scientific Q Exactive'
+        instrument => join(',', @{$project_hash->{instrumentNames}}),
       }
     };
-
-    FILE:
-    foreach my $file (@{$dundee_id_files{$dundee_id}{$filetype}}) {
-      push(@{$docs{$es_id}{files}}, 
-          {
-            name => $file->filename,
-            md5 => $file->md5,
-            type => $ext,
-          }
-        );
-    }
   }
+
 }
 
 my $scroll = $elasticsearch->call('scroll_helper', (
