@@ -83,7 +83,7 @@ while ( my $doc = $scroll->next ) {
     next SAMPLE if $$sample{'cellType'} eq 'iPSC';
     my $nonipsc_linename = $$sample{'name'};
     my $tissue = $cgap_tissues{$nonipsc_linename};
-    next SAMPLE if ! $tissue->biosample_id;
+    next SAMPLE if !$tissue || !$tissue->biosample_id;
     my $biosample = BioSD::fetch_sample($tissue->biosample_id);
     next SAMPLE if !$biosample;
     $nonipsc_celllines{$nonipsc_linename}=1;
