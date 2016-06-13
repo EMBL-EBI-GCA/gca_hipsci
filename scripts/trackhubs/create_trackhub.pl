@@ -46,8 +46,10 @@ foreach my $enaexomeseq (@exomeseq){
     #TODO Need solution for vcf files need to create a vcfTabix http://genome-test.cse.ucsc.edu/goldenPath/help/trackDb/trackDbHub.html#settingsByType
     #Skip vcf for now
     next if $type eq 'vcf';
+    my $http_url = $parts[0];
+    $http_url =~ s/^ftp/http/;
     my $ftpdata = {
-      file_url => $parts[0],
+      file_url => $http_url,
       biosample_id => $parts[3],
       label => 'exomeseq',
       description => $parts[5],
