@@ -18,10 +18,11 @@ perl $HIPSCI_CODE/scripts/trackhubs/create_trackhub.pl \
 -exomeseq $HIPSCI_FTP/archive_datasets/ENA.ERP006946.exomeseq.healthy_volunteers.analysis_files.tsv \
 -exomeseq $HIPSCI_FTP/archive_datasets/ENA.ERP013157.exomeseq.healthy_volunteers.analysis_files.tsv \
 -exomeseq $HIPSCI_FTP/archive_datasets/ENA.ERP013158.exomeseq.healthy_volunteers.analysis_files.tsv \
+&& perl $RESEQTRACK/scripts/file/load_files.pl -dbhost mysql-g1kdcc-public -dbuser $G1K_user -dbpass $G1K_pass -dbport 4197 -dbname hipsci_track -run -update_existing -do_md5 -dir /nfs/1000g-work/hipsci/archive_staging/ftp/TrackHub \
 && perl $RESEQTRACK/scripts/file/archive_files.pl -dbhost mysql-g1kdcc-public -dbuser $G1K_user -dbpass $G1K_pass -dbport 4197 -dbname hipsci_track -action archive -skip -run -priority 99 -dir /nfs/1000g-work/hipsci/archive_staging/ftp/TrackHub \
 && perl $RESEQTRACK/scripts/file/cleanup_archive.pl -dbhost mysql-g1kdcc-public -dbuser $G1K_user -dbpass $G1K_pass -dbport 4197 -dbname hipsci_track -loop 1 \
 && perl $HIPSCI_CODE/scripts/trackhubs/register_trackhub.pl \
 -THR_username $THR_user \
 -THR_password $THR_pass \
--server_url http://ftp.hipsci.ebi.ac.uk/vol1/ftp/ \
+-server_url http://ftp.hipsci.ebi.ac.uk/vol1/ftp/TrackHub/ \
 -hubname hipsci_hub \
