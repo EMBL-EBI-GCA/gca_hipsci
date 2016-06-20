@@ -89,12 +89,16 @@ while (my $es_doc = $es_scroll->next) {
   my $cgap_line = List::Util::first {$_->biosample_id && $line->{biosamples_id} && $_->biosample_id eq $line->{biosamples_id}}  @{$cgap_ips_lines};
   next LINE if !$cgap_line;
   my $hipsci_name = $cgap_line->name;
-  #next LINE if $line->{final_submit_flag};
+  next LINE if $line->{final_submit_flag};
+
+  if ($final_submit && !$line->{characterisation_pluritest_data}) {
+    print "skipping $ebisc_name because final_submit is set but it's missing pluritest data\n";
+    next LINE;
+  }
 
 
   my $biosample = BioSD::fetch_sample($cgap_line->biosample_id);
   my $method_property = $biosample->property('method of derivation');
-  die "no method property for $hipsci_name" if !$method_property;
 
 #  if (!$open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
 #    print STDERR "$ebisc_name $hipsci_name: this script is set up only for open access lines\n";
@@ -131,7 +135,7 @@ while (my $es_doc = $es_scroll->next) {
   $post_hash->{source_platform} = 'ebisc';
   $post_hash->{genetic_information_associated_flag} .= 1;
   $post_hash->{genetic_information_available_flag} .= 1;
-  if ($method_property->values->[0] =~ /cytotune/i) {
+  if ($method_property && $method_property->values->[0] =~ /cytotune/i) {
     $post_hash->{vector_type} = 'non_integrating';
     $post_hash->{non_integrating_vector} = 'sendai_virus';
     $post_hash->{hips_recombined_dna_vectors_supplier} = 'Lifetech';
@@ -142,7 +146,7 @@ while (my $es_doc = $es_scroll->next) {
       'ENSG00000136997###MYC###ensembl_id###id_type_gene',
     );
   }
-  elsif ($method_property->values->[0] =~ /episomal/i) {
+  elsif ($method_property && $method_property->values->[0] =~ /episomal/i) {
     $post_hash->{vector_type} = 'non_integrating';
     $post_hash->{non_integrating_vector} = 'episomal';
     push(@{$post_hash->{non_integrating_vector_gene_list}}, 
@@ -154,7 +158,7 @@ while (my $es_doc = $es_scroll->next) {
       'ENSG00000111704###NANOG###ensembl_id###id_type_gene',
     );
   }
-  elsif ($method_property->values->[0] =~ /retrovirus/i) {
+  elsif ($method_property && $method_property->values->[0] =~ /retrovirus/i) {
     $post_hash->{vector_type} = 'integrating';
     $post_hash->{integrating_vector} = 'virus';
     $post_hash->{integrating_vector_virus_type} = 'retrovirus';
