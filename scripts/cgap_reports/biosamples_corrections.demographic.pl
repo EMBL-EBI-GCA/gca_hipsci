@@ -40,6 +40,11 @@ foreach my $donor (@$donors) {
                   : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
                   : $disease eq 'ataxia' ? 'http://www.orpha.net/ORDO/Orphanet_183518'
                   : $disease eq 'usher syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_886'
+                  : $disease eq 'kabuki' ? 'http://www.orpha.net/ORDO/Orphanet_2322'
+                  : $disease eq 'hypertrophic cardiomyopathy' ? 'http://www.orpha.net/ORDO/Orphanet_217569'
+                  : $disease eq 'alport' ? 'http://www.orpha.net/ORDO/Orphanet_63'
+                  : $disease =~ /congenital hyperins/ ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
+                  : $disease =~ /batten/ ? ' http://purl.obolibrary.org/obo/DOID_0050756'
                   : die "did not recognise disease $disease ".$biosample->id;
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
