@@ -62,7 +62,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       next SAMPLE if $$sample{'cellType'} eq 'iPSC';
       my $nonipsc_linename = $$sample{'name'};
       my $tissue = $cgap_tissues{$nonipsc_linename};
-      next SAMPLE if ! $tissue->biosample_id;
+      next SAMPLE if !$tissue || !$tissue->biosample_id;
       $cellLines{$tissue->biosample_id} = 1;
     }
   }
