@@ -92,5 +92,4 @@ sub make_THs{
   
   my $track_hub_creator_obj = HipSciTrackHubCreation->new($cell_lines_to_register, $server_dir_full_path, $hubname, $long_description, $email, $assemblies, $about_url);
   $track_hub_creator_obj->make_track_hub();
-}  
-  #TODO Need to archive trackhub folder from staging to archive, must also run cleanup archive
+} 
