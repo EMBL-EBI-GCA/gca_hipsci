@@ -1,3 +1,10 @@
 #!/bin/bash
-SERVER=$1
-curl -XPUT http://localhost:9200/_snapshot/$SERVER/hipsci_snapshot_$(date +\%Y\%m\%d\%H\%M\%S) -d '{"indices": "hipsci"}'
+
+# This script must be run as user reseq_adm because it involves rsyncing from hx to pg
+
+perl $GCA_ELASTICSEARCH/scripts/sync_hx_hh.es.pl \
+  -from ves-hx-e4 \
+  -to ves-pg-e4 \
+  -to ves-oy-e4 \
+  -repo hipsci_repo \
+  -snap_index hipsci

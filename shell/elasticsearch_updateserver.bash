@@ -1,28 +1,26 @@
 #!/bin/bash
 
-SERVER1=$1
-SERVER2=$2
+SERVER=ves-hx-e4:9200
 
 perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
   -ecacc_index_file $HIPSCI_CODE/tracking_resources/ecacc_catalog_numbers.tsv \
   -hESCreg_user $HESCREG_USER \
   -hESCreg_pass $HESCREG_PASS \
 && perl $HIPSCI_CODE/scripts/elasticsearch/populate_fibroblast_line.from_files_elasticsearch.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
   -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2016-06-10.csv \
-&& source /nfs/production/reseq-info/work/hipdcc/oracle_env_hinxton.sh \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
   -pluritest /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.pluritest.tsv \
   -cnv /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.cnv_summary.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1_images.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
   -trim /nfs/hipsci \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.coa.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200 \
+  -es_host=$SERVER \
   -trim /nfs/hipsci \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.files.pl \
-  -es_host=$SERVER1:9200 -es_host=$SERVER2:9200
+  -es_host=$SERVER \
