@@ -15,6 +15,7 @@ foreach my $cell_line (<>) {
   chomp $cell_line;
   my $es_line = $es->fetch_line_by_name($cell_line);
   die "$cell_line not found" if !$es_line;
+  next if $es_line->{_source}{diseaseStatus}{value} ne 'Normal';
 
   my $open_access = $es_line->{_source}{openAccess};
 
