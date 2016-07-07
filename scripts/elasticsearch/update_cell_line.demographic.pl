@@ -69,6 +69,8 @@ while ( my $doc = $scroll->next ) {
                 : $disease eq 'kabuki' ? 'http://www.orpha.net/ORDO/Orphanet_2322'
                 : $disease eq 'hypertrophic cardiomyopathy' ? 'http://www.orpha.net/ORDO/Orphanet_217569'
                 : $disease eq 'alport' ? 'http://www.orpha.net/ORDO/Orphanet_63'
+                : $disease eq 'bpd' ? 'http://www.ebi.ac.uk/efo/EFO_0005803'
+                : $disease eq 'pid' ? 'http://www.ebi.ac.uk/efo/EFO_0000540'
                 : $disease =~ /congenital hyperins/ ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
                 : die "did not recognise disease $disease";
     my $disease_value = $disease eq 'normal' ? 'Normal'
@@ -79,6 +81,8 @@ while ( my $doc = $scroll->next ) {
                 : $disease eq 'kabuki' ? 'Kabuki syndrome'
                 : $disease eq 'hypertrophic cardiomyopathy' ? 'Hypertrophic cardiomyopathy'
                 : $disease eq 'alport' ? 'Alport syndrome'
+                : $disease eq 'bpd' ? 'Bleeding and platelet disorder'
+                : $disease eq 'pid' ? 'Primary immune deficiency'
                 : $disease =~ /congenital hyperins/ ? 'Congenital hyperinsulinism'
                 : die "did not recognise disease $disease";
 
