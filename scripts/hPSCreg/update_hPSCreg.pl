@@ -182,8 +182,21 @@ while (my $es_doc = $es_scroll->next) {
     }
     elsif ($disease =~ /bardet/i) {
       $post_hash->{disease_flag} .= 1;
-      $post_hash->{disease_doid} .= 'http://www.orpha.net/ORDO/Orphanet_110';
-      $post_hash->{disease_doid_name} .= 'Bardet-Biedl syndrome';
+      $post_hash->{diseases} = [{
+        primary => JSON::false,
+        affected => JSON::true,
+        purl => 'http://www.orpha.net/ORDO/Orphanet_110',
+        purl_name => 'Bardet-Biedl syndrome',
+      }];
+    }
+    elsif ($disease =~ /diabetes/i) {
+      $post_hash->{disease_flag} .= 1;
+      $post_hash->{diseases} = [{
+        primary => JSON::false,
+        affected => JSON::true,
+        purl => 'http://www.orpha.net/ORDO/Orphanet_552',
+        purl_name => 'monogenic diabetes',
+      }];
     }
     else {
       $post_hash->{disease_flag} .= 1;
@@ -266,7 +279,7 @@ while (my $es_doc = $es_scroll->next) {
   );
 
   if ($open_access_hash{$cgap_line->tissue->donor->hmdmc}) {
-    $sth_ena->bind_param(1, 'SAMEA2547633');
+    $sth_ena->bind_param(1, $biosample->id);
     $sth_ena->execute or die "could not execute";
     ROW:
     while (my $row = $sth_ena->fetchrow_arrayref) {
@@ -284,58 +297,56 @@ while (my $es_doc = $es_scroll->next) {
 
 
 ##ethics:
-  if ($open_access_hash{$cgap_line->tissue->donor->hmdmc}
-    || $cgap_line->tissue->donor->hmdmc eq 'H1288') {
-    $post_hash->{hips_consent_obtained_from_donor_of_tissue_flag} .= 1;
-    $post_hash->{hips_no_pressure_stat_flag} .= 1;
-    $post_hash->{hips_no_inducement_stat_flag} .= 1;
-    $post_hash->{hips_informed_consent_flag} .= 0;
-    $post_hash->{hips_provide_copy_of_donor_consent_information_english_flag} .= 1;
-    $post_hash->{hips_provide_copy_of_donor_consent_english_flag} .= 1;
-    $post_hash->{hips_consent_permits_ips_derivation_flag} .= 1;
-    $post_hash->{hips_consent_pertains_specific_research_project_flag} .= 0;
-    $post_hash->{hips_consent_permits_future_research_flag} .= 1;
-    $post_hash->{hips_consent_permits_clinical_treatment_flag} .= 0;
-    $post_hash->{hips_formal_permission_for_distribution_flag} .= 1;
-    $post_hash->{hips_consent_permits_research_by_academic_institution_flag} .= 1;
-    $post_hash->{hips_consent_permits_research_by_for_profit_company_flag} .= 1;
-    $post_hash->{hips_consent_permits_research_by_non_profit_company_flag} .= 1;
-    $post_hash->{hips_consent_permits_research_by_public_org_flag} .= 1;
-    $post_hash->{hips_consent_expressly_prevents_commercial_development_flag} .= 0;
-    $post_hash->{hips_further_constraints_on_use_flag} .= 0;
-    $post_hash->{hips_consent_expressly_permits_indefinite_storage_flag} .= 1;
-    $post_hash->{hips_consent_prevents_availiability_to_worldwide_research_flag} .= 0;
-    $post_hash->{hips_derived_information_influence_personal_future_treatment_flag} .= 0;
-    $post_hash->{hips_donor_data_protection_informed_flag} .= 1;
-    $post_hash->{hips_donated_material_code_flag} .= 1;
-    $post_hash->{hips_donated_material_rendered_unidentifiable_flag} .= 0;
-    $post_hash->{hips_donor_identity_protected_rare_disease_flag} .= 1;
-    $post_hash->{hips_approval_flag} .= 1;
-    $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
+  $post_hash->{hips_consent_obtained_from_donor_of_tissue_flag} .= 1;
+  $post_hash->{hips_no_pressure_stat_flag} .= 1;
+  $post_hash->{hips_no_inducement_stat_flag} .= 1;
+  $post_hash->{hips_informed_consent_flag} .= 0;
+  $post_hash->{hips_provide_copy_of_donor_consent_information_english_flag} .= 1;
+  $post_hash->{hips_provide_copy_of_donor_consent_english_flag} .= 1;
+  $post_hash->{hips_consent_permits_ips_derivation_flag} .= 1;
+  $post_hash->{hips_consent_pertains_specific_research_project_flag} .= 0;
+  $post_hash->{hips_consent_permits_future_research_flag} .= 1;
+  $post_hash->{hips_consent_permits_clinical_treatment_flag} .= 0;
+  $post_hash->{hips_formal_permission_for_distribution_flag} .= 1;
+  $post_hash->{hips_consent_permits_research_by_academic_institution_flag} .= 1;
+  $post_hash->{hips_consent_permits_research_by_for_profit_company_flag} .= 1;
+  $post_hash->{hips_consent_permits_research_by_non_profit_company_flag} .= 1;
+  $post_hash->{hips_consent_permits_research_by_public_org_flag} .= 1;
+  $post_hash->{hips_consent_expressly_prevents_commercial_development_flag} .= 0;
+  $post_hash->{hips_further_constraints_on_use_flag} .= 0;
+  $post_hash->{hips_consent_expressly_permits_indefinite_storage_flag} .= 1;
+  $post_hash->{hips_consent_prevents_availiability_to_worldwide_research_flag} .= 0;
+  $post_hash->{hips_derived_information_influence_personal_future_treatment_flag} .= 0;
+  $post_hash->{hips_donor_data_protection_informed_flag} .= 1;
+  $post_hash->{hips_donated_material_code_flag} .= 1;
+  $post_hash->{hips_donated_material_rendered_unidentifiable_flag} .= 0;
+  $post_hash->{hips_donor_identity_protected_rare_disease_flag} .= 1;
+  $post_hash->{hips_approval_flag} .= 1;
+  $post_hash->{hips_approval_auth_name} .= 'NRES Committee Yorkshire & The Humber - Leeds West';
+  $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} .= 1;
+  $post_hash->{hips_third_party_obligations_flag} .= 0;
+  $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
+  $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
+  $post_hash->{hips_arrange_obtain_new_consent_form_flag} .= 0;
+  $post_hash->{hips_donor_recontact_agreement_flag} .= 0;
+  $post_hash->{hips_consent_expressly_prevents_financial_gain_flag} .= 0;
+  $post_hash->{hips_consent_permits_access_medical_records_flag} .= 1;
+  $post_hash->{hips_consent_permits_access_other_clinical_source_flag} .= 0;
+  $post_hash->{usage_approval_flag} = ['research_only'];
+  $post_hash->{hips_consent_permits_stop_of_derived_material_use_flag} .= 0;
+  $post_hash->{hips_consent_permits_delivery_of_information_and_data_flag} .= 0;
+  $post_hash->{hips_consent_permits_genetic_testing_flag} .= 1;
+  $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
+  $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
+  $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
+  if ($post_hash->{disease_flag}) {
+     $post_hash->{hips_approval_number} .= '08/H0713/82';
+     $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 0;
+  }
+  else {
     $post_hash->{hips_approval_number} .= '15/YH/0391';
-    $post_hash->{hips_ethics_review_panel_opinion_project_proposed_use_flag} .= 1;
-    $post_hash->{hips_third_party_obligations_flag} .= 0;
-    $post_hash->{hips_holding_original_donor_consent_copy_of_existing_flag} .= 1;
-    $post_hash->{hips_holding_original_donor_consent_flag} .= 1;
-    $post_hash->{hips_arrange_obtain_new_consent_form_flag} .= 0;
-    $post_hash->{hips_donor_recontact_agreement_flag} .= 0;
-    $post_hash->{hips_consent_expressly_prevents_financial_gain_flag} .= 0;
-    $post_hash->{hips_consent_permits_access_medical_records_flag} .= 1;
-    $post_hash->{hips_consent_permits_access_other_clinical_source_flag} .= 0;
-    $post_hash->{usage_approval_flag} = ['research_only'];
-    $post_hash->{hips_consent_permits_stop_of_derived_material_use_flag} .= 0;
-    $post_hash->{hips_consent_permits_delivery_of_information_and_data_flag} .= 0;
-    $post_hash->{hips_consent_permits_genetic_testing_flag} .= 1;
-    $post_hash->{hips_consent_permits_testing_microbiological_agents_pathogens_flag} .= 1;
-    $post_hash->{hips_future_research_permitted_specified_areas_flag} .= 0;
-    $post_hash->{hips_consent_permits_development_of_commercial_products_flag} .= 1;
-    if ($post_hash->{disease_flag}) {
-      $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 0;
-    }
-    else {
-      $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 1;
-      $post_hash->{hips_medical_records_access_consented_organisation_name} .= 'Cambridge BioResource';
-    }
+    $post_hash->{hips_ethics_review_panel_opinion_relation_consent_form_flag} .= 1;
+    $post_hash->{hips_medical_records_access_consented_organisation_name} .= 'Cambridge BioResource';
   }
 
 =cut 
