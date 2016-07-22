@@ -84,7 +84,7 @@ while (my ($cell_line, $files) = each %cell_line_files) {
                 : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                 : die "did not recognise source material $source_material";
 
-  my $growing_conditions;
+  my ($growing_conditions, $passage_number);
   if ($cgap_ips_line) {
     my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$files->[0]->created);
     $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
@@ -92,6 +92,9 @@ while (my ($cell_line, $files) = each %cell_line_files) {
                       : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
                       : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                       : die "could not get growing conditions for $cell_line";
+    if ($cgap_release) {
+      $passage_number = $cgap_release->passage;
+    }
   }
   else {
     $growing_conditions = $cell_type;
@@ -130,6 +133,9 @@ while (my ($cell_line, $files) = each %cell_line_files) {
       instrument => 'PerkinElmer Operetta'
     }
   };
+  if ($passage_number) {
+    $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+  }
 
   FILE:
     foreach my $file (@$files) {

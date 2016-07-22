@@ -122,6 +122,9 @@ foreach my $file_set (values %file_sets) {
                         : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                         : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                         : die "could not get growing conditions for $cell_line";
+      if ($cgap_release && $cgap_release->passage) {
+        $sample{passageNumber} = $cgap_release->passage;
+      }
 
     }
     else {

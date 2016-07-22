@@ -91,10 +91,11 @@ foreach my $study_id (@study_id) {
                   : die "did not recognise source material $source_material";
 
     my $run_time = DateTime::Format::ISO8601->parse_datetime($row->{FIRST_CREATED})->subtract(days => 90);
-    my $growing_conditions;
+    my ($growing_conditions, $passage_number);
     if ($cgap_ips_line) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      $passage_number = $cgap_release->passage;
     }
     else {
       $growing_conditions = $cell_type;
@@ -137,6 +138,9 @@ foreach my $study_id (@study_id) {
         instrument => $row->{INSTRUMENT_MODEL}
       }
     };
+    if ($passage_number) {
+      $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+    }
     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
     }

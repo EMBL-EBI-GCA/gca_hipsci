@@ -107,10 +107,11 @@ foreach my $dataset_id (@dataset_id) {
     die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
     my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
     my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
-    my $growing_conditions;
+    my ($growing_conditions, $passage_number);
     if ($cgap_ips_line) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      $passage_number = $cgap_release->passage;
     }
     else {
       $growing_conditions = $cell_type;
@@ -155,6 +156,9 @@ foreach my $dataset_id (@dataset_id) {
     };
     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
+    }
+    if ($passage_number) {
+      $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
     }
     FILE:
     foreach my $file (@$files) {

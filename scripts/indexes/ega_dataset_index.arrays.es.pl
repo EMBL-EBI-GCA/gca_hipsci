@@ -109,7 +109,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
     }
     my ($date) = sort {$a <=> $b} @dates;
 
-    my $growing_conditions;
+    my ($passage_number, $growing_conditions);
     if ($cgap_ips_line) {
       my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
       my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
@@ -119,6 +119,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                         : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                         : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                         : die "could not get growing conditions for @files";
+      if ($cgap_release) {
+        $passage_number = $cgap_release->passage;
+      }
     }
     else {
       $growing_conditions = $cell_type;
@@ -185,6 +188,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             instrument => $platform
           }
         };
+        if ($passage_number) {
+          $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+        }
         while (my ($filename, $file_object) = each %$file_hash) {
           push(@{$docs{$es_id}{files}}, {name => $filename, md5 => $file_object->md5, type => $ext});
         }

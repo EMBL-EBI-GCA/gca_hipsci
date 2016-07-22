@@ -18,7 +18,6 @@ my @dataset_id;
 my $demographic_filename;
 my $dbhost = 'mysql-g1kdcc-public';
 my $dbuser = 'g1kro';
-#NOTE: Don't use password with g1kro so leave undef
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
@@ -142,7 +141,7 @@ foreach my $dataset_id (@dataset_id) {
     }
     my ($date) = sort {$a <=> $b} @dates;
 
-    my $growing_conditions;
+    my ($passage_number, $growing_conditions);
       if ($cgap_ips_line) {
         my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
         my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
@@ -152,6 +151,7 @@ foreach my $dataset_id (@dataset_id) {
                           : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
                           : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                           : die "could not get growing conditions for @files";
+        $passage_number = $cgap_release->passage;
       }
       else {
         $growing_conditions = $cell_type;
@@ -213,6 +213,9 @@ foreach my $dataset_id (@dataset_id) {
             instrument => $platform
           }
         };
+        if ($passage_number) {
+          $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
+        }
         while (my ($filename, $file_object) = each %$file_hash) {
           push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
         }

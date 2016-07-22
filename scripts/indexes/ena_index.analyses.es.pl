@@ -107,7 +107,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
 
     $files = [grep {$_->{filename} !~ /\.ped/} @$files];
 
-    my ($growing_conditions, $assay_description, $exp_protocol, $instrument);
+    my ($growing_conditions, $assay_description, $exp_protocol, $instrument, $passage_number);
     if ($short_assay =~ /seq$/ || $short_assay eq 'wgs' ) {
       my $run_study_id = $analysis_study_id{$study_id} || $study_id;
       $sth_run->bind_param(1, $row->{SAMPLE_ID});
@@ -123,6 +123,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
       if ($cgap_ips_line) {
         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
         $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+        $passage_number = $cgap_release->passage;
       }
       else {
         $growing_conditions = $cell_type;
@@ -143,6 +144,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
         my ($filedate) = sort {$a <=> $b} @dates;
         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc1', date =>$filedate);
         $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+        $passage_number = $cgap_release->passage;
       }
       else {
         $growing_conditions = $cell_type;
@@ -196,6 +198,9 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
     }
     if ($instrument) {
       $docs{$es_id}{assay}{instrument} = $instrument;
+    }
+    if ($passage_number) {
+      $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
     }
 
     FILE:
