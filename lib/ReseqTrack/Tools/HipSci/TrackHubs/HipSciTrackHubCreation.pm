@@ -167,7 +167,7 @@ sub make_trackDbtxt_file{
     foreach my $track (@{$$cell_lines{$cell_line}{data}}){
       # If more than 10 tracks will want to hifde the remainder by default
       $counter_of_tracks++;
-      if ($counter_of_tracks <=10){
+      if ($counter_of_tracks <=3){
          $visibility = "on";
       }else{
          $visibility = "off";
