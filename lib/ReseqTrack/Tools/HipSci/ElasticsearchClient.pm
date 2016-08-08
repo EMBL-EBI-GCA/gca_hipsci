@@ -7,14 +7,14 @@ use Search::Elasticsearch;
 has 'host' => (is => 'ro', isa => 'Str', required => 1);
 has '_client' => (
           is => 'ro',
-          isa => 'Search::Elasticsearch::Client::Direct',
+          isa => 'Search::Elasticsearch::Client::1_0::Direct',
           lazy => 1,
           builder => '_build_client'
         );
 
 sub _build_client {
   my ($self) = @_;
-  return Search::Elasticsearch->new(nodes => $self->host, client => 'Direct');
+  return Search::Elasticsearch->new(nodes => $self->host, client => '1_0::Direct');
 }
 
 sub fetch_line_by_name {
