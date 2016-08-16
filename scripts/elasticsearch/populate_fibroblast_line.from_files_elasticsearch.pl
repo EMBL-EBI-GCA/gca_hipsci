@@ -90,16 +90,19 @@ while ( my $doc = $scroll->next ) {
   }
 }
 my %all_samples;
+SAMPLE:
 foreach my $nonipsc_linename (keys %nonipsc_celllines){
   my $tissue = $cgap_tissues{$nonipsc_linename};
   my $biosample = BioSD::fetch_sample($tissue->biosample_id);
   my $donor = $tissue->donor;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
+  next SAMPLE if !$donor_biosample || !$tissue_biosample;
   my $source_material = $tissue->tissue_type;
   my $sample_index = {};
 
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
+  next SAMPLE if !$sample_index->{name};
   $sample_index->{'bioSamplesAccession'} = $tissue->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
@@ -135,8 +138,10 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_created = 0;
   my $cell_updated = 0;
   my $cell_uptodate = 0;
+  SAMPLE:
   foreach my $nonipsc_linename (keys %nonipsc_celllines){
     my $sample_index = $all_samples{$nonipsc_linename};
+    next SAMPLE if !$sample_index;
     my $line_exists = $elasticsearchserver->call('exists',
       index => 'hipsci',
       type => 'cellLine',

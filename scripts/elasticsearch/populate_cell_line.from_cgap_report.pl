@@ -114,8 +114,10 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   my $donor = $tissue->donor;
   my $donor_biosample = BioSD::fetch_sample($donor->biosample_id);
   my $tissue_biosample = BioSD::fetch_sample($tissue->biosample_id);
+  next CELL_LINE if !$tissue_biosample || !$donor_biosample;
   my $sample_index = {};
   $sample_index->{name} = $biosample->property('Sample Name')->values->[0];
+  next CELL_LINE if ! $sample_index->{name};
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
