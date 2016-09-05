@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Data::Dumper;
-#use File::Remote qw(:replace);
 
 my ($bamlocaldir, @bamfilelists);
 
@@ -18,7 +16,7 @@ die "Missing parameters" if !$bamlocaldir || !@bamfilelists ;
 
 chdir $bamlocaldir;
 
-#TODO could make this smarter to check for exisiting files that need updating using md5s
+my $counter = 0;
 
 foreach my $table (@bamfilelists){
   open my $fh, '<', $table or die "could not open $table: $!";
@@ -27,10 +25,13 @@ foreach my $table (@bamfilelists){
       my @parts = split(/\t/, $line);
       my $ftpfile = $parts[0];
       if ($ftpfile =~ /\.bam$/){
-        system "wget $ftpfile";
-        system "wget $ftpfile.bai";
+        system "wget -N $ftpfile";
+        system "wget -N $ftpfile.bai";
+        $counter = $counter+2;
       }
     }
   }
   close($fh);
 }
+
+print "\nExpecting $counter files\n";
