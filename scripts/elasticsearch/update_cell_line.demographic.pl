@@ -15,11 +15,12 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
-my $demographic_filename;
+my ($demographic_filename, $sex_filename);
 
 &GetOptions(
   'es_host=s' =>\@es_host,
   'demographic_file=s' => \$demographic_filename,
+  'sex_sequenome_file=s' => \$sex_filename,
 );
 
 my %elasticsearch;
@@ -27,6 +28,7 @@ foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 die "did not get a demographic file on the command line" if !$demographic_filename;
+die "did not get a sex sequenome file on the command line" if !$sex_filename;
 
 my $cell_updated = 0;
 my $cell_uptodate = 0;
@@ -34,7 +36,7 @@ my $donor_updated = 0;
 my $donor_uptodate = 0;
 
 my $cgap_donors = read_cgap_report()->{donors};
-improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
+improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename, sex_sequenome_file => $sex_filename);
 
 my %donors;
 my %all_updates_donor;

@@ -22,6 +22,7 @@ sub improve_donors {
   my (%args) = @_;
   my $donors = $args{donors};
   my $demographic_filename = $args{demographic_file};
+  my $sex_filename = $args{sex_sequenome_file};
 
   my %demographics_by_donor_id;
   my %demographics_by_friendly_name;
@@ -39,6 +40,18 @@ sub improve_donors {
       }
     }
     $demographic_file->close;
+  }
+  if ($sex_filename) {
+    open my $fh, '<', $sex_filename or die $!;
+    LINE:
+    while (my $line = <$fh>) {
+      chomp $line;
+      my ($supplier_id, $sex) = split("\t", $line);
+      next LINE if defined $demographics_by_donor_id{$supplier_id}{Gender}
+        && $demographics_by_donor_id{$supplier_id}{Gender} =~ /male/i;
+      $demographics_by_donor_id{$supplier_id}{Gender} = $sex;
+    }
+    close $fh;
   }
 
   foreach my $donor (@$donors) {
