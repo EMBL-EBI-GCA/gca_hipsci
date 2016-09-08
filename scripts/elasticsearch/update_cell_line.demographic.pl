@@ -78,7 +78,7 @@ while ( my $doc = $scroll->next ) {
                 : die "did not recognise disease $disease";
     my $disease_value = $disease eq 'normal' ? 'Normal'
                 : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
-                : $disease eq 'neonatal diabetes' ? 'Maturity onset diabetes of the young'
+                : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
                 : $disease eq 'ataxia' ? 'Rare hereditary ataxia'
                 : $disease eq 'usher syndrome' ? 'Usher syndrome'
                 : $disease eq 'kabuki' ? 'Kabuki syndrome'
