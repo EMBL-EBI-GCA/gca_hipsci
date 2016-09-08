@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+#Example: perl import_new_bams.pl -bamfilelists /nfs/production/reseq-info/scratch/hipdcc/hipsci/trackhub_files/ENA.ERP007111.rnaseq.healthy_volunteers.analysis_files.tsv -bamlocaldir /nfs/production/reseq-info/scratch/hipdcc/hipsci/trackhub_files/starbams
+
 use strict;
 use warnings;
 
