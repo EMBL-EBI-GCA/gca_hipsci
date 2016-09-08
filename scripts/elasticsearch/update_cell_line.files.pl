@@ -6,6 +6,8 @@ use warnings;
 
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use List::Util qw();
+use LWP::Simple qw();
+use JSON qw();
 use Data::Compare;
 use Getopt::Long;
 use POSIX qw(strftime);
@@ -13,10 +15,16 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
+my $epd_url = 'https://www.peptracker.com/epd/hipsci_lines/';
 
 &GetOptions(
   'es_host=s' =>\@es_host,
+  'epd_url=s' => \$epd_url,
 );
+
+my $epd_content = LWP::Simple::get($epd_url);
+die "error getting $epd_url" if !defined $epd_content;
+my $epd_lines = JSON::decode_json($epd_content);
 
 my %elasticsearch;
 foreach my $es_host (@es_host){
@@ -46,8 +54,26 @@ while ( my $doc = $scroll->next ) {
   my $assay = $doc->{_source}{assay}{type};
   SAMPLE:
   foreach my $sample (@{$$doc{'_source'}{'samples'}}){
-    $cell_line_assays{$sample->{name}}{$assay} = $ontology_map{$assay};
+    $cell_line_assays{$sample->{name}}{$assay} = {name => $assay, ontologyPURL => $ontology_map{$assay}};
   }
+}
+
+LINE:
+foreach my $epd_line (@$epd_lines) {
+  my $short_name = $epd_line->{label};
+  my $results = $elasticsearch{$es_host[0]}->call('search',
+    index => 'hipsci',
+    type => 'cellLine',
+    body => {
+      query => { match => {'searchable.fixed' => $short_name} }
+    }
+  );
+  next LINE if ! @{$results->{hits}{hits}};
+  $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
+      name => 'Proteomics',
+      ontologyPURL =>$ontology_map{Proteomics},
+      peptrackerURL => 'https://www.peptracker.com/epd/analytics/?section_id=40100',
+    };
 }
 
 
@@ -64,7 +90,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
     my $cell_line  = $doc->{_source}{name};
-    my @new_assays = map {{name => $_, ontologyPURL => $cell_line_assays{$cell_line}{$_}}} keys %{$cell_line_assays{$cell_line}};
+    my @new_assays = values %{$cell_line_assays{$cell_line}};
     next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
     if (scalar @new_assays) {
       $doc->{_source}{assays} = \@new_assays;
