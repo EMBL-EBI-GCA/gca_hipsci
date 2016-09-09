@@ -7,7 +7,6 @@ use warnings;
 
 use Getopt::Long;
 use File::Find;
-use Data::Dumper;
 use ReseqTrack::Tools::BatchSubmission::LSF;
 
 my ($bamlocaldir, $wigoutputdir, $reference, $flags, $bamToBwpath, $farmlogfolder, $threadedperlbrew);
