@@ -22,7 +22,11 @@ GetOptions(
   "farmlogfolder=s" => \$farmlogfolder,
 );
 
-die "Missing parameters" if !$bamlocaldir || !$wigoutputdir || !$reference || !$threads || !$flags || !$bamToBwpath || !$farmlogfolder;
+die "Missing local directory containing BAMS -bamlocaldir" if !$bamlocaldir;
+die "Missing output directory to store BWS -wigoutputdir" if !$wigoutputdir;
+die "Missing reference file (e.g. hs37d5.fa) -reference" if !$reference;
+die "Missing path to bamToBw script -bamToBwpath" if !$bamToBwpath;
+die "Missing directory to store log files -farmlogfolder" if !$farmlogfolder;
 
 my @bamfiles;
 find(\&wanted, $bamlocaldir);

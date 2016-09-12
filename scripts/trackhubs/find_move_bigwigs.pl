@@ -13,7 +13,9 @@ GetOptions(
   "stagingdir=s" => \$stagingdir,
 );
 
-die "Missing parameters" if !$wigdir || !$stagingdir;
+die "Missing local directory containing BigWig files -wigdir" if !$wigdir;
+die "Missing directory to collate BigWig files into -stagingdir" if !$stagingdir;
+
 
 my @wigfiles;
 find(\&wanted, $wigdir);

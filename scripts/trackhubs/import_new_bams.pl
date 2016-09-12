@@ -14,7 +14,8 @@ GetOptions(
   "bamfilelists=s" => \@bamfilelists,
 );
 
-die "Missing parameters" if !$bamlocaldir || !@bamfilelists ;
+die "Missing local directory to store BAMS in -bamlocaldir" if !$bamlocaldir;
+die "Missing file release tables (*.rnaseq.healthy_volunteers.analysis_files.tsv) -bamfilelists"|| !@bamfilelists;
 
 chdir $bamlocaldir;
 
