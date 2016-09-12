@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+#Example: perl find_move_bigwigs.pl -wigdir /nfs/production/reseq-info/scratch/hipdcc/hipsci/trackhub_files/starbigwigs/ -stagingdir /nfs/production/reseq-info/scratch/hipdcc/hipsci/trackhub_files/starbigwigs/all
+
 use strict;
 use warnings;
 
