@@ -19,13 +19,12 @@ use File::Find qw();
 my $ag_lims_filename;
 my $sendai_counts_dir;
 my $pluritest_filename;
-my $es_host='ves-pg-e4:9200';
+my $es_host='ves-hx-e4:9200';
 my $dbhost = 'mysql-g1kdcc-public';
 my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
-my $gexarray_allowed_samples_filename;
 &GetOptions(
   'es_host=s' => \$es_host,
   'pluritest_file=s' => \$pluritest_filename,
@@ -37,7 +36,6 @@ my $gexarray_allowed_samples_filename;
     'dbuser=s'      => \$dbuser,
     'dbpass=s'      => \$dbpass,
     'dbport=s'      => \$dbport,
-    'gexarray_allowed_samples_filename=s' => \$gexarray_allowed_samples_filename,
 );
 
 die "did not get a sendai_counts_dir on the command line" if !$sendai_counts_dir;
@@ -55,17 +53,7 @@ my $fa = $db->get_FileAdaptor;
 
 my ($donors, $tissues, $ips_lines) = @{read_cgap_report(days_old=>3)}{qw(donors tissues ips_lines)};
 
-my %gexarray_allowed_samples;
-open my $qc1_fh, '<', $gexarray_allowed_samples_filename or die "could not open $gexarray_allowed_samples_filename $!";
-LINE:
-while (my $line = <$qc1_fh>) {
-  chomp $line;
-  my @split_line =split("\t", $line);
-  next LINE if !$split_line[0] || !$split_line[1];
-  $gexarray_allowed_samples{$split_line[0]}{join('_', @split_line[0,1])} = $split_line[0];
-}
-close $qc1_fh;
-
+my %disallow_pluritest;
 my %pluritest_details;
 open my $pluri_fh, '<', $pluritest_filename or die "could not open $pluritest_filename $!";
 <$pluri_fh>;
@@ -73,12 +61,22 @@ LINE:
 while (my $line = <$pluri_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
+  my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}(?:_\d+)?)_/;
   next LINE if !$sample;
-  next LINE if ($gexarray_allowed_samples{$sample} && !$gexarray_allowed_samples{$sample}{$split_line[0]});
+  if ($pluritest_details{$sample}) {
+    $disallow_pluritest{$sample} = 1;
+    next LINE;
+  }
   $pluritest_details{$sample} = \@split_line;
 }
 close $pluri_fh;
+LINE:
+foreach my $line (keys %pluritest_details) {
+  if ($disallow_pluritest{$line}) {
+    delete $pluritest_details{$line};
+  }
+}
+
 
 my $ag_lims_file = new Text::Delimited;
 $ag_lims_file->delimiter(';');
