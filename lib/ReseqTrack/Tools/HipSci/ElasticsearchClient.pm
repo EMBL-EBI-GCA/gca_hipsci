@@ -2,6 +2,7 @@
 package ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use namespace::autoclean;
 use Moose;
+use List::Util qw();
 use Search::Elasticsearch;
 
 has 'host' => (is => 'ro', isa => 'Str', required => 1);
@@ -37,6 +38,21 @@ sub fetch_donor_by_name {
     id => $name,
   );};
   return $donor;
+}
+
+sub fetch_line_by_short_name {
+  my ($self, $short_name) = @_;
+  my $results = $self->_client->search(
+    index => 'hipsci',
+    type => 'cellLine',
+    body => {
+      query => {
+        match => {"searchable.fixed" => $short_name}
+      }
+    }
+  );
+  return undef if !$results->{hits}{hits};
+  return List::Util::first {$_->{_id} =~ /-$short_name(?:_\d+)?$/ } @{$results->{hits}{hits}}
 }
 
 sub fetch_line_by_biosample_id {
