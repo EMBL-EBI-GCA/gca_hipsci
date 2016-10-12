@@ -103,6 +103,8 @@ my @output_fields = qw( name cell_type derived_from donor biosample_id tissue_bi
     ethnicity
     growing_conditions_gtarray growing_conditions_gexarray
     growing_conditions_mtarray growing_conditions_rnaseq growing_conditions_exomeseq growing_conditions_proteomics
+    passage_number_gtarray passage_number_gexarray
+    passage_number_mtarray passage_number_rnaseq passage_number_exomeseq passage_number_proteomics
     cnv_num_different_regions cnv_length_different_regions_Mbp cnv_length_shared_differences_Mbp
     pluri_raw pluri_logit_p pluri_novelty pluri_novelty_logit_p pluri_rmsd rnaseq.sendai_reads);
 my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_purify.somatic
@@ -119,7 +121,8 @@ my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_puri
     assaybatch_methyl.well checks_pluritest.raw checks_pluritest.novelty checks_gex.fail
     checks_passage.rate checks_qc2.swap checks_cnvs study_blueprint
     study_reprogramming.comparison study_media.comparison comment_qc1.decision comment_anja friendly);
-print join("\t", @output_fields, @ag_lims_output_fields), "\n";
+#print join("\t", @output_fields, @ag_lims_output_fields), "\n";
+print join("\t", @output_fields), "\n";
 
 my @output_lines;
 DONOR:
@@ -191,6 +194,7 @@ foreach my $donor (@$donors) {
                         : $ips_line->qc1 && $ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
                         : die "could not get growing conditions for ".$file->name;
         $output{'growing_conditions_'.$assay} = $growing_conditions;
+        $output{'passage_number_'.$assay} = $cgap_release ? $cgap_release->passage : undef;
       }
 
       if (my $ips_ag_lims_fields = $ag_lims_fields{$ips_line->name}) {
@@ -201,7 +205,8 @@ foreach my $donor (@$donors) {
         }
       };
       my (@sort_parts) = $ips_line->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)_(\d+)/;
-      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
+      #push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
+      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
 
     }
     next TISSUE if !$es_line;

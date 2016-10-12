@@ -51,10 +51,10 @@ foreach my $dataset_id (@dataset_id) {
             : die "did not recognise assay for $dataset_id";
   my $disease = $xml_hash->{DATASET}{TITLE} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{DATASET}{TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
-            : $xml_hash->{DATASET}{TITLE} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{DATASET}{TITLE} =~ /diabetes/i ? 'monogenic diabetes'
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /healthy/i ? 'healthy volunteers'
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /diabetes/i ? 'neonatal diabetes mellitus'
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /diabetes/i ? 'monogenic diabetes'
             : die "did not recognise disease for $dataset_id";
   my $filename_disease = lc($disease);
   $filename_disease =~ s{[ -]}{_}g;
