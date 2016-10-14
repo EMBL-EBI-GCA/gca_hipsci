@@ -1,8 +1,10 @@
 
 package ReseqTrack::Hive::HipSci::FileRelease::Checks;
 use strict;
+use File::Basename qw(fileparse);
 
 use base ('ReseqTrack::Hive::Process::FileRelease::Checks');
+
 
 sub get_check_subs {
   my ($self) = @_;
