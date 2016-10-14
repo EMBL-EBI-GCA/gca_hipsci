@@ -63,10 +63,10 @@ sub derive_destination_base_dir {
   my $free_base_dir = $options{free_base_dir} or throw("missing free_base_dir");
 
   my $cell_line;
-  if ($filename =~ /HPSIi[0-9]{4}-[a-z]{4}_[0-9]+/) {
+  if ($filename =~ /HPSI[0-9]{4}i-[a-z]{4}_[0-9]+/) {
     $cell_line = $options{es}->fetch_line_by_name($&);
   }
-  elsif ($filename =~ /HPSI[a-z]+[0-9]{4}-([a-z]{4})/) {
+  elsif ($filename =~ /HPSI[0-9]{4}[a-z]+-([a-z]{4})/) {
     $cell_line = $options{es}->fetch_line_by_short_name($1);
   }
   throw("did not recognise cell line from $filename") if !$cell_line;
