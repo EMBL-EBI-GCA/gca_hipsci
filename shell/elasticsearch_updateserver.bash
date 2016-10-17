@@ -15,8 +15,8 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -sex_sequenome_file /nfs/production/reseq-info/work/streeter/hipsci/resources/sex_sequenome.20160729.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
   -es_host=$SERVER \
-  -pluritest /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.pluritest.tsv \
-  -cnv /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20160418.cnv_summary.tsv \
+  -pluritest /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.pluritest.tsv \
+  -cnv /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.cnv_summary.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1_images.pl \
   -es_host=$SERVER \
   -trim /nfs/hipsci \
