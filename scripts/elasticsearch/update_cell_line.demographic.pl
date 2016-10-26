@@ -74,6 +74,9 @@ while ( my $doc = $scroll->next ) {
                 : $disease eq 'bpd' ? 'http://www.ebi.ac.uk/efo/EFO_0005803'
                 : $disease eq 'pid' ? 'http://www.ebi.ac.uk/efo/EFO_0000540'
                 : $disease eq 'battens disease' ? 'http://purl.obolibrary.org/obo/DOID_0050756'
+                : $disease eq 'retinitis pigmentosa' ? 'http://www.orpha.net/ORDO/Orphanet_791'
+                : $disease eq 'macular dystrophy' ? 'http://www.orpha.net/ORDO/Orphanet_98664'
+                : $disease =~ /spastic paraplegia/ ? 'http://purl.obolibrary.org/obo/HP_0001258'
                 : $disease =~ /congenital hyperins/ ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
                 : die "did not recognise disease $disease";
     my $disease_value = $disease eq 'normal' ? 'Normal'
@@ -87,6 +90,9 @@ while ( my $doc = $scroll->next ) {
                 : $disease eq 'bpd' ? 'Bleeding and platelet disorder'
                 : $disease eq 'pid' ? 'Primary immune deficiency'
                 : $disease eq 'battens disease' ? 'Batten disease'
+                : $disease eq 'retinitis pigmentosa' ? 'Retinitis pigmentosa'
+                : $disease eq 'macular dystrophy' ? 'Genetic macular dystrophy'
+                : $disease =~ /spastic paraplegia/ ? 'Hereditary spastic paraplegia'
                 : $disease =~ /congenital hyperins/ ? 'Congenital hyperinsulinism'
                 : die "did not recognise disease $disease";
 
