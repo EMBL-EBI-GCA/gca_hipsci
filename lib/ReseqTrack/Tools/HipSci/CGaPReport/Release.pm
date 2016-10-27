@@ -29,7 +29,8 @@ sub is_feeder_free {
   return $self->cell_state =~ /^FF/ ? 1
         : $self->cell_state =~ /^FD/ ? 0
         : $self->cell_state =~ /TRA-1-60/ ? 0
-        : die 'did not recognise cell state '.$self->cell_state;
+        : $self->cell_state =~ /primary fibroblast/i ? 0
+        : die sprintf('did not recognise cell state %s for cell line %s', $self->cell_state, $self->ips_line->name);
 }
 
 sub is_qc1 {
