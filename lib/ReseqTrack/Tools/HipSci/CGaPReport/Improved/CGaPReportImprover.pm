@@ -16,7 +16,21 @@ use Exporter 'import';
 use vars qw(@EXPORT_OK);
 @EXPORT_OK = qw(improve_donors improve_tissues improve_ips_lines);
 
-my %disease_map = (bbs => 'bardet-biedl syndrome', 'nd' => 'neonatal diabetes', 'normal' => 'normal', 'usher' => 'usher syndrome', 'ataxia' => 'ataxia');
+my %disease_map = (
+  bbs => 'bardet-biedl syndrome',
+  nd => 'monogenic diabetes',
+  normal => 'normal',
+  ataxia => 'rare hereditary ataxia',
+  usher => 'usher syndrome',
+  kabuki => 'kabuki syndrome',
+  alport => 'alport syndrome',
+  bpd => 'bleeding and platelet disorder',
+  pid => 'primary immune deficiency',
+  'battens disease' => 'batten disease',
+  'macular dystrophy' => 'genetic macular dystrophy',
+  'herediatary spastic paraplegia' => 'hereditary spastic paraplegia',
+  'childhood neurology' => 'rare genetic neurological disorder',
+);
 
 sub improve_donors {
   my (%args) = @_;
