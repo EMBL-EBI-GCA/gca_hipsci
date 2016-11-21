@@ -55,6 +55,21 @@ sub fetch_line_by_short_name {
   return List::Util::first {$_->{_id} =~ /-$short_name(?:_\d+)?$/ } @{$results->{hits}{hits}}
 }
 
+sub fetch_donor_by_short_name {
+  my ($self, $short_name) = @_;
+  my $results = $self->_client->search(
+    index => 'hipsci',
+    type => 'donor',
+    body => {
+      query => {
+        match => {"searchable.fixed" => $short_name}
+      }
+    }
+  );
+  return undef if !$results->{hits}{hits};
+  return List::Util::first {$_->{_id} =~ /-$short_name(?:_\d+)?$/ } @{$results->{hits}{hits}}
+}
+
 sub fetch_line_by_biosample_id {
   my ($self, $biosample_id) = @_;
   my $results = $self->_client->search(

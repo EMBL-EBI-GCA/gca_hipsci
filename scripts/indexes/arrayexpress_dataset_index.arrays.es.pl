@@ -25,7 +25,6 @@ my $es_host='ves-hx-e3:9200';
 
 my $short_assay;
 my $long_assay;
-my $disease;
 my $study_title;
 my $platform;
 
@@ -81,37 +80,37 @@ foreach my $dataset_id (@dataset_id) {
 
   my %arrayexpress;
   my @sdrflines = <SDRF>;
-  shift(@sdrflines);  # Remove title line
+  my $header_line = shift(@sdrflines);  # Remove title line
+  chomp $header_line;
+  my %column_of;
+  my @header_parts = split("\t", $header_line);
+  foreach my $i (0..$#header_parts) {
+    $column_of{$header_parts[$i]} = $i;
+  }
+  
   if ($short_assay eq 'gexarray'){
     foreach my $line (@sdrflines) {
+      chomp $line;
       my @parts = split("\t", $line);
-      my $cellline = $parts[0];
-      my $raw_ftp_link = $parts[33];
-      my $raw_file = $parts[32];
-      my $processed_ftp_link = $parts[36];
-      my $processed_file = $parts[35];
+      my $cellline = $parts[$column_of{"Source Name"}];
+      my $raw_file = $parts[$column_of{"Array Data File"}];
+      my $raw_ftp_link = $parts[$column_of{"Comment [ArrayExpress FTP file]"}];
+      my $processed_file = $parts[$column_of{"Derived Array Data File"}];
+      my $processed_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       $processed_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;  
       $raw_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
-      $disease = $parts[8] =~ /norm/i ? 'Normal'
-            : $parts[8] =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
-            : $parts[8] =~ /diabetes/i ? 'Monogenic diabetes'
-            : die "did not recognise disease for $dataset_id";
-      $arrayexpress{$cellline} = [$raw_ftp_link."/".$raw_file, $processed_ftp_link."/".$processed_file];
+      $arrayexpress{$cellline} = [$raw_ftp_link.'/'.$raw_file, $processed_ftp_link.'/'.$processed_file];
     }
   }elsif($short_assay eq 'mtarray'){
     foreach my $line (@sdrflines) {
       my @parts = split("\t", $line);
-      my $cellline = $parts[0];
-      my $mt_ftp_link = $parts[35];
-      my $mt_file = $parts[34];
+      my $cellline = $parts[$column_of{"Source Name"}];
+      my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
+      my $mt_file = $parts[$column_of{"Derived Array Data File"}];
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
       #Get specific methylation version
       $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
             : die "did not recognise platform for $study_title in file $mt_file";
-      $disease = $parts[8] =~ /normal/i ? 'Normal'
-            : $parts[8] =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
-            : $parts[8] =~ /diabetes/i ? 'Monogenic diabetes'
-            : die "did not recognise disease for $dataset_id";
       $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
     }
   }
@@ -155,6 +154,14 @@ foreach my $dataset_id (@dataset_id) {
       }
       else {
         $growing_conditions = $cell_type;
+    }
+
+    my $disease;
+    if ( $cell_line =~ /HPSI.*-([a-z]{4})/ ) {
+      my $short_name = $1;
+      my $es_donor = $elasticsearch->fetch_donor_by_short_name($short_name);
+      die "did not get donor $short_name" if !$es_donor;
+      $disease = $es_donor->{_source}{diseaseStatus}{value};
     }
 
     my %files;
