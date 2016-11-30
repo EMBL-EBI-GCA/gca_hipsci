@@ -113,6 +113,11 @@ sub get_release_for {
                     grep {$_->is_qc1 && $_->goal_time lt $date}
                     @{$self->release};
     }
+    if (!$release && $self->ips_created && $self->ips_created gt '2016-00-00') {
+      ($release) = sort {$b->goal_time cmp $a->goal_time}
+                    grep {$_->is_qc1 && $_->goal_time lt $date}
+                    @{$self->release};
+    }
     return $release;
   }
 }
