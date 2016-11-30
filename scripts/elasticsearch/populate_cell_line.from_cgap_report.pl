@@ -47,6 +47,9 @@ my %biomaterial_provider_hash = (
   '16_019' =>  'Cambridge BioResource',
   '16_027' =>  'University College London',
   '16_028' =>  'University College London',
+  '16_030' =>  'University College London',
+  '16_060' =>  'Cambridge BioResource',
+  '16_059' =>  'Cambridge BioResource',
 );
 my %open_access_hash = (
   'H1288' => 0,
@@ -67,6 +70,9 @@ my %open_access_hash = (
   '16_019' => 0,
   '16_027' => 0,
   '16_028' => 0,
+  '16_030' => 0,
+  '16_059' => 0,
+  '16_060' => 0,
 );
 
 my %elasticsearch;
