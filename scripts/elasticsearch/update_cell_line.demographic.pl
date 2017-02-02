@@ -84,7 +84,7 @@ while ( my $doc = $scroll->next ) {
                 : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
                 : $disease eq 'monogenic diabetes' ? 'Monogenic diabetes'
                 : $disease eq 'rare hereditary ataxia' ? 'Rare hereditary ataxia'
-                : $disease eq 'usher syndrome' ? 'Usher syndrome'
+                : $disease eq 'usher syndrome' ? 'Usher syndrome and congenital eye defects'
                 : $disease eq 'kabuki syndrome' ? 'Kabuki syndrome'
                 : $disease eq 'hypertrophic cardiomyopathy' ? 'Hypertrophic cardiomyopathy'
                 : $disease eq 'alport syndrome' ? 'Alport syndrome'
