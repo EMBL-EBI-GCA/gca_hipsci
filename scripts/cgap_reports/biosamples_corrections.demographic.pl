@@ -39,7 +39,7 @@ foreach my $donor (@$donors) {
                   : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
                   : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
                   : $disease =~ /ataxia/ ? 'http://www.orpha.net/ORDO/Orphanet_183518'
-                  : $disease eq 'usher syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_886'
+                  : $disease eq 'usher syndrome and congenital eye defects' ? 'http://www.orpha.net/ORDO/Orphanet_886'
                   : $disease eq 'kabuki syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_2322'
                   : $disease eq 'hypertrophic cardiomyopathy' ? 'http://www.orpha.net/ORDO/Orphanet_217569'
                   : $disease eq 'alport syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_63'
@@ -50,6 +50,7 @@ foreach my $donor (@$donors) {
                   : $disease eq 'genetic macular dystrophy' ? 'http://www.orpha.net/ORDO/Orphanet_98664'
                   : $disease =~ /spastic paraplegia/ ? 'http://purl.obolibrary.org/obo/HP_0001258'
                   : $disease =~ /congenital hyperins/ ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
+                  : $disease eq 'rare genetic neurological disorder' ? 'http://www.orpha.net/ORDO/Orphanet_71859'
                   : die "did not recognise disease $disease ".$biosample->id;
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
