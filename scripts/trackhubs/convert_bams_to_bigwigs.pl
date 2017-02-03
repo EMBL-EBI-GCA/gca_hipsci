@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 
-#Requires .cgpBigWig_bashrc
-
 use Getopt::Long;
 use File::Find;
 use ReseqTrack::Tools::BatchSubmission::LSF;
@@ -15,7 +13,6 @@ GetOptions(
   "bamlocaldir=s" => \$bamlocaldir,
   "wigoutputdir=s" => \$wigoutputdir,
   "reference=s" => \$reference,
-  "threads=s" => \$threads,
   "flags=s" => \$flags,
   "bamToBwpath=s" => \$bamToBwpath,
   "farmlogfolder=s" => \$farmlogfolder,
@@ -42,10 +39,14 @@ foreach my $file (@bamfiles){
     my $sample = "bam2bw-".(split(/\./, (split(/\//, $file))[-1]))[0];
     my $farmlogfile = $farmlogfolder."/".$sample.".log";
     my $wigoutputdir = $wigoutputdir."/".$sample."/";
-    my $cmd_to_run = "$bamToBwpath -i $file -o $wigoutputdir -F $flags -r $reference";
-    #my $bsub_cmd = $lsf->construct_command_line($cmd_to_run, "-q production-rh7", $farmlogfile, $sample, 0);
-    #my $result = `$bsub_cmd 2>&1`;
-    #print $result, "\n";
-    print $cmd_to_run, "\n";
+    my $wigoutputfile = $wigoutputdir.$sample.".bw";
+    if (!-d $wigoutputdir) {
+      my @args = ("mkdir", "-m", "775", "$wigoutputdir");
+      system(@args) == 0 or die "system @args failed: $?";
+    }
+    my $cmd_to_run = "$bamToBwpath -i $file -o $wigoutputfile -F $flags -r $reference";
+    my $bsub_cmd = $lsf->construct_command_line($cmd_to_run, "-q production-rh7", $farmlogfile, $sample, 0);
+    my $result = `$bsub_cmd 2>&1`;
+    print $result, "\n";
   }
 }
