@@ -15,7 +15,7 @@ GetOptions(
 );
 
 die "Missing local directory to store BAMS in -bamlocaldir" if !$bamlocaldir;
-die "Missing hipsci file list (hipsci_files.tsv from export from http://www.hipsci.org/lines/#/files?File%20format%5B%5D=bam) -bamfilelists"|| !@bamfilelists;
+die "Missing hipsci file list (hipsci_files.tsv from export from http://www.hipsci.org/lines/#/files?File%20format%5B%5D=bam) -bamfilelists" if !@bamfilelists;
 
 chdir $bamlocaldir;
 
@@ -26,11 +26,13 @@ foreach my $table (@bamfilelists){
   while (my $line = <$fh>) {
     if ($line =~/^HPSI/){
       my @parts = split(/\t/, $line);
-      my $ftpfile = $parts[2]+$parts[0];
-      if ($ftpfile =~ /\.bam$/){
-        system "wget -N $ftpfile";
-        system "wget -N $ftpfile.bai";
-        $counter = $counter+2;
+      if ($parts[2] =~/^ftp/){
+        my $ftpfile = $parts[2].$parts[0];
+        if ($ftpfile =~ /\.bam$/){
+          system "wget -N $ftpfile";
+          system "wget -N $ftpfile.bai";
+          $counter = $counter+2;
+        }
       }
     }
   }
