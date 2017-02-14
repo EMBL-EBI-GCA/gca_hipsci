@@ -37,6 +37,11 @@ while ( my $doc = $scroll->next ) {
   $cohorts{$disease->{value}}{disease} //= $disease;
 }
 
+my $neuro_string = 'Rare genetic neurological disorder';
+if (!$cohorts{$neuro_string}) {
+  $cohorts{$neuro_string} = {donors => {count => 0}, disease => {value => $neuro_string, ontologyPURL => 'http://www.orpha.net/ORDO/Orphanet_71859'}}
+}
+
 foreach my $cohort (values %cohorts) {
   my $name = $cohort->{disease}{value};
   if ($name eq 'Normal') {
@@ -44,7 +49,7 @@ foreach my $cohort (values %cohorts) {
   }
   $cohort->{datasets} = [];
   $cohort->{name} = $name;
-  my $id = $name;
+  my $id = lc($name);
   $id =~ s/[^\w]/-/g;
 
   foreach my $assay (@assays) {
