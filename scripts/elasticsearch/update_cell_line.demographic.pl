@@ -7,6 +7,7 @@ use Getopt::Long;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_disease_for_elasticsearch get_ontology_full);
 use Text::Capitalize qw();
 use Data::Compare;
 use Clone qw(clone);
@@ -63,40 +64,8 @@ while ( my $doc = $scroll->next ) {
   my $donor_update = {};
   my $cell_line_update = {};
   if (my $disease = $donor->disease) {
-    my $purl = $disease eq 'normal' ? 'http://purl.obolibrary.org/obo/PATO_0000461'
-                : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
-                : $disease eq 'rare hereditary ataxia' ? 'http://www.orpha.net/ORDO/Orphanet_183518'
-                : $disease eq 'usher syndrome and congenital eye defects' ? 'http://www.orpha.net/ORDO/Orphanet_886'
-                : $disease eq 'kabuki syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_2322'
-                : $disease eq 'hypertrophic cardiomyopathy' ? 'http://www.orpha.net/ORDO/Orphanet_217569'
-                : $disease eq 'alport syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_63'
-                : $disease eq 'bleeding and platelet disorder' ? 'http://www.ebi.ac.uk/efo/EFO_0005803'
-                : $disease eq 'primary immune deficiency' ? 'http://www.ebi.ac.uk/efo/EFO_0000540'
-                : $disease eq 'batten disease' ? 'http://purl.obolibrary.org/obo/DOID_0050756'
-                : $disease eq 'retinitis pigmentosa' ? 'http://www.orpha.net/ORDO/Orphanet_791'
-                : $disease eq 'genetic macular dystrophy' ? 'http://www.orpha.net/ORDO/Orphanet_98664'
-                : $disease eq 'hereditary spastic paraplegia' ? 'http://purl.obolibrary.org/obo/HP_0001258'
-                : $disease eq 'congenital hyperinsulinia' ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
-                : $disease eq 'rare genetic neurological disorder' ? 'http://www.orpha.net/ORDO/Orphanet_71859'
-                : die "did not recognise disease $disease";
-    my $disease_value = $disease eq 'normal' ? 'Normal'
-                : $disease =~ /bardet-/ ? 'Bardet-Biedl syndrome'
-                : $disease eq 'monogenic diabetes' ? 'Monogenic diabetes'
-                : $disease eq 'rare hereditary ataxia' ? 'Rare hereditary ataxia'
-                : $disease eq 'usher syndrome and congenital eye defects' ? 'Usher syndrome and congenital eye defects'
-                : $disease eq 'kabuki syndrome' ? 'Kabuki syndrome'
-                : $disease eq 'hypertrophic cardiomyopathy' ? 'Hypertrophic cardiomyopathy'
-                : $disease eq 'alport syndrome' ? 'Alport syndrome'
-                : $disease eq 'bleeding and platelet disorder' ? 'Bleeding and platelet disorder'
-                : $disease eq 'primary immune deficiency' ? 'Primary immune deficiency'
-                : $disease eq 'batten disease' ? 'Batten disease'
-                : $disease eq 'retinitis pigmentosa' ? 'Retinitis pigmentosa'
-                : $disease eq 'genetic macular dystrophy' ? 'Genetic macular dystrophy'
-                : $disease eq 'hereditary spastic paraplegia' ? 'Hereditary spastic paraplegia'
-                : $disease eq 'congenital hyperinsulinia' ? 'Congenital hyperinsulinism'
-                : $disease eq 'rare genetic neurological disorder' ? 'Rare genetic neurological disorder'
-                : die "did not recognise disease $disease";
+    my $purl = get_ontology_full($disease) or die "did not recognise disease $disease";
+    my $disease_value = get_disease_for_elasticsearch($disease) or die "did not recognise disease $disease";
 
     $donor_update->{diseaseStatus} = {
       value => $disease_value,

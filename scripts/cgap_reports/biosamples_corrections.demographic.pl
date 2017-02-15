@@ -5,6 +5,7 @@ use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_ontology_full);
 use BioSD;
 use Text::Delimited;
 
@@ -34,24 +35,7 @@ foreach my $donor (@$donors) {
 
   foreach my $biosample (grep {$_->is_valid} map {BioSD::Sample->new($_)} @biosd_ids) {
     if (my $disease = $donor->disease) {
-      if ($disease eq 'neonatal diabetes'){$disease = 'monogenic diabetes'}
-      my $efo_term = $disease eq 'normal' ? 'http://www.ebi.ac.uk/efo/EFO_0000761'
-                  : $disease =~ /bardet-/ ? 'http://www.orpha.net/ORDO/Orphanet_110'
-                  : $disease eq 'monogenic diabetes' ? 'http://www.orpha.net/ORDO/Orphanet_552'
-                  : $disease =~ /ataxia/ ? 'http://www.orpha.net/ORDO/Orphanet_183518'
-                  : $disease eq 'usher syndrome and congenital eye defects' ? 'http://www.orpha.net/ORDO/Orphanet_886'
-                  : $disease eq 'kabuki syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_2322'
-                  : $disease eq 'hypertrophic cardiomyopathy' ? 'http://www.orpha.net/ORDO/Orphanet_217569'
-                  : $disease eq 'alport syndrome' ? 'http://www.orpha.net/ORDO/Orphanet_63'
-                  : $disease eq 'bleeding and platelet disorder' ? 'http://www.ebi.ac.uk/efo/EFO_0005803'
-                  : $disease eq 'primary immune deficiency' ? 'http://www.ebi.ac.uk/efo/EFO_0000540'
-                  : $disease eq 'batten disease' ? 'http://purl.obolibrary.org/obo/DOID_0050756'
-                  : $disease eq 'retinitis pigmentosa' ? 'http://www.orpha.net/ORDO/Orphanet_791'
-                  : $disease eq 'genetic macular dystrophy' ? 'http://www.orpha.net/ORDO/Orphanet_98664'
-                  : $disease =~ /spastic paraplegia/ ? 'http://purl.obolibrary.org/obo/HP_0001258'
-                  : $disease =~ /congenital hyperins/ ? 'http://purl.obolibrary.org/obo/OMIT_0023511'
-                  : $disease eq 'rare genetic neurological disorder' ? 'http://www.orpha.net/ORDO/Orphanet_71859'
-                  : die "did not recognise disease $disease ".$biosample->id;
+      my $efo_term = get_ontology_full($disease) or die "did not recognise disease $disease ".$biosample->id;
       my $biosd_disease = $biosample->property('disease state');
       #if (!$biosd_disease || ! grep { /$disease/i } @{$biosd_disease->values}) {
       if (!$biosd_disease) {

@@ -5,6 +5,7 @@ use warnings;
 
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_ontology_short);
 use BioSD;
 use List::Util qw(first);
 use Text::Delimited;
@@ -53,23 +54,7 @@ foreach my $donor (@$donors) {
       my @phenotype_strings;
 
       if (my $disease = $donor->disease) {
-        push(@phenotype_strings, $disease eq 'normal' ? 'PATO:0000461'
-                    : $disease =~ /bardet-/ ? 'Orphanet:110'
-                    : $disease eq 'monogenic diabetes' ? 'Orphanet:552'
-                    : $disease =~ /ataxia/ ? 'Orphanet:183518'
-                    : $disease =~ /usher syndrome/ ? 'Orphanet:886'
-                    : $disease eq 'kabuki syndrome' ? 'Orphanet:2322'
-                    : $disease eq 'hypertrophic cardiomyopathy' ? 'Orphanet:217569'
-                    : $disease eq 'alport syndrome' ? 'Orphanet:63'
-                    : $disease eq 'bleeding and platelet disorder' ? 'EFO:0005803'
-                    : $disease eq 'primary immune deficiency' ? 'EFO:0000540'
-                    : $disease eq 'batten disease' ? 'DOID:0050756'
-                    : $disease eq 'retinitis pigmentosa' ? 'Orphanet:791'
-                    : $disease eq 'genetic macular dystrophy' ? 'Orphanet:98664'
-                    : $disease =~ /spastic paraplegia/ ? 'HP:0001258'
-                    : $disease =~ /congenital hyperins/ ? 'OMIT:0023511'
-                    : $disease eq 'rare genetic neurological disorder' ? 'Orphanet:71859'
-                    : die "did not recognise disease $disease ".$biosample->id);
+        push(@phenotype_strings, (get_ontology_short($disease) or die "did not recognise disease $disease ".$biosample->id));
       }
       if (my $cell_type_property = $biosample->property('cell type')) {
         foreach my $phenotype_string (map {$_->term_source->term_source_id} @{$cell_type_property->qualified_values()}) {

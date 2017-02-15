@@ -8,6 +8,7 @@ use Text::Delimited;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils;
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::Donor;
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::IPSLine;
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(fix_disease_from_spreadsheet);
 use List::Util qw();
 use List::MoreUtils qw();
 use BioSD;
@@ -15,22 +16,6 @@ use BioSD;
 use Exporter 'import';
 use vars qw(@EXPORT_OK);
 @EXPORT_OK = qw(improve_donors improve_tissues improve_ips_lines);
-
-my %disease_map = (
-  bbs => 'bardet-biedl syndrome',
-  nd => 'monogenic diabetes',
-  normal => 'normal',
-  ataxia => 'rare hereditary ataxia',
-  usher => 'usher syndrome and congenital eye defects',
-  kabuki => 'kabuki syndrome',
-  alport => 'alport syndrome',
-  bpd => 'bleeding and platelet disorder',
-  pid => 'primary immune deficiency',
-  'battens disease' => 'batten disease',
-  'macular dystrophy' => 'genetic macular dystrophy',
-  'herediatary spastic paraplegia' => 'hereditary spastic paraplegia',
-  'childhood neurology' => 'rare genetic neurological disorder',
-);
 
 sub improve_donors {
   my (%args) = @_;
@@ -92,7 +77,7 @@ sub improve_donors {
 
     # Fix disease
     my $disease = $donor_demographics->{'Disease phenotype'};
-    $disease = $disease ? ($disease_map{lc($disease)} // lc($disease)) : '';
+    $disease = fix_disease_from_spreadsheet($disease) // '';
     $donor->disease($disease);
 
     # Fix age
