@@ -16,7 +16,8 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
   -es_host=$SERVER \
   -pluritest /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.pluritest.tsv \
-  -cnv /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.cnv_summary.tsv \
+  -cnv_file /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.cnv_summary.tsv \
+  -cnv_comments_file /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20161010.cnv_comments.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1_images.pl \
   -es_host=$SERVER \
   -trim /nfs/hipsci \

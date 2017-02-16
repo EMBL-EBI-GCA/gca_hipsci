@@ -13,6 +13,7 @@ my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
 my $cnv_filename;
+my $cnv_comments_filename;
 my $pluritest_filename;
 my $allowed_samples_gtarray_file;
 my $allowed_samples_gexarray_file;
@@ -21,6 +22,7 @@ my $allowed_samples_gexarray_file;
   'es_host=s' =>\@es_host,
   'pluritest_file=s' => \$pluritest_filename,
   'cnv_filename=s' => \$cnv_filename,
+  'cnv_comments_filename=s' => \$cnv_comments_filename,
 );
 
 my %elasticsearch;
@@ -67,6 +69,17 @@ while (my $line = <$cnv_fh>) {
 }
 close $cnv_fh;
 
+my %cnv_comments;
+open my $cnv_comments_fh, '<', $cnv_comments_filename or die "could not open $cnv_comments_filename $!";
+<$cnv_comments_fh>;
+LINE:
+while (my $line = <$cnv_comments_fh>) {
+  chomp $line;
+  my ($cell_line, $comment) = split("\t", $line, 2);
+  push(@{$cnv_comments{$cell_line}}, $comment);
+}
+close $cnv_comments_fh;
+
 my %qc1_details;
 SAMPLE:
 while (my ($sample, $pluri_hash) = each %pluritest_details) {
@@ -95,6 +108,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     delete $$update{'_source'}{'cnv'}{num_different_regions};
     delete $$update{'_source'}{'cnv'}{length_different_regions_Mbp};
     delete $$update{'_source'}{'cnv'}{length_shared_differences};
+    delete $$update{'_source'}{'cnv'}{comments};
     if (! scalar keys $$update{'_source'}{'cnv'}){
       delete $$update{'_source'}{'cnv'};
     }
@@ -109,6 +123,9 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
           $$update{'_source'}{$field}{$subfield} = $qc1_details{$$doc{'_source'}{'name'}}{$field}{$subfield};
         }
       }
+    }
+    if (my $comments = $cnv_comments{$doc->{_source}{name}}) {
+      $update->{_source}{cnv}{comments} = $comments;
     }
     if (Compare($$update{'_source'}, $$doc{'_source'})){
       $cell_uptodate++;
