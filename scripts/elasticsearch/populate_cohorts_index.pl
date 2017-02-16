@@ -5,6 +5,7 @@ use warnings;
 
 use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::DiseaseParser;
 
 my $es_host = 'ves-hx-e4:9200';
 
@@ -20,37 +21,39 @@ my @assays = (
   'Methylation array',
 );
 
+my $diseases = \@ReseqTrack::Tools::HipSci::DiseaseParser::diseases;
+
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
-my $scroll = $es->call('scroll_helper',
-  index       => 'hipsci',
-  type        => 'donor',
-  search_type => 'scan',
-  size        => 500
-);
-
-my %cohorts;
-DONOR:
-while ( my $doc = $scroll->next ) {
-  my $disease = $doc->{_source}{diseaseStatus};
-  $cohorts{$disease->{value}}{donors}{count} += 1;
-  $cohorts{$disease->{value}}{disease} //= $disease;
-}
-
-my $neuro_string = 'Rare genetic neurological disorder';
-if (!$cohorts{$neuro_string}) {
-  $cohorts{$neuro_string} = {donors => {count => 0}, disease => {value => $neuro_string, ontologyPURL => 'http://www.orpha.net/ORDO/Orphanet_71859'}}
-}
-
-foreach my $cohort (values %cohorts) {
-  my $name = $cohort->{disease}{value};
-  if ($name eq 'Normal') {
-    $name = 'Normal, managed access';
-  }
-  $cohort->{datasets} = [];
-  $cohort->{name} = $name;
+foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
+  my %cohort = (
+    disease => {
+      ontologyPURL => $disease->{ontology_full},
+      value => $disease->{for_elasticsearch},
+    },
+  );
+  my $name = $cohort{disease}{value};
   my $id = lc($name);
   $id =~ s/[^\w]/-/g;
+
+  $cohort{datasets} = [];
+  $cohort{name} = $name;
+
+  my $donor_search  = $es->call('search',
+    index => 'hipsci',
+    type => 'donor',
+    body => {
+      query => {
+        constant_score => {
+          filter => {
+            term => {'diseaseStatus.value' => $cohort{disease}{value}},
+          }
+        }
+      },
+    },
+    size => 0,
+  );
+  $cohort{donors} = {count => $donor_search->{hits}{total}};
 
   foreach my $assay (@assays) {
 
@@ -63,7 +66,7 @@ foreach my $cohort (values %cohorts) {
             filter => {
               bool => {
                 must => [
-                  {term => {'samples.diseaseStatus' => $cohort->{disease}{value}}},
+                  {term => {'samples.diseaseStatus' => $cohort{disease}{value}}},
                   {term => {'assay.type' => $assay}},
                   {term => {'archive.name' => 'EGA'}},
                 ]
@@ -75,7 +78,7 @@ foreach my $cohort (values %cohorts) {
     );
     if ($search->{hits}{total}) {
       my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-      push(@{$cohort->{datasets}}, {
+      push(@{$cohort{datasets}}, {
         assay => $assay,
         archive => 'EGA',
         accession => $accession,
@@ -89,7 +92,7 @@ foreach my $cohort (values %cohorts) {
     index => 'hipsci',
     type => 'cohort',
     id => $id,
-    body => $cohort,
+    body => \%cohort,
   );
 }
 
