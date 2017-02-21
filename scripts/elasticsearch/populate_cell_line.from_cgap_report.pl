@@ -169,6 +169,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
         passageMethod => 'EDTA clump passaging',
         surfaceCoating => 'vitronectin',
         CO2 => '5%',
+        summary => 'Feeder-free',
       };
     }
     else {
@@ -177,6 +178,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
         passageMethod => 'collagenase and dispase',
         surfaceCoating => 'Mouse embryo fibroblast (MEF) feeder cells',
         CO2 => '5%',
+        summary => 'Feeder-dependent',
       };
     }
   }
