@@ -104,14 +104,15 @@ foreach my $dataset_id (@dataset_id) {
     $sth_run->bind_param(2, $dataset_id);
     $sth_run->execute or die "could not execute";
     my $run_row = $sth_run->fetchrow_hashref;
-    die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
-    my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
-    my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
+    my $run_time = $run_row ? DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90) : undef;
+    my $experiment_xml_hash = $run_row ? XMLin($run_row->{EXPERIMENT_XML}) : {};
     my ($growing_conditions, $passage_number);
     if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-      $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
-      $passage_number = $cgap_release->passage;
+      if ($run_time) {
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+        $passage_number = $cgap_release->passage;
+      }
     }
     else {
       $growing_conditions = $cell_type;
@@ -150,8 +151,8 @@ foreach my $dataset_id (@dataset_id) {
       }],
       assay => {
         type => $long_assay,
-        description => [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
-        instrument => $run_row->{INSTRUMENT_MODEL}
+        description => $run_row ? [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)] : [],
+        instrument => $run_row ? $run_row->{INSTRUMENT_MODEL} : undef,
       }
     };
     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {

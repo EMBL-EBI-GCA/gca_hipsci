@@ -113,23 +113,23 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
       $sth_run->bind_param(1, $row->{SAMPLE_ID});
       $sth_run->bind_param(2, $run_study_id);
       $sth_run->execute or die "could not execute";
-      my $run_row = $sth_run->fetchrow_hashref;
-      die 'no run objects for '.$row->{BIOSAMPLE_ID} if !$run_row;
-      my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
-      my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
-      $assay_description = [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)];
-      $instrument = $run_row->{INSTRUMENT_MODEL};
+      if (my $run_row = $sth_run->fetchrow_hashref) {
+        my $run_time = DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90);
+        my $experiment_xml_hash = XMLin($run_row->{EXPERIMENT_XML});
+        $assay_description = [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)];
+        $instrument = $run_row->{INSTRUMENT_MODEL};
 
-      if ($cgap_ips_line) {
-        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
-        $passage_number = $cgap_release->passage;
-      }
-      else {
-        $growing_conditions = $cell_type;
-      }
+        if ($cgap_ips_line) {
+          my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+          $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+          $passage_number = $cgap_release->passage;
+        }
+        else {
+          $growing_conditions = $cell_type;
+        }
 
-      $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL};
+        $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL};
+      }
     }
     else {
       if ($cgap_ips_line) {
