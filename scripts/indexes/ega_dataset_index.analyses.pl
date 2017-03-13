@@ -103,12 +103,13 @@ foreach my $dataset_id (@dataset_id) {
     $sth_run->bind_param(2, $dataset_id);
     $sth_run->execute or die "could not execute";
     my $run_rows = $sth_run->fetchall_arrayref;
-    die 'no run objects for '.$row->{BIOSAMPLE_ID} if !@$run_rows;
-    my $run_time = DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90);
+    my $run_time = @$run_rows ? DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90) : undef;
     my $growing_conditions;
     if ($cgap_ips_line) {
-      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-      $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      if ($run_time) {
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      }
     }
     else {
       $growing_conditions = $cell_type;

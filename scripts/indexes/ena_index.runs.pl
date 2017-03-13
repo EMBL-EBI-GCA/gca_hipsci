@@ -53,6 +53,9 @@ foreach my $study_id (@study_id) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : die "did not recognise assay for $study_id";
   my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
+  if (!$disease && $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /ipsc_reference_set/i) {
+    $disease = get_disease_for_elasticsearch('normal');
+  }
   die "did not recognise disease for $study_id" if !$disease;
   my $filename_disease = lc($disease);
   $filename_disease =~ s{[ -]}{_}g;

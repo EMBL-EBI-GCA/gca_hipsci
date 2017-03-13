@@ -28,7 +28,7 @@ my %spreadsheet_map = (
 
 our @diseases = (
   {
-    regex => qr/normal/i,
+    regex => qr/(normal|healthy)/i,
     ontology_full => 'http://purl.obolibrary.org/obo/PATO_0000461',
     ontology_short => 'PATO:0000461',
     for_elasticsearch => 'Normal',

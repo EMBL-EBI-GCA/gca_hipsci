@@ -67,6 +67,9 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /whole\W*genome\W*sequencing/i ? 'wgs'
             : die "did not recognise assay for $study_id";
   my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
+  if (!$disease && $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /ipsc_reference_set/i) {
+    $disease = get_disease_for_elasticsearch('normal');
+  }
   die "did not recognise disease for $study_id" if !$disease;
   my $filename_disease = lc($disease);
   $filename_disease =~ s{[ -]}{_}g;
@@ -111,7 +114,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
         $sth_run->bind_param(2, $run_study_id);
         $sth_run->execute or die "could not execute";
         my $run_rows = $sth_run->fetchall_arrayref;
-        die 'no run objects for '.$row->{BIOSAMPLE_ID} if !@$run_rows;
+        next ROW if !@$run_rows;
         my $run_time = DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90);
         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
         $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
