@@ -7,6 +7,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use ReseqTrack::Tools::ERAUtils qw(get_erapro_conn);
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_disease_for_elasticsearch);
 use Getopt::Long;
 use XML::Simple qw(XMLin);
 use Data::Compare qw(Compare);
@@ -58,13 +59,8 @@ foreach my $dataset_id (@dataset_id) {
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : die "did not recognise assay for $dataset_id";
-  my $disease = $xml_hash->{DATASET}{TITLE} =~ /healthy/i ? 'Normal'
-            : $xml_hash->{DATASET}{TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
-            : $xml_hash->{DATASET}{TITLE} =~ /diabetes/i ? 'Monogenic diabetes'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /healthy/i ? 'Normal'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
-            : $xml_hash->{DATASET}{DESCRIPTION} =~ /diabetes/i ? 'Monogenic diabetes'
-            : die "did not recognise disease for $dataset_id";
+  my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
+  die "did not recognise disease for $dataset_id" if !$disease;
 
   $sth_run->bind_param(1, $dataset_id);
   $sth_run->execute or die "could not execute";

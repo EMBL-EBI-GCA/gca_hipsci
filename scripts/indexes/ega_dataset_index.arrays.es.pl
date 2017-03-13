@@ -7,6 +7,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
 use ReseqTrack::Tools::ERAUtils qw(get_erapro_conn);
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_disease_for_elasticsearch);
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Basename qw(fileparse);
 use XML::Simple qw(XMLin);
@@ -83,6 +84,8 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'Monogenic diabetes'
             : die "did not recognise disease for $study_id";
+  my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
+  die "did not recognise disease for $study_id" if !$disease;
 
   open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
   <$in_fh>;

@@ -110,6 +110,7 @@ foreach my $dataset_id (@dataset_id) {
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
       #Get specific methylation version
       $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
+            : $mt_file =~ /MethylationEPICv1/i ? 'MethylationEPIC v1'
             : die "did not recognise platform for $study_title in file $mt_file";
       $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
     }
