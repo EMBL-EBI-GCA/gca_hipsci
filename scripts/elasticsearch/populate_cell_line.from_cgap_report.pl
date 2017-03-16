@@ -218,7 +218,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   my @bankingStatus;
-  if ($ips_line->genomics_selection_status) {
+  if ($ips_line->genomics_selection_status || $catalog_numbers{$sample_index->{name}}) {
     push(@bankingStatus, 'Selected for banking');
   }
   elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
