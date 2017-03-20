@@ -323,6 +323,9 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       push(@{$donor_index->{'cellLines'}}, {name =>$sample_index->{'name'}, bankingStatus => $sample_index->{'bankingStatus'}});
     }
     $donor_index->{'tissueProvider'} = $sample_index->{tissueProvider};
+    if (scalar grep {/^Banked/} @{$sample_index->{bankingStatus}}) {
+      $donor_index->{numBankedLines} += 1;
+    }
   }
 
   while (my ($donor_name, $donor_index) = each %donors) {
@@ -338,6 +341,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       delete $$update{'_source'}{'bioSamplesAccession'}; 
       delete $$update{'_source'}{'cellLines'}; 
       delete $$update{'_source'}{'tissueProvider'}; 
+      delete $$update{'_source'}{'numBankedLines'}; 
       foreach my $field (keys %$donor_index){
         my $subfield = $$donor_index{$field};
         if (ref($subfield) eq 'HASH'){
