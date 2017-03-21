@@ -49,7 +49,7 @@ our @diseases = (
     regex =>  qr/ataxia/i,
     ontology_full => 'http://www.orpha.net/ORDO/Orphanet_183518',
     ontology_short => 'Orphanet:183518',
-    for_elasticsearch => 'Rare hereditary ataxia',
+    for_elasticsearch => 'Hereditary cerebellar ataxia',
   },
   {
     regex => qr/usher/i,
