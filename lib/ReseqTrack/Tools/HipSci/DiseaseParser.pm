@@ -79,7 +79,7 @@ our @diseases = (
     regex => qr/bleeding/i,
     ontology_full => 'http://www.ebi.ac.uk/efo/EFO_0005803',
     ontology_short => 'EFO:0005803',
-    for_elasticsearch => 'Bleeding and platelet disorder',
+    for_elasticsearch => 'Bleeding and platelet disorders',
   },
   {
     regex => qr/primary immune deficiency/i,
