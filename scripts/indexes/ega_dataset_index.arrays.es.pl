@@ -77,13 +77,6 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
             : die "did not recognise assay for $study_id";
-  my $disease = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /healthy/i ? 'Normal'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrom'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /diabetes/i ? 'Monogenic diabetes'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /healthy/i ? 'Normal'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /bardet\W*biedl/i ? 'Bardet-Biedl syndrome'
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /diabetes/i ? 'Monogenic diabetes'
-            : die "did not recognise disease for $study_id";
   my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
   die "did not recognise disease for $study_id" if !$disease;
 
@@ -173,7 +166,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             name => 'EGA',
             accession => $dataset_id,
             accessionType => 'DATASET_ID',
-            url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
+            url => 'https://ega-archive.org/datasets/'.$dataset_id,
             ftpUrl => 'secure access via EGA',
             openAccess => 0,
           },

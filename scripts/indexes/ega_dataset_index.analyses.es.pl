@@ -133,7 +133,7 @@ foreach my $dataset_id (@dataset_id) {
         name => 'EGA',
         accession => $dataset_id,
         accessionType => 'DATASET_ID',
-        url => 'https://www.ebi.ac.uk/ega/datasets/'.$dataset_id,
+        url => 'https://ega-archive.org/datasets/'.$dataset_id,
         ftpUrl => 'secure access via EGA',
         openAccess => 0,
       },
