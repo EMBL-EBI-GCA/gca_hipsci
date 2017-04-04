@@ -237,10 +237,11 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     };
   }
   if (my $ebisc_name = $ebisc_names{$sample_index->{bioSamplesAccession}}) {
-    $sample_index->{ebiscName} = $ebisc_name;
+    $sample_index->{hPSCregName} = $ebisc_name;
     my $http_response = $ua->get(sprintf('https://cells.ebisc.org/%s', $ebisc_name));
     if ($http_response->is_success) {
       push(@bankingStatus, 'Banked at EBiSC');
+      $sample_index->{ebiscName} = $ebisc_name;
     };
   }
   $sample_index->{'bankingStatus'} = \@bankingStatus;
@@ -288,6 +289,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       delete $$update{'_source'}{'bankingStatus'};    
       delete $$update{'_source'}{'ecaccCatalogNumber'};    
       delete $$update{'_source'}{'ebiscName'};    
+      delete $$update{'_source'}{'hPSCregName'};    
       foreach my $field (keys %$sample_index){
         my $subfield = $$sample_index{$field};
         if (ref($subfield) eq 'HASH'){
