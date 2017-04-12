@@ -159,10 +159,15 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 
 =cut
 
-  if (my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
+  my $is_selected = ($ips_line->genomics_selection_status || $catalog_numbers{$sample_index->{name}}) ? 1 : 0;
+  my $bank_release = (List::Util::first {$_->type =~ /ecacc/i } @{$ips_line->release})
                           || (List::Util::first {$_->type =~ /ebisc/i } @{$ips_line->release})
-                          || ($ips_line->genomics_selection_status ? (List::Util::first {$_->is_qc2 } @{$ips_line->release}) : undef)
-                                                                  ) {
+                          || ($ips_line->genomics_selection_status ? (List::Util::first {$_->is_qc2 } @{$ips_line->release}) : undef);
+  if ($is_selected && !$bank_release) {
+    ($bank_release) = sort {$b->goal_time cmp $a->goal_time} @{$ips_line->release};
+  }
+  if ($bank_release) {
+                                                                  
     if ($bank_release->is_feeder_free) {
       $sample_index->{'culture'} = {
         medium => 'E8 media',
@@ -218,7 +223,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'openAccess'} = $open_access_hash{$donor->hmdmc};
 
   my @bankingStatus;
-  if ($ips_line->genomics_selection_status || $catalog_numbers{$sample_index->{name}}) {
+  if ($is_selected) {
     push(@bankingStatus, 'Selected for banking');
   }
   elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
