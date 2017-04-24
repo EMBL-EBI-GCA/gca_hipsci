@@ -41,8 +41,8 @@ our @diseases = (
   },
   {
     regex => qr/diabetes/i,
-    ontology_full => 'http://www.orpha.net/ORDO/Orphanet_552',
-    ontology_short => 'Orphanet:552',
+    ontology_full => 'http://www.ebi.ac.uk/efo/EFO_1001511',
+    ontology_short => 'EFO:1001511',
     for_elasticsearch => 'Monogenic diabetes',
   },
   {
