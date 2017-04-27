@@ -11,7 +11,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -es_host=$SERVER \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
   -es_host=$SERVER \
-  -demographic_file /nfs/production/reseq-info/work/streeter/hipsci/resources/Demographicdata_HipSci_2016-12-02.csv \
+  -demographic_file /nfs/research2/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv \
   -sex_sequenome_file /nfs/production/reseq-info/work/streeter/hipsci/resources/sex_sequenome.20160729.tsv \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.qc1.pl \
   -es_host=$SERVER \
