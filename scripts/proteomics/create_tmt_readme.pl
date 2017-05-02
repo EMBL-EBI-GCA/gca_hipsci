@@ -31,3 +31,35 @@ foreach my $pep_id (@$pep_ids) {
     print $index, "\t", $line, "\n";
   }
 }
+
+=pod
+
+=head1 NAME
+
+$GCA_HIPSCI/scripts/proteomics/create_tmt_readme.pl
+
+=head1 SYNOPSIS
+
+This script is for producing the readme files that accompany Dundee's TMT maxquant data
+
+The output readme file states which cell lines were used in the analysis. The output file should accompany the data files when they get put into the tracked area of the private FTP site.
+
+=head1 REQUIREMENTS
+
+Make sure you are using a recent export from Dundee's peptracker. Download a new version from: https://peptracker.com/dm/projects/1102/json
+
+The default file path for the exported json is: /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json. This should be a soft link to the newest version
+
+You also need a experimentalDesignTemplate.txt file. This is one of the many files that is sent in by Dundee with the maxquant data.
+
+=head1 OPTIONS
+
+-json: file path of peptracker json file, default is /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json
+
+-exp_design: file path of the experimentalDesignTemplate.txt file received from Dundee
+
+=head1 Example
+
+perl create_tmt_readme.pl -exp_design ./data/experimentalDesignTemplate.txt > README.proteomics.maxquant.xxxx.TMT_batch_xx.2017xxxx
+
+=cut

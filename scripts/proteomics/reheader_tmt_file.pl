@@ -29,3 +29,42 @@ foreach my $pep_id (@{exp_design_to_pep_ids($exp_design)}) {
 }
 print $header;
 print <STDIN>;
+
+=pod
+
+=head1 NAME
+
+$GCA_HIPSCI/scripts/proteomics/reheader_tmt_file.pl
+
+=head1 SYNOPSIS
+
+TMT maxquant files received by Dundee do not contain cell line names in the first line of the file.
+
+For example a column header in one of the data files might be: Reporter intensity corrected 3 PT6383
+
+A more helpful column header for downstream users is: Reporter intensity corrected HPSI0214i-poih_2 PT6383
+
+This script re-writes the maxquant data files and fixes the column headers
+
+=head1 REQUIREMENTS
+
+Make sure you are using a recent export from Dundee's peptracker. Download a new version from: https://peptracker.com/dm/projects/1102/json
+
+The default file path for the exported json is: /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json. This should be a soft link to the newest version
+
+You also need a experimentalDesignTemplate.txt file. This is one of the many files that is sent in by Dundee with the maxquant data.
+
+=head1 OPTIONS
+
+-json: file path of peptracker json file, default is /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json
+
+-exp_design: file path of the experimentalDesignTemplate.txt file received from Dundee
+
+=head1 Example
+
+Note the data file is read on STDIN and written on STDOUT:
+
+perl create_tmt_readme.pl -exp_design ./data/experimentalDesignTemplate.txt
+  < ./incoming/peptides.txt > ./fixed/hipsci.proteomics.maxquant.xxx.TMT_batch_xx.2017xxxx.peptides.txt
+
+=cut
