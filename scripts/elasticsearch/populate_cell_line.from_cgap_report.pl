@@ -7,6 +7,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use Getopt::Long;
 use BioSD;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::OverrideSelectedStatus;
 use ReseqTrack::EBiSC::hESCreg;
 use LWP::Simple qw(get);
 use LWP::UserAgent;
@@ -79,6 +80,7 @@ my %elasticsearch;
 foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
+my $osd = ReseqTrack::Tools::HipSci::OverrideSelectedStatus->instance;
 
 
 my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
@@ -224,7 +226,12 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
 
   my @bankingStatus;
   if ($is_selected) {
-    push(@bankingStatus, 'Selected for banking');
+    if ($osd->is_overridden($sample_index->{name})) {
+      push(@bankingStatus, 'Not selected');
+    }
+    else {
+      push(@bankingStatus, 'Selected for banking');
+    }
   }
   elsif (List::Util::any {$_->genomics_selection_status} @{$tissue->ips_lines}) {
     push(@bankingStatus, 'Not selected');
