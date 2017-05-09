@@ -56,7 +56,7 @@ sub fetch_line_by_short_name {
 }
 
 sub fetch_donor_by_short_name {
-  my ($self, $short_name) = @_;
+  my ($self, $short_name, %options) = @_;
   my $results = $self->_client->search(
     index => 'hipsci',
     type => 'donor',
@@ -67,7 +67,10 @@ sub fetch_donor_by_short_name {
     }
   );
   return undef if !$results->{hits}{hits};
-  return List::Util::first {$_->{_id} =~ /-$short_name(?:_\d+)?$/ } @{$results->{hits}{hits}}
+  my $perfect_match = List::Util::first {$_->{_id} =~ /-$short_name(?:_\d+)?$/ } @{$results->{hits}{hits}};
+  return $perfect_match if $perfect_match || !$options{fuzzy};
+  return undef if scalar @{$results->{hits}{hits}} > 1;
+  return $results->{hits}{hits}->[0];
 }
 
 sub fetch_line_by_biosample_id {
