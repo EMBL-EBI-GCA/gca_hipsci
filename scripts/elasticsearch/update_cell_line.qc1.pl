@@ -5,6 +5,7 @@ use warnings;
 
 use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::QC1Samples;
 use Data::Compare;
 use Clone qw(clone);
 use POSIX qw(strftime);
@@ -15,8 +16,6 @@ my @es_host;
 my $cnv_filename;
 my $cnv_comments_filename;
 my $pluritest_filename;
-my $allowed_samples_gtarray_file;
-my $allowed_samples_gexarray_file;
 
 &GetOptions(
   'es_host=s' =>\@es_host,
@@ -30,67 +29,46 @@ foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 }
 
-my %disallow_pluritest;
-my %pluritest_details;
+my $qc1 = ReseqTrack::Tools::HipSci::QC1Samples->new();
+
+my %qc1_details;
 open my $pluri_fh, '<', $pluritest_filename or die "could not open $pluritest_filename $!";
 <$pluri_fh>;
 LINE:
 while (my $line = <$pluri_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
+  my ($cell_line, $sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_(.+)/;
   next LINE if !$sample;
-  if ($pluritest_details{$sample}) {
-    $disallow_pluritest{$sample} = 1;
-    next LINE;
-  }
-  $pluritest_details{$sample}{pluripotency} = $split_line[1];
-  $pluritest_details{$sample}{novelty} = $split_line[3];
+  next LINE if ! $qc1->is_valid_gexarray($cell_line, $sample);
+  $qc1_details{$cell_line}{pluritest}{pluripotency} = $split_line[1];
+  $qc1_details{$cell_line}{pluritest}{novelty} = $split_line[3];
 }
 close $pluri_fh;
 
-my %disallow_cnv;
-my %cnv_details;
 open my $cnv_fh, '<', $cnv_filename or die "could not open $cnv_filename $!";
 <$cnv_fh>;
 LINE:
 while (my $line = <$cnv_fh>) {
   chomp $line;
   my @split_line = split("\t", $line);
-  my ($sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_/;
+  my ($cell_line, $sample) = $split_line[0] =~ /([A-Z]{4}\d{4}[a-z]{1,2}-[a-z]{4}_\d+)_(.+)/;
   next LINE if !$sample;
-  if ($cnv_details{$sample}) {
-    $disallow_cnv{$sample} = 1;
-    next LINE;
-  }
-  $cnv_details{$sample}{num_different_regions} = $split_line[1];
-  $cnv_details{$sample}{length_different_regions_Mbp} = $split_line[2];
-  $cnv_details{$sample}{length_shared_differences} = $split_line[3];
+  $qc1_details{$cell_line}{cnv}{num_different_regions} = $split_line[1];
+  $qc1_details{$cell_line}{cnv}{length_different_regions_Mbp} = $split_line[2];
+  $qc1_details{$cell_line}{cnv}{length_shared_differences} = $split_line[3];
 }
 close $cnv_fh;
 
-my %cnv_comments;
 open my $cnv_comments_fh, '<', $cnv_comments_filename or die "could not open $cnv_comments_filename $!";
 <$cnv_comments_fh>;
 LINE:
 while (my $line = <$cnv_comments_fh>) {
   chomp $line;
   my ($cell_line, $comment) = split("\t", $line, 2);
-  push(@{$cnv_comments{$cell_line}}, $comment);
+  push(@{$qc1_details{$cell_line}{cnv}{comments}}, $comment);
 }
 close $cnv_comments_fh;
-
-my %qc1_details;
-SAMPLE:
-while (my ($sample, $pluri_hash) = each %pluritest_details) {
-  next SAMPLE if $disallow_pluritest{$sample};
-  $qc1_details{$sample}{pluritest}=$pluri_hash;
-}
-SAMPLE:
-while (my ($sample, $cnv_hash) = each %cnv_details) {
-  next SAMPLE if $disallow_cnv{$sample};
-  $qc1_details{$sample}{cnv}=$cnv_hash;
-}
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
@@ -123,9 +101,6 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
           $$update{'_source'}{$field}{$subfield} = $qc1_details{$$doc{'_source'}{'name'}}{$field}{$subfield};
         }
       }
-    }
-    if (my $comments = $cnv_comments{$doc->{_source}{name}}) {
-      $update->{_source}{cnv}{comments} = $comments;
     }
     if (Compare($$update{'_source'}, $$doc{'_source'})){
       $cell_uptodate++;
