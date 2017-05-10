@@ -8,6 +8,7 @@ use ReseqTrack::Tools::FileSystemUtils qw(run_md5);
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::DBSQL::DBAdaptor;
 use File::Find qw();
+use Getopt::Long;
 
 my $es_host = 'ves-hx-e4:9200';
 my $dbhost = 'mysql-g1kdcc-public';
@@ -18,6 +19,18 @@ my $dbname = 'hipsci_track';
 my $ftp_base = '/nfs/hipsci/vol1/ftp';
 my $staging_base = '/nfs/1000g-work/hipsci/archive_staging/ftp';
 my $pluritest_dir = '/nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data_030517/plots/pluritest';
+
+&GetOptions(
+    'es_host=s'   => \$es_host,
+    'dbhost=s'   => \$dbhost,
+    'dbname=s'   => \$dbname,
+    'dbuser=s'   => \$dbuser,
+    'dbpass=s'   => \$dbpass,
+    'dbport=s'   => \$dbport,
+    'ftp_base=s'   => \$ftp_base,
+    'staging_base=s'   => \$staging_base,
+    'pluritest_dir=s'   => \$pluritest_dir,
+);
 
 
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
