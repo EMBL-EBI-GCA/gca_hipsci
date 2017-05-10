@@ -29,7 +29,7 @@ my $copy_num_dir = '/nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_da
     'dbport=s'   => \$dbport,
     'ftp_base=s'   => \$ftp_base,
     'staging_base=s'   => \$staging_base,
-    'copy_number_dir=s'   => \$copy_number_dir,
+    'copy_number_dir=s'   => \$copy_num_dir,
 );
 
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
@@ -89,7 +89,7 @@ sub wanted {
 }
 
 File::Find::find(\&wanted, $copy_num_dir);
-$sth2->bind_param("$ftp_base/data/qc1_images/copy_number/%.png");
+$sth2->bind_param(1, "$ftp_base/data/qc1_images/copy_number/%.png");
 $sth2->execute;
 ROW:
 while (my $row = $sth2->fetchrow_hashref) {

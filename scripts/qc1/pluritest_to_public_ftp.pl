@@ -99,7 +99,7 @@ sub wanted {
 }
 
 File::Find::find(\&wanted, $pluritest_dir);
-$sth2->bind_param("$ftp_base/data/qc1_images/pluritest/%.png");
+$sth2->bind_param(1, "$ftp_base/data/qc1_images/pluritest/%.png");
 $sth2->execute;
 ROW:
 while (my $row = $sth2->fetchrow_hashref) {

@@ -91,7 +91,7 @@ sub wanted {
 }
 
 File::Find::find(\&wanted, $aberrant_regions_dir);
-$sth2->bind_param("$ftp_base/data/qc1_images/cnv_aberrant_regions/%.png");
+$sth2->bind_param(1, "$ftp_base/data/qc1_images/cnv_aberrant_regions/%.png");
 $sth2->execute;
 ROW:
 while (my $row = $sth2->fetchrow_hashref) {

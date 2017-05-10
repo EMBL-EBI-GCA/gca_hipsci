@@ -61,7 +61,10 @@ sub wanted {
   return if !$cell_line;
   return if !$qc1->is_valid_gtarray($cell_line, $sample);
   my $es_line = $es->fetch_line_by_name($cell_line);
-  die "did not recognise $cell_line" if !$es_line;
+  if (!$es_line) {
+    warn "did not recognise $cell_line. Ignoring file $_";
+    return;
+  }
   my $match_expression = "$ftp_base/data/qc1_images/aberrant_polysomy/$cell_line/$cell_line.aberrant_polysomy.%.$region.png";
   $sth->bind_param(1, $match_expression);
   $sth->execute;
@@ -92,7 +95,7 @@ sub wanted {
 }
 
 File::Find::find(\&wanted, $aberrant_polysomy_dir);
-$sth2->bind_param("$ftp_base/data/qc1_images/aberrant_polysomy/%.png");
+$sth2->bind_param(1, "$ftp_base/data/qc1_images/aberrant_polysomy/%.png");
 $sth2->execute;
 ROW:
 while (my $row = $sth2->fetchrow_hashref) {
