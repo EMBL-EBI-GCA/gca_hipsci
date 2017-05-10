@@ -122,7 +122,7 @@ perl run_actions.pl -dbpass=$RESEQTRACK_PASS < output_from_other_script.txt
 
 =head1 REQUIREMENTS
 
-You must run this script from Hemel.
+You must run this script from Hemel. You will need to set up rsa keys to copy things from Hinxton to Hemel.
 
 Note, the other scripts in this directory should be run in Hinxton. Therefore you will need to manually scp the stdout from the other scripts from Hinxton to Hemel.
 

@@ -29,7 +29,7 @@ The stdout from these scripts is a list of commands, which should be fed into th
 
     perl run_actions.pl -dbpass=$RESEQTRACK_PASS < output_from_other_script.txt
 
-This script must be run in Hemel, so that it can see the archive directory and staging directory.
+This script must be run in Hemel, so that it can see the archive directory and staging directory. You will need to set up rsa keys to copy things from Hinxton to Hemel.
 
 This script is for running the actions calculated by the other scripts in this directory. Specifically:
   
