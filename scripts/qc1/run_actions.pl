@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use File::Rsync;
 use Getopt::Long;
-use ReseqTrack::Tools::Loader;
+use ReseqTrack::Tools::Loader::File;
 use ReseqTrack::Tools::Loader::Archive;
+use File::Path qw(make_path);
+use File::Basename qw(dirname);
 
 my $hx_host = 'ebi-cli-003';
 my $dbhost = 'mysql-g1kdcc-public';
@@ -31,7 +33,8 @@ while (my $line = <STDIN>) {
   my @split_line = split("\t", $line);
   if ($split_line[0] eq 'archive') {
     my ($scp_from, $scp_to) = @split_line[1,2];
-    $rsync->exec("$hx_host:$scp_from", $scp_to) or die join("\n", "rsync error", $rsync->err);
+    make_path(dirname($scp_to));
+    $rsync->exec(src => "$hx_host:$scp_from", dest => $scp_to) or die join("\n", "rsync error", $rsync->err);
     push(@archive_files, $scp_to);
   } elsif ($split_line[0] eq 'dearchive') {
     push(@dearchive_files, $split_line[1]);
@@ -48,6 +51,7 @@ if (scalar @archive_files) {
     -dbuser => $dbuser,
     -dbpass => $dbpass,
     -dbport => $dbport,
+    -hostname => '1000genomes.ebi.ac.uk',
     -assign_types => 1,
     -do_md5 => 1,
   );
@@ -72,7 +76,7 @@ if (scalar @archive_files) {
 
 if (scalar @dearchive_files) {
   my $archiver = ReseqTrack::Tools::Loader::Archive->new(
-    -file => \@archive_files,
+    -file => \@dearchive_files,
     -dbhost => $dbhost,
     -dbname => $dbname,
     -dbuser => $dbuser,
