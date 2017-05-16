@@ -71,7 +71,8 @@ foreach my $file_type (@file_types) {
       @cell_line_names = map {$_->{name}} @{$donor->{_source}{cellLines}};
     }
 
-    $filepath =~ s{$trim}{};
+    my $is_ftp = $filepath =~ s{$trim}{};
+    next CELL_LINE if !$is_ftp;
     foreach my $cell_line_name (@cell_line_names) {
       if ($filename =~ /\.pluritest\.novelty_score\./) {
         $cell_line_updates{$cell_line_name}{pluritest}{novelty_image} = $filepath;
