@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HIPSCI_CODE=`dirname $0`/../..
+
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset EGAD00010001147=/nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt \

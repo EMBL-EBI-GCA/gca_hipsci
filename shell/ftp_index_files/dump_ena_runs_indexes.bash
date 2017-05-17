@@ -2,7 +2,7 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
-perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.es.pl \
+perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.pl \
   -era_password $RESEQTRACK_PASS \
   -study_id ERP006946 \
   -study_id ERP007111 \

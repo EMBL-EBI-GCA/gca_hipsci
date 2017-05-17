@@ -11,7 +11,7 @@ use LWP::Simple;
 use Getopt::Long;
 
 my $dataset_id;
-my $outfolder;
+my $outfolder = './';
 my $demographic_filename;
 my $dbhost = 'mysql-g1kdcc-public';
 my $dbuser = 'g1kro';

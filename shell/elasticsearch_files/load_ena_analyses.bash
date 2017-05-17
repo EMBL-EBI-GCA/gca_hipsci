@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HIPSCI_CODE=`dirname $0`/../..
+
 perl $HIPSCI_CODE/scripts/indexes/ena_index.analyses.es.pl \
  -era_password $RESEQTRACK_PASS \
  -sequencing_study_id ERP006946 \

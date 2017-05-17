@@ -2,7 +2,7 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
-perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
+perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset_id EGAD00001001932 \
   -dataset_id EGAD00001001933 \

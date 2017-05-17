@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HIPSCI_CODE=`dirname $0`/../..
+
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset_id EGAD00001001932 \
