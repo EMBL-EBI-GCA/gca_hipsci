@@ -19,16 +19,19 @@ open my $fh, '<', $peptracker_json or die $!;
 my $peptracker_obj = JSON::decode_json(<$fh>);
 close $fh;
 
-$|=1;
 my $header = <STDIN>;
+$header =~ s/\R//;
 foreach my $pep_id (@{exp_design_to_pep_ids($exp_design)}) {
   my $cell_lines = pep_id_to_tmt_lines($pep_id, $peptracker_obj);
   while (my ($index, $cell_line) = each @$cell_lines) {
     $header =~ s/\b$index $pep_id/$cell_line $pep_id/g;
   }
 }
-print $header;
-print <STDIN>;
+print $header, "\n";
+while (my $line = <STDIN>) {
+  $line =~ s/\R//;
+  print $line, "\n";
+}
 
 =pod
 

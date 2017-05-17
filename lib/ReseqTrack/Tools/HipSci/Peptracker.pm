@@ -10,7 +10,7 @@ sub exp_design_to_pep_ids {
   open my $fh, '<', $file or die $!;
   <$fh>;
   while (my $line = <$fh>) {
-    chomp $line;
+    $line =~ s/\R//g;
     $pep_ids{(split('\t', $line))[2]} = 1;
   }
   return [keys %pep_ids];
