@@ -6,10 +6,14 @@ use warnings;
 use Getopt::Long;
 use ReseqTrack::DBSQL::DBAdaptor;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
+use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_disease_for_elasticsearch);
+use ReseqTrack::Tools::HipSci::Peptracker qw(exp_design_to_pep_ids);
 use LWP::UserAgent;
 use JSON qw(decode_json);
 use Data::Compare;
 use POSIX qw(strftime);
+use File::Basename qw(dirname);
+use File::Find qw();
 
 my $es_host='ves-hx-e4:9200';
 my $description = 'Mass spectrometry';
@@ -29,8 +33,6 @@ my $dbname = 'hipsci_private_track';
     'dbpass=s'      => \$dbpass,
     'dbport=s'      => \$dbport,
 );
-
-my %composite_names = (HPSI_composite_1503 => []);
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
@@ -68,7 +70,7 @@ foreach my $dataset (@datasets) {
     next TSV_ROW if !$row;
     my @cols = split("\t", $row);
     next TSV_ROW if $cols[0] !~ /^PT[A-Z0-9]+$/;
-    next TSV_ROW if $cols[0] eq 'PT4835'; # reference mixture
+    #next TSV_ROW if $cols[1] !~ /^HPSI[0-9]{4}[a-z]{1,2}-[a-z]{4}(?:_\d+)?$/;
     my $cell_type = $cols[3] =~ /induced pluripotent/i ? 'iPSC' : $cols[3];
     my %sample = (
       name => $cols[1],
@@ -82,25 +84,32 @@ foreach my $dataset (@datasets) {
       $sample{sex} = $sex;
     }
     if (my $disease_status = $cols[9]) {
-      $sample{diseaseStatus} = $disease_status;
+      my $es_disease = get_disease_for_elasticsearch($cols[9]);
+      die "did not recognise disease $disease_status" if !$es_disease;
+      $sample{diseaseStatus} = $es_disease;
+    }
+    if (my $passage = $cols[10]) {
+      $sample{passageNumber} = $passage;
     }
     $samples{$cols[1]} //= \%sample;
-    $peptracker_samples{$cols[0]} = \%sample;
+    push(@{$peptracker_samples{$cols[0]}}, \%sample);
   }
 
   my %raw_files;
-  my $search_file;
+  my @search_files;
   FILE:
   foreach my $file (@{$file_hash->{list}}) {
     next FILE if ! scalar grep {$file->{fileType} eq $_} qw(SEARCH RAW);
-    next FILE if $file->{fileName} =~ /PT4835/; # reference mixture
     my $db_files = $fa->fetch_by_filename($file->{fileName});
     die 'Unexpected number of files with name '.$file->{fileName} if @$db_files != 1;
     my $db_file = $db_files->[0];
     $file->{md5} = $db_file->md5;
+    $file->{local_path} = $db_file->name;
     if ($file->{fileType} eq 'RAW') {
       my ($dundee_id) = $file->{fileName} =~ /(PT[A-Z0-9]+)/;
       die 'did not recognise dundee_id '.$db_file->name if !$dundee_id;
+
+      next FILE if $db_file->name !~ m{/HPSI\d{4}[a-z]{1,2}-[a-z]{4}(?:_\d+)?/};
 
       if ($file->{fileName} =~ /\.raw/) {
         push(@{$raw_files{$dundee_id}{raw}}, $file);
@@ -113,15 +122,14 @@ foreach my $dataset (@datasets) {
       }
     }
     else {
-      die "This script cannot handle >1 search file. You should fix it." if $search_file;
-      $search_file = $file;
+      push(@search_files, $file);
     }
   }
 
   while (my ($dundee_id, $ext_files) = each %raw_files) {
-    my $sample = $peptracker_samples{$dundee_id} || die "did not recognise $dundee_id";
+    my $samples = $peptracker_samples{$dundee_id} || die "did not recognise $dundee_id";
     while (my ($ext, $raw_files) = each %$ext_files) {
-      my $es_id = join('-', $sample->{name}, 'proteomics', $ext, $dundee_id);
+      my $es_id = join('-', $dataset, 'proteomics', $ext, $dundee_id);
       $es_id =~ s/\s/_/g;
       $docs{$es_id} = {
         description => "$description $ext",
@@ -135,7 +143,7 @@ foreach my $dataset (@datasets) {
           accession => $dataset,
           accessionType => 'PROJECT_ID',
         },
-        samples => [$sample],
+        samples => $samples,
         assay => {
           type => 'Proteomics',
           instrument => join(',', @{$project_hash->{instrumentNames}}),
@@ -151,11 +159,27 @@ foreach my $dataset (@datasets) {
     }
   }
 
-  if ($search_file) {
-    my $es_id = join('-', $dataset, 'proteomics', 'search');
+  while (my ($i, $search_file) = each @search_files) {
+    my $es_id = join('-', $dataset, 'proteomics', 'search', $i);
     $es_id =~ s/\s/_/g;
     my $search_type = $search_file->{fileName} =~ /maxquant/i ? 'MaxQuant'
               : die 'did not recognise search type '.$search_file->{fileName};
+
+    my $exp_design_file;
+    File::Find::find(sub{
+      return if $_ !~ /\.experimentalDesign/;
+      $exp_design_file = $File::Find::name;
+    }, dirname($search_file->{local_path}));
+    die 'did not find experimentalDesign file for '.$search_file->{fileName} if !$exp_design_file;
+    my %search_samples;
+    foreach my $pep_id (@{exp_design_to_pep_ids($exp_design_file)}) {
+      my $samples = $peptracker_samples{$pep_id} || die "did not recognise $pep_id";
+      foreach my $sample (@$samples) {
+        $search_samples{$sample->{name}} = $sample;
+      }
+    }
+    my @search_samples = grep {$_->{name} =~ /HPSI\d{4}[a-z]{1,2}-[a-z]{4}(?:_\d+)?/ } values %search_samples;
+
     $docs{$es_id} = {
       description => "$description $search_type",
       files => [{
@@ -171,7 +195,7 @@ foreach my $dataset (@datasets) {
         accession => $dataset,
         accessionType => 'PROJECT_ID',
       },
-      samples => [values %samples],
+      samples => \@search_samples,
       assay => {
         type => 'Proteomics',
         instrument => join(',', @{$project_hash->{instrumentNames}}),
@@ -180,7 +204,6 @@ foreach my $dataset (@datasets) {
   }
 
 }
-
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
   type => 'file',

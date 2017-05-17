@@ -1,3 +1,4 @@
+package ReseqTrack::Tools::HipSci::Peptracker;
 use List::Util qw();
 use List::MoreUtils qw();
 use Exporter 'import';
@@ -9,9 +10,16 @@ sub exp_design_to_pep_ids {
   my %pep_ids;
   open my $fh, '<', $file or die $!;
   <$fh>;
+  LINE:
   while (my $line = <$fh>) {
     $line =~ s/\R//g;
-    $pep_ids{(split('\t', $line))[2]} = 1;
+    @split_line = split("\t", $line);
+    foreach my $i (2,0) {
+      if ($split_line[$i] =~ /^PT\d+/) {
+        $pep_ids{$&} = 1;
+        next LINE;
+      }
+    }
   }
   return [keys %pep_ids];
 }
