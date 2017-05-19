@@ -112,7 +112,7 @@ foreach my $dataset_id (@dataset_id) {
       $source_material,
       $cgap_tissue->donor->gender || '',
       $growing_conditions || '',
-      @{$row}{qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)},
+      map {$_ // ''} @{$row}{qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)},
       $experiment_xml_hash->{EXPERIMENT}{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOCOL},
     ), "\n";
   }
