@@ -18,7 +18,7 @@ print join("\t", qw(SAMPLE_ID  ATTR_KEY  ATTR_VALUE  TERM_SOURCE_REF TERM_SOURCE
 
 DONOR:
 foreach my $donor (@$donors) {
-  next DONOR if $donor->hmdmc && $donor->hmdmc eq 'H1288';
+  next DONOR if $donor->hmdmc && $donor->hmdmc eq '13_042';
 
   my @biosd_ids;
   foreach my $tissue (@{$donor->tissues}) {
