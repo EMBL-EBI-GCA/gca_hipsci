@@ -15,16 +15,30 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
-my $epd_url = 'https://www.peptracker.com/epd/hipsci_lines/';
+my $epd_find_url = 'https://www.peptracker.com/epd/hipsci_lines/';
+my $epd_link_url = 'https://www.peptracker.com/epd/analytics/?section_id=40100',
+my $idr_find_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/?orphaned=true&page=%d';
+my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 
 &GetOptions(
   'es_host=s' =>\@es_host,
-  'epd_url=s' => \$epd_url,
 );
 
-my $epd_content = LWP::Simple::get($epd_url);
-die "error getting $epd_url" if !defined $epd_content;
+my $epd_content = LWP::Simple::get($epd_find_url);
+die "error getting $epd_find_url" if !defined $epd_content;
 my $epd_lines = JSON::decode_json($epd_content);
+
+my $idr_page = 0;
+my @idr_lines;
+IDR_PAGE:
+while(1) {
+  $idr_page += 1;
+  my $idr_content = LWP::Simple::get(sprintf($idr_find_url, $idr_page));
+  die "error getting $idr_find_url" if !defined $idr_content;
+  my $idr_lines = JSON::decode_json($idr_content);
+  last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
+  push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
+}
 
 my %elasticsearch;
 foreach my $es_host (@es_host){
@@ -72,10 +86,18 @@ foreach my $epd_line (@$epd_lines) {
   $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
       name => 'Proteomics',
       ontologyPURL =>$ontology_map{Proteomics},
-      peptrackerURL => 'https://www.peptracker.com/epd/analytics/?section_id=40100',
+      peptrackerURL => $epd_link_url,
     };
 }
 
+LINE:
+foreach my $idr_line (@idr_lines) {
+  $cell_line_assays{$idr_line}{'Cellular phenotyping'} = {
+      name => 'Cellular phenotyping',
+      ontologyPURL =>$ontology_map{'Cellular phenotyping'},
+      idrURL => sprintf($idr_link_url, $idr_line),
+    };
+}
 
 while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   my $cell_updated = 0;
