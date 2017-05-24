@@ -2,6 +2,10 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
+# The command line should contain ga dataset ids for sequencing experiments (exome-seq and rna-seq)
+# Add any new ids before running this script.
+# There will be one output tsv file written per dataset id
+
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset_id EGAD00001001932 \

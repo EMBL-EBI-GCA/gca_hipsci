@@ -2,6 +2,9 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
+# The command line should contain *EVERY* current ega dataset id for sequencing experiments (exomeseq or rna-seq)
+# Remove old dataset ids from this command line, and add any new ones before running this script.
+
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset_id EGAD00001001932 \

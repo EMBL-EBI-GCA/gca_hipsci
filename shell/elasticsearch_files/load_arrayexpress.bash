@@ -2,6 +2,9 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
+# The command line should contain *EVERY* current arrayexpress id for an array-based experiment (mtarray or gexarray)
+# Add any new ids before running this script.
+
 perl $HIPSCI_CODE/scripts/indexes/arrayexpress_dataset_index.arrays.es.pl \
   -dataset_id E-MTAB-4057 \
   -dataset_id E-MTAB-4059 \

@@ -2,6 +2,10 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
+# The command line should contain ena project ids for sequencing-based studies (exome-seq, rna-seq, wgs) comprising raw data.
+# Add any new ids to this command line before running this script.
+# There will be one output file written per study id
+
 perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.pl \
   -era_password $RESEQTRACK_PASS \
   -study_id ERP006946 \

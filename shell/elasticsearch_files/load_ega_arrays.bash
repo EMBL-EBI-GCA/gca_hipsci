@@ -2,6 +2,11 @@
 
 HIPSCI_CODE=`dirname $0`/../..
 
+# The command line should contain *EVERY* current ega dataset id for array-based experiments (gtarray, mtarray, gexarray)
+# Remove old dataset ids from this command line, and add any new ones before running this script.
+# The command line format is: -dataset {DATASET_ID}=/path/to/submission/file.txt
+# The submission file is the tab-delimited text file which was sent to EGA to create the dataset.
+
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
   -era_password $RESEQTRACK_PASS \
   -dataset EGAD00010001147=/nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt \

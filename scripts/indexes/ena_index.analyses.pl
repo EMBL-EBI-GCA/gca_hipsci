@@ -17,7 +17,7 @@ my $demographic_filename;
 
 GetOptions(
     'era_password=s'    => \$era_params[1],
-    'sequencing_study_id=s'    => \@sequencing_study_id,
+    'study_id=s'    => \@sequencing_study_id,
     'analysis_study_id=s'    => \%analysis_study_id,
     'demographic_file=s' => \$demographic_filename,
 );
