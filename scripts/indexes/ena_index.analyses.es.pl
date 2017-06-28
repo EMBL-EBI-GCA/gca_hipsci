@@ -157,6 +157,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bGATK haplotype caller\b/i ? 'GATK haplotype calls'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{PROCESSED_READS} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bkallisto\b/i ? 'Abundances of transcripts'
                     : $short_assay eq 'gtarray' && $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bGenotype calls\b/i ? 'Genotyping array calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
