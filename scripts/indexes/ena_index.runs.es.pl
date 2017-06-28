@@ -92,6 +92,9 @@ foreach my $study_id (@study_id) {
     my ($growing_conditions, $passage_number);
     if ($cgap_ips_line) {
       my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+      if (!$cgap_release && $short_assay eq 'wgs') {
+        $cgap_release = $cgap_ips_line->get_release_for(type => 'qc1', date =>$run_time->ymd);
+      }
       die "no qc2 cgap release for $sample_name" if !$cgap_release;
       $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
       $passage_number = $cgap_release->passage;
