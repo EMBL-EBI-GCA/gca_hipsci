@@ -117,6 +117,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
         next ROW if !@$run_rows;
         my $run_time = DateTime::Format::ISO8601->parse_datetime($run_rows->[0][1])->subtract(days => 90);
         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        die "no qc2 cgap release for $sample_name" if !$cgap_release;
         $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
       }
       else {
