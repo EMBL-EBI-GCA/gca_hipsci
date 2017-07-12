@@ -26,3 +26,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -trim /nfs/hipsci \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.files.pl \
   -es_host=$SERVER \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.differentiations \
+  -es_host=$SERVER \
+  --yaml=$HIPSCI_CODE/tracking_resources/differentiations/macrophage_2016.yaml \
+  --yaml=$HIPSCI_CODE/tracking_resources/differentiations/sensory_neurons_2016.yaml
