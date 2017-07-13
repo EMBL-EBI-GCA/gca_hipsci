@@ -1,7 +1,7 @@
 cellType: macrophage
 publication:
-  url: http://dx.doi.org/10/1101/102392
-  reference: "bioRxiv doi: http://dx.doi.org/10.1101/102392"
+  url: https://doi.org/10.1101/102392
+  reference: "bioRxiv doi: https://doi.org/10.1101/102392"
   title: Genetic effects on chromatin accessibility foreshadow gene expression changes in macrophage immune response
 links:
   - description: RNA-seq

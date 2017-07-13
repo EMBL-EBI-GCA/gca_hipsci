@@ -1,7 +1,7 @@
 cellType: sensory neuron
 publication:
-  url: http://dx.doi.org/10/1101/095943
-  reference: "bioRxiv doi: http://dx.doi.org/10.1101/095943"
+  url: https://doi.org/10.1101/095943
+  reference: "bioRxiv doi: https://doi.org/10.1101/095943"
   title: Molecular and functional variation in iPSC-derived sensory neurons
 links:
   - description: RNA-seq and ATAC-seq
