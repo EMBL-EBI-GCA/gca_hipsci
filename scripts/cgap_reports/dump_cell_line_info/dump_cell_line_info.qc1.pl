@@ -78,14 +78,17 @@ foreach my $line (keys %pluritest_details) {
 }
 
 
-my $ag_lims_file = new Text::Delimited;
-$ag_lims_file->delimiter(';');
+
 my %ag_lims_fields;
-$ag_lims_file->open($ag_lims_filename) or die "could not open $ag_lims_filename $!";
-while (my $line_data = $ag_lims_file->read) {
-  $ag_lims_fields{$line_data->{'name'}} = $line_data;
+if ($ag_lims_filename) {
+  my $ag_lims_file = new Text::Delimited;
+  $ag_lims_file->delimiter(';');
+  $ag_lims_file->open($ag_lims_filename) or die "could not open $ag_lims_filename $!";
+  while (my $line_data = $ag_lims_file->read) {
+    $ag_lims_fields{$line_data->{'name'}} = $line_data;
+  }
+  $ag_lims_file->close;
 }
-$ag_lims_file->close;
 
 my %rna_sendai_reads;
 File::Find::find(sub {
@@ -118,11 +121,14 @@ my @ag_lims_output_fields = qw(id_lims id_qc1 id_qc2 time_registration time_puri
     assayuser_methyl assayuser_chip assaybatch_gex.beadchip.id assaybatch_gex.array
     assaybatch_gex.plate assaybatch_gex.well assaybatch_gex.batch
     assaybatch_methyl.sentrix.id assaybatch_methyl.sentrix.position assaybatch_methyl.plate
-    assaybatch_methyl.well checks_pluritest.raw checks_pluritest.novelty checks_gex.fail
-    checks_passage.rate checks_qc2.swap checks_cnvs study_blueprint
-    study_reprogramming.comparison study_media.comparison comment_qc1.decision comment_anja friendly);
-#print join("\t", @output_fields, @ag_lims_output_fields), "\n";
-print join("\t", @output_fields), "\n";
+    assaybatch_methyl.well
+    cnv_n_dup cnv_n_del cnv_length_dup cnv_length_del cnv_n_dup_autosomal cnv_n_del_autosomal cnv_length_dup_autosomal cnv_length_del_autosomal qc1_only
+    );
+if ($ag_lims_filename) {
+  print join("\t", @output_fields, @ag_lims_output_fields), "\n";
+} else {
+  print join("\t", @output_fields), "\n";
+}
 
 my @output_lines;
 DONOR:
@@ -205,8 +211,11 @@ foreach my $donor (@$donors) {
         }
       };
       my (@sort_parts) = $ips_line->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)_(\d+)/;
-      #push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
-      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+      if ($ag_lims_filename) {
+        push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
+      } else {
+        push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+      }
 
     }
     next TISSUE if !$es_line;
@@ -235,7 +244,11 @@ foreach my $donor (@$donors) {
     };
     my (@sort_parts) = $tissue->name =~ /\w+(\d\d)(\d\d)\w*-([a-z]+)/;
     push(@sort_parts, 0);
-    push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
+    if ($ag_lims_filename) {
+      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields, @ag_lims_output_fields})]);
+    } else {
+      push(@output_lines, [\@sort_parts, join("\t", map {$_ // ''} @output{@output_fields})]);
+    }
   }
 }
 print map {$_->[1], "\n"} sort {
