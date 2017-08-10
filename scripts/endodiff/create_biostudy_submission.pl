@@ -128,7 +128,8 @@ sub build_links {
           and r.run_id=rs.run_id
           and s.sample_id=rs.sample_id
           and st.study_id=e.study_id
-          and e.study_id=?';
+          and e.study_id=?
+          and s.status_id=4 and e.status_id=4 and r.status_id=4';
   my $db = get_erapro_conn($era_dbuser, $RESEQTRACK_PASS, 'ERAPRO');
   $db->dbc->db_handle->{LongReadLen} = 66000;
   my $sth = $db->dbc->prepare($sql);
