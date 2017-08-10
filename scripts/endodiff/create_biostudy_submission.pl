@@ -5,6 +5,7 @@ use warnings;
 
 use ReseqTrack::Tools::ERAUtils qw(get_erapro_conn);
 use File::Find qw();
+use File::Spec;
 use Env qw(RESEQTRACK_PASS);
 use List::Util qw();
 use JSON qw();
@@ -23,7 +24,7 @@ my $biostudy_links = build_links($cram_to_line, $cram_to_well, $well_to_bulk_sam
 my $biostudy_files = build_files();
 
 my $submission = build_submission($biostudy_links, $biostudy_files);
-print JSON->new->utf8->pretty->encode($submission);
+print JSON->new->utf8->encode($submission);
 
 =cut
 
@@ -36,8 +37,9 @@ sub build_submission {
   my $title = 'iPSC to endoderm differentiation experiments from the HipSci project';
   my $description = 'Cultures of induced pluripotent stem cells (iPSC) from the HipSci project were differentiated to the endoderm lineage. The iPSC lines were differentiated i) independently as separate cultures, ii) as a co-culture comprising a mixture of cell lines. At various time points, live cells were FACS sorted from these bulk cultures, plated, and frozen. Each sorted cell taken from the mixed co-culture was later identified by its genetics using RNA sequencing.';
   my @exp_sections;
-  my %submission = (
+  my %submission = ( submissions => [{
     type => 'submission',
+    accno => 'S-BSST50',
     attributes => [
       { name => 'Title', value => $title, },
     ],
@@ -48,14 +50,16 @@ sub build_submission {
         { name => 'Description', value => $description, },
         { name => 'Organism', value => 'Homo sapiens', },
         { name => 'Cell type', value => 'Induced pluripotent stem cells; iPSC derived cell line; endodermal cell', },
+        { name => 'ReleaseDate', value => '2017-12-12', },
       ],
       subsections => \@exp_sections,
     },
-  );
+  }]);
 
   foreach my $exp (List::Util::uniq keys %$files, keys %$links) {
     my %exp_section = (
       type => 'Experiment',
+      accno => "experiment_$exp",
       attributes => [
         { name => 'Title', value => "Endoderm differentiation experiment $exp", },
       ],
@@ -220,7 +224,7 @@ sub build_files {
 
 
     my %file = (
-      path => $_,
+      path => File::Spec->abs2rel($File::Find::name, $dir),
       type => 'file',
       size => -s $_,
       attributes => [
