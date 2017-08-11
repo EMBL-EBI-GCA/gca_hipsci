@@ -56,7 +56,7 @@ sub build_submission {
     },
   }]);
 
-  foreach my $exp (List::Util::uniq keys %$files, keys %$links) {
+  foreach my $exp (sort {$a <=> $b} List::Util::uniq keys %$files, keys %$links) {
     my %exp_section = (
       type => 'Experiment',
       accno => "experiment_$exp",
@@ -206,7 +206,9 @@ sub build_files {
     return if -d $_ || ! /\.fcs$/;
     my @split_name = split(/\./);
     my ($experiment) = $split_name[2] =~ /exp(\d+)/;
+    die "missing experiment in file name $_" if !$experiment;
     my ($day) = $split_name[4] =~ /day(\d)/;
+    die "missing day in file name $_" if ! defined $day;
     my $type = $split_name[5];
     my ($well) = $split_name[6] =~ /([A-Z](?:\d+_[A-Z])*\d+)/;
     if ($well) {
