@@ -2,7 +2,7 @@ cellType: endoderm
 links:
   - description: RNA-seq
     name: Biostudy S-BSST50
-    url: https://www.ebi.ac.uk/biostudies/studies/S-BSST50
+    url: https://www.ebi.ac.uk/biostudies/studies/S-BSMS7
     lines:
       - HPSI0114i-bezi_1
       - HPSI0114i-eipl_1
