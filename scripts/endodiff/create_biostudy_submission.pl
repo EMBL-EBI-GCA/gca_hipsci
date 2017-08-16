@@ -11,6 +11,7 @@ use List::Util qw();
 use JSON qw();
 
 die "set and export your RESEQTRACK_PASS environment variable" if !$RESEQTRACK_PASS;
+my $submission_date = '2017-12-12';
 my $era_dbuser = 'ops$laura';
 my $cram_to_line_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2donor.tsv';
 my $cram_to_well_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2well.tsv';
@@ -39,7 +40,7 @@ sub build_submission {
   my @exp_sections;
   my %submission = ( submissions => [{
     type => 'submission',
-    accno => 'S-BSST50',
+    accno => 'S-BSMS7',
     attributes => [
       { name => 'Title', value => $title, },
     ],
@@ -50,7 +51,7 @@ sub build_submission {
         { name => 'Description', value => $description, },
         { name => 'Organism', value => 'Homo sapiens', },
         { name => 'Cell type', value => 'Induced pluripotent stem cells; iPSC derived cell line; endodermal cell', },
-        { name => 'ReleaseDate', value => '2017-12-12', },
+        { name => 'ReleaseDate', value => $submission_date, },
       ],
       subsections => \@exp_sections,
     },
