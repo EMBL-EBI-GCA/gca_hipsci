@@ -15,7 +15,6 @@ use ReseqTrack::DBSQL::DBAdaptor;
 use Getopt::Long;
 use List::Util qw();
 use File::Find qw();
-use Data::Dumper;
 
 #my @feeder_free_temp_override = (
   #qw(leeh_3 iakz_1 febc_2 nibo_3 aehn_2 oarz_22 zisa_33 peop_4 dard_2 coxy_33 xisg_33 oomz_22 dovq_33 liun_22 xavk_33 aehn_22 funy_1 funy_3 giuf_1 giuf_3 iill_1 iill_3 bima_1 bima_2 ieki_2 ieki_3 qolg_1 qolg_3 bulb_1 gusc_1 gusc_2 gusc_3)
@@ -33,8 +32,8 @@ my $dbname = 'hipsci_private_track';
 &GetOptions(
   'es_host=s' => \$es_host,
   'pluritest_file=s' => \$pluritest_filename, #/nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv
-  'ag_lims_fields=s' => \$ag_lims_filename, #cgap_dnap_reports
-  'sendai_counts_dir=s' => \$sendai_counts_dir, #/tracked/rnaseq/sendai_alignment
+  'ag_lims_fields=s' => \$ag_lims_filename, #/nfs/research2/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv
+  'sendai_counts_dir=s' => \$sendai_counts_dir, #/nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,
