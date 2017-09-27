@@ -22,6 +22,7 @@ use File::Find qw();
 
 my $ag_lims_filename;
 my $sendai_counts_dir;
+my $sendai_counts_filename;
 my $pluritest_filename;
 my $es_host='ves-hx-e4:9200';
 my $dbhost = 'mysql-g1kdcc-public';
@@ -33,7 +34,8 @@ my $dbname = 'hipsci_private_track';
   'es_host=s' => \$es_host,
   'pluritest_file=s' => \$pluritest_filename, #/nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv
   'ag_lims_fields=s' => \$ag_lims_filename, #/nfs/research2/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv
-  'sendai_counts_dir=s' => \$sendai_counts_dir, #/nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/
+  'sendai_counts_dir=s' => \$sendai_counts_dir, #Alternatively use sendai_counts_filename.  sendai_counts_dir was out of date /nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/
+  'sendai_counts_filename=s' => \$sendai_counts_filename, #lternatively use sendai_counts_dir. Up to date file from Yasin /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_rnaseq.sendai.250917.txt 
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,
@@ -41,7 +43,7 @@ my $dbname = 'hipsci_private_track';
     'dbport=s'      => \$dbport,
 );
 
-die "did not get a sendai_counts_dir on the command line" if !$sendai_counts_dir;
+die "did not get a sendai_counts_dir or sendai_counts_filename on the command line" unless $sendai_counts_dir || $sendai_counts_filename;
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
@@ -92,15 +94,27 @@ if ($ag_lims_filename) {
 }
 
 my %rna_sendai_reads;
-File::Find::find(sub {
-  return if ! -f $_;
-  return if $_ !~ /\.bam$/;
-  my ($sample) = split(/\./, $_);
-  my $count = `samtools view -c $_`;
-  chomp $count;
-  $rna_sendai_reads{$sample} = $count;
-
-}, $sendai_counts_dir);
+if ($sendai_counts_dir){
+  File::Find::find(sub {
+    return if ! -f $_;
+    return if $_ !~ /\.bam$/;
+    my ($sample) = split(/\./, $_);
+    my $count = `samtools view -c $_`;
+    chomp $count;
+    $rna_sendai_reads{$sample} = $count;
+  }, $sendai_counts_dir);
+}elsif($sendai_counts_filename){
+  open my $sendai_counts_fh, '<', $sendai_counts_filename or die "could not open $sendai_counts_filename $!";
+  <$sendai_counts_fh>;
+  LINE:
+  while (my $line = <$sendai_counts_fh>) {
+    chomp $line;
+    my @split_line = split("\t", $line);
+    my ($sample) = $split_line[1];
+    my $count= $split_line[2];
+    $rna_sendai_reads{$sample} = $count;
+  }
+}
 
 my @output_fields = qw( name cell_type derived_from donor biosample_id tissue_biosample_id
     donor_biosample_id derived_from_cell_type reprogramming gender age disease
