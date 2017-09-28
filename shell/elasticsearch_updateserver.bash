@@ -29,4 +29,7 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.differentiations.pl \
   -es_host=$SERVER \
   --yaml=$HIPSCI_CODE/tracking_resources/differentiations/macrophage_2016.yaml \
-  --yaml=$HIPSCI_CODE/tracking_resources/differentiations/sensory_neurons_2016.yaml
+  --yaml=$HIPSCI_CODE/tracking_resources/differentiations/sensory_neurons_2016.yaml \
+&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.predicted_populations.pl \
+  -es_host=$SERVER \
+  --predicted_population_filename=/nfs/research2/hipsci/drop/hip-drop/tracked/predicted_population/hipsci.pca_557.20170928.predicted_populations.tsv
