@@ -7,7 +7,7 @@ use JSON;
 use HTTP::Request::Common qw/GET DELETE POST/;
 use LWP::UserAgent;
 
-my $server = "https://beta.trackhubregistry.org";
+my $server = "https://www.trackhubregistry.org";
 my $ua = LWP::UserAgent->new;
 $| = 1; 
 
