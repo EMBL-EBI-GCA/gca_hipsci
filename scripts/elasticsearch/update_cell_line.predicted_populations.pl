@@ -57,8 +57,12 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
   CELL_LINE:
   while ( my $doc = $scroll->next ) {
     my $update = clone $doc;
+    my $fibroblast_name = $$update{'_source'}{'name'};
+    $fibroblast_name =~ s/_.*//;
+    my $ipsc_name = $fibroblast_name;
+    $ipsc_name =~ s/i-/pf-/;
     delete $$update{'_source'}{'predictedPopulation'};
-    if ($predicted_populations{$$update{'_source'}{'name'}}){
+    if ($predicted_populations{$fibroblast_name} || $predicted_populations{$ipsc_name}){
       $$update{'_source'}{'predictedPopulation'} = $predicted_populations{$$update{'_source'}{'name'}};
     }
     if (Compare($$update{'_source'}, $$doc{'_source'})){
