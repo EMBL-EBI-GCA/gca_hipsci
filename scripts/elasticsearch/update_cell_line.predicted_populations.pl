@@ -62,8 +62,11 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     my $ipsc_name = $fibroblast_name;
     $ipsc_name =~ s/i-/pf-/;
     delete $$update{'_source'}{'predictedPopulation'};
-    if ($predicted_populations{$fibroblast_name} || $predicted_populations{$ipsc_name}){
-      $$update{'_source'}{'predictedPopulation'} = $predicted_populations{$$update{'_source'}{'name'}};
+    if ($predicted_populations{$fibroblast_name}){
+      $$update{'_source'}{'predictedPopulation'} = $predicted_populations{$fibroblast_name};
+    }
+    elsif ($predicted_populations{$ipsc_name}){
+      $$update{'_source'}{'predictedPopulation'} = $predicted_populations{$ipsc_name};
     }
     if (Compare($$update{'_source'}, $$doc{'_source'})){
       $cell_uptodate++;
