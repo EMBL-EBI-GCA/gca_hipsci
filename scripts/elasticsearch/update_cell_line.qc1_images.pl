@@ -10,6 +10,7 @@ use File::Basename qw(fileparse);
 use Data::Compare;
 use Clone qw(clone);
 use POSIX qw(strftime);
+use Data::Dumper;
 
 my $date = strftime('%Y%m%d', localtime);
 
@@ -46,6 +47,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -pass => $dbpass,
 );
 
+my %aberrant_regions;
 my %cell_line_updates;
 my $fa = $db->get_FileAdaptor;
 foreach my $file_type (@file_types) {
@@ -85,7 +87,13 @@ foreach my $file_type (@file_types) {
       }
       elsif ($filename =~ /\.cnv_aberrant_regions\./) {
         $cell_line_updates{$cell_line_name}{cnv}{aberrant_images} //= [];
-        push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);
+        #Extract chromosome number from filename e.g. chr3
+        my @filepathparts = split(/\./, $filepath);
+        my $chromosome = $filepathparts[-3];
+        if (!exists $aberrant_regions{$cell_line_name}{$chromosome}){  # For each CellLine check whether an image for this chromosome has been stored yet
+          push(@{$cell_line_updates{$cell_line_name}{cnv}{aberrant_images}}, $filepath);  # Only store 1 image per chromosome
+          $aberrant_regions{$cell_line_name}{$chromosome} = 1;
+        }
       }
     }
   }
