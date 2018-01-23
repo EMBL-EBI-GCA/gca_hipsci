@@ -1,9 +1,9 @@
-  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
-  -gtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
-  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.201504.tsv \
-  -mtarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
-  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
-  -gexarray /nfs/research2/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
+  -gtarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
+  -gtarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
+  -mtarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.201504.tsv \
+  -mtarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.201504.tsv \
+  -gexarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
+  -gexarray /nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
 
 
   

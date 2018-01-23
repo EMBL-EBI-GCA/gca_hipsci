@@ -2,7 +2,7 @@
 
 ###############################################
 #Example command line:
-#perl dump_cell_line_info.qc1.pl -sendai_counts_dir /nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/ -pluritest_file /nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv -ag_lims_fields /nfs/research2/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv > /nfs/research2/hipsci/drop/hip-drop/tracked/sample_meta_data/hipsci.qc1_sample_info.20170925.tsv
+#perl dump_cell_line_info.qc1.pl -sendai_counts_dir /nfs/research1/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/ -pluritest_file /nfs/research1/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv -ag_lims_fields /nfs/research1/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv > /nfs/research1/hipsci/drop/hip-drop/tracked/sample_meta_data/hipsci.qc1_sample_info.20170925.tsv
 ###############################################
 
 use strict;
@@ -32,10 +32,10 @@ my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
 &GetOptions(
   'es_host=s' => \$es_host,
-  'pluritest_file=s' => \$pluritest_filename, #/nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv
-  'ag_lims_fields=s' => \$ag_lims_filename, #/nfs/research2/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv
-  'sendai_counts_dir=s' => \$sendai_counts_dir, #Alternatively use sendai_counts_filename.  sendai_counts_dir was out of date /nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/
-  'sendai_counts_filename=s' => \$sendai_counts_filename, #lternatively use sendai_counts_dir. Up to date file from Yasin /nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_rnaseq.sendai.250917.txt 
+  'pluritest_file=s' => \$pluritest_filename, #/nfs/research1/hipsci/drop/hip-drop/tracked/qc1_raw_data/hipsci.qc1.20170503.pluritest.tsv
+  'ag_lims_fields=s' => \$ag_lims_filename, #/nfs/research1/hipsci/tracking_resources/AG_metadata/AG.metadata.20161018.tsv
+  'sendai_counts_dir=s' => \$sendai_counts_dir, #Alternatively use sendai_counts_filename.  sendai_counts_dir was out of date /nfs/research1/hipsci/drop/hip-drop/tracked/rnaseq/sendai_alignment/
+  'sendai_counts_filename=s' => \$sendai_counts_filename, #lternatively use sendai_counts_dir. Up to date file from Yasin /nfs/research1/hipsci/drop/hip-drop/incoming/keane/hipsci_rnaseq.sendai.250917.txt 
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,
     'dbuser=s'      => \$dbuser,

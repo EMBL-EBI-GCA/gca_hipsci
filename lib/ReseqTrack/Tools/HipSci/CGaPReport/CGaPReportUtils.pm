@@ -18,7 +18,7 @@ use vars qw(@EXPORT_OK);
 #@ISA = qw(Exporter);
 #@EXPORT = qw(read_cgap_report get_latest_file);
 
-our $cgap_report_dir = '/nfs/research2/hipsci/drop/hip-drop/incoming/cgap_dnap_reports';
+our $cgap_report_dir = '/nfs/research1/hipsci/drop/hip-drop/incoming/cgap_dnap_reports';
 our $cgap_report_suffix = '.hipsci_progress.csv';
 
 

@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $beagle_phased_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/gtarray/hla_typing/20150526_235_OA_samples/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.235_OA_samples.20150526.genotypes.chr6_IMPUTED.bgl.phased';
-#my $beagle_phased_file = '/nfs/research2/hipsci/controlled/gtarray/hla_typing/20150526_623_MA_samples/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.623_MA_samples.20150526.genotypes.chr6_IMPUTED.bgl.phased';
+my $beagle_phased_file = '/nfs/research1/hipsci/drop/hip-drop/tracked/gtarray/hla_typing/20150526_235_OA_samples/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.235_OA_samples.20150526.genotypes.chr6_IMPUTED.bgl.phased';
+#my $beagle_phased_file = '/nfs/research1/hipsci/controlled/gtarray/hla_typing/20150526_623_MA_samples/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.623_MA_samples.20150526.genotypes.chr6_IMPUTED.bgl.phased';
 
 open my $IN, '<', $beagle_phased_file or die "could not open $beagle_phased_file $!";
 my @sample_names;

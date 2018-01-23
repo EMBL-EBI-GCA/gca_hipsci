@@ -33,7 +33,7 @@ foreach my $cell_line (<>) {
 sub get_genotypes {
   my %args = @_;
   my ($cell_line, $study) = @args{qw(cell_line study)};
-  my $base_dir = $study eq 'ERP006946' ? '/nfs/research2/hipsci/drop/hip-drop/tracked/exomeseq/imputed_vcf' : '/nfs/research2/hipsci/controlled/exomeseq/imputed_vcf';
+  my $base_dir = $study eq 'ERP006946' ? '/nfs/research1/hipsci/drop/hip-drop/tracked/exomeseq/imputed_vcf' : '/nfs/research1/hipsci/controlled/exomeseq/imputed_vcf';
   my $dir = sprintf('%s/%s/%s', $base_dir, $study, $cell_line);
   return if ! -d $dir;
   opendir(DIR, $dir);

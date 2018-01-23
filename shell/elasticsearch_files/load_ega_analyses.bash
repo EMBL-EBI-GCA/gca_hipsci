@@ -38,4 +38,4 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -dataset_id EGAD00001003541 \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
-  -demographic /nfs/research2/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+  -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv

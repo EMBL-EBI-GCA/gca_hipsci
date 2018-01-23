@@ -13,9 +13,9 @@ use JSON qw();
 die "set and export your RESEQTRACK_PASS environment variable" if !$RESEQTRACK_PASS;
 my $submission_date = '2017-12-12';
 my $era_dbuser = 'ops$laura';
-my $cram_to_line_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2donor.tsv';
-my $cram_to_well_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2well.tsv';
-my $well_to_bulk_sample_file = '/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.well2bulksample.tsv';
+my $cram_to_line_file = '/nfs/research1/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2donor.tsv';
+my $cram_to_well_file = '/nfs/research1/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.cram2well.tsv';
+my $well_to_bulk_sample_file = '/nfs/research1/hipsci/drop/hip-drop/tracked/endodiff/tracking/hipsci.endodiff.well2bulksample.tsv';
 
 my $cram_to_well = read_cram2well($cram_to_well_file);
 my $cram_to_line = read_cram2line($cram_to_line_file);
@@ -201,7 +201,7 @@ sub build_links {
 }
 
 sub build_files {
-  my $dir = "/nfs/research2/hipsci/drop/hip-drop/tracked/endodiff/";
+  my $dir = "/nfs/research1/hipsci/drop/hip-drop/tracked/endodiff/";
   my %files;
   File::Find::find(sub {
     return if -d $_ || ! /\.fcs$/;

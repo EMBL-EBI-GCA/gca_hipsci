@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
-my $predicted_population_filename = "/nfs/research2/hipsci/drop/hip-drop/tracked/predicted_population/hipsci.pca_557.20170928.predicted_populations.tsv";
+my $predicted_population_filename = "/nfs/research1/hipsci/drop/hip-drop/tracked/predicted_population/hipsci.pca_557.20170928.predicted_populations.tsv";
 
 &GetOptions(
   'es_host=s' =>\@es_host,

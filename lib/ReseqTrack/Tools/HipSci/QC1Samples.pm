@@ -6,7 +6,7 @@ use namespace::autoclean;
 
 has pluritest_file => ( is => 'rw', isa => 'Str', lazy_build => 1);
 has cnv_summary_file => ( is => 'rw', isa => 'Str', lazy_build => 1);
-has qc1_directory => (is => 'rw', isa => 'Str', default => '/nfs/research2/hipsci/drop/hip-drop/tracked/qc1_raw_data/');
+has qc1_directory => (is => 'rw', isa => 'Str', default => '/nfs/research1/hipsci/drop/hip-drop/tracked/qc1_raw_data/');
 has gtarray_samples => (is => 'ro', isa => 'HashRef', lazy_build => 1);
 has gexarray_samples => (is => 'ro', isa => 'HashRef', lazy_build => 1);
 

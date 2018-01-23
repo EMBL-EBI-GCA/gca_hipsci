@@ -24,7 +24,7 @@ my $trim = '/nfs/hipsci';
 my $description = 'HLA typing multiple cell lines';
 my $file_pattern = 'gtarray/hla_typing/%/hipsci.wec.gtarray.%';
 my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
-my $drop_base = '/nfs/research2/hipsci/drop/hip-drop/tracked';
+my $drop_base = '/nfs/research1/hipsci/drop/hip-drop/tracked';
 
 my %filetype_of = (bed => 'plink', bgl => 'beagle', bim => 'plink', fam => 'plink', dosage => 'beagle', nosex => 'beagle');
 

@@ -15,7 +15,7 @@ Use this script to create a new readme file describing each new maxquant data se
 
 ### 3. dump_proteomics_raw_index.pl
 
-This script is used to occasionally generate an index file listing all proteomics raw data we have received. The output index file lives in this directory: /nfs/research2/hipsci/drop/hip-drop/tracked/proteomics.
+This script is used to occasionally generate an index file listing all proteomics raw data we have received. The output index file lives in this directory: /nfs/research1/hipsci/drop/hip-drop/tracked/proteomics.
 
 This is low importance. I don't think anyone ever looks at the index file.
 

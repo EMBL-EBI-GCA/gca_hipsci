@@ -20,8 +20,8 @@ my $dbuser;
 my $dbpass;
 my $dbport = 4197;
 my $dbname;
-my $tree_dir = '/nfs/research2/hipsci/drop/hip-drop/tracked';
-my $relative_to_dir = '/nfs/research2/hipsci/drop/hip-drop';
+my $tree_dir = '/nfs/research1/hipsci/drop/hip-drop/tracked';
+my $relative_to_dir = '/nfs/research1/hipsci/drop/hip-drop';
 
 &GetOptions(
   'dbhost=s'       => \$dbhost,

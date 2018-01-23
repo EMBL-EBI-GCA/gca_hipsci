@@ -18,4 +18,4 @@ perl $HIPSCI_CODE/scripts/indexes/ena_index.analyses.es.pl \
  -study_id ERP017015 \
  -analysis_study_id ERP013157=ERP006946 \
  -analysis_study_id ERP013158=ERP006946 \
- -demographic /nfs/research2/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+ -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv

@@ -18,7 +18,7 @@ my $dbport = 4197;
 my $dbname = 'hipsci_track';
 my $ftp_base = '/nfs/hipsci/vol1/ftp';
 my $staging_base = '/nfs/1000g-work/hipsci/archive_staging/ftp';
-my $pluritest_dir = '/nfs/research2/hipsci/drop/hip-drop/incoming/keane/hipsci_data_030517/plots/pluritest';
+my $pluritest_dir = '/nfs/research1/hipsci/drop/hip-drop/incoming/keane/hipsci_data_030517/plots/pluritest';
 
 &GetOptions(
     'es_host=s'   => \$es_host,

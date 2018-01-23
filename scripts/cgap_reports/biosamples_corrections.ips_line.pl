@@ -6,7 +6,7 @@ use warnings;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use BioSD;
 
-#my $tissues = read_cgap_report(file=>'/nfs/research2/hipsci/drop/hip-drop/incoming/cgap_dnap_reports/20140715.hipsci_progress.csv')->{ips_lines};
+#my $tissues = read_cgap_report(file=>'/nfs/research1/hipsci/drop/hip-drop/incoming/cgap_dnap_reports/20140715.hipsci_progress.csv')->{ips_lines};
 my $ips_lines = read_cgap_report()->{ips_lines};
 print join("\t", qw(SAMPLE_ID  ATTR_KEY  ATTR_VALUE  TERM_SOURCE_REF TERM_SOURCE_ID  TERM_SOURCE_URI TERM_SOURCE_VERSION UNIT)), "\n";
 

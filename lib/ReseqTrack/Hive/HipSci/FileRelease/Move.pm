@@ -13,9 +13,9 @@ sub param_defaults {
   return {
     %{$self->SUPER::param_defaults()},
     'derive_path_options' => {
-        'free_base_dir' => '/nfs/research2/hipsci/drop/hip-drop/tracked/',
-        'controlled_base_dir' => '/nfs/research2/hipsci/controlled/',
-        'trim_dir' => '/nfs/research2/hipsci/drop/hip-drop/incoming',
+        'free_base_dir' => '/nfs/research1/hipsci/drop/hip-drop/tracked/',
+        'controlled_base_dir' => '/nfs/research1/hipsci/controlled/',
+        'trim_dir' => '/nfs/research1/hipsci/drop/hip-drop/incoming',
     },
     es_host => 'ves-hx-e4:9200',
   };

@@ -27,12 +27,12 @@ perl check_cohort_directory.pl
 =cut
 
 my @dirs = (
-  '/nfs/research2/hipsci/controlled',
-  '/nfs/research2/hipsci/drop/hip-drop/tracked/exomeseq',
-  '/nfs/research2/hipsci/drop/hip-drop/tracked/rnaseq',
-  '/nfs/research2/hipsci/drop/hip-drop/tracked/gexarray',
-  '/nfs/research2/hipsci/drop/hip-drop/tracked/gtarray',
-  '/nfs/research2/hipsci/drop/hip-drop/tracked/mtarray',
+  '/nfs/research1/hipsci/controlled',
+  '/nfs/research1/hipsci/drop/hip-drop/tracked/exomeseq',
+  '/nfs/research1/hipsci/drop/hip-drop/tracked/rnaseq',
+  '/nfs/research1/hipsci/drop/hip-drop/tracked/gexarray',
+  '/nfs/research1/hipsci/drop/hip-drop/tracked/gtarray',
+  '/nfs/research1/hipsci/drop/hip-drop/tracked/mtarray',
 );
 
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => 'ves-hx-e4:9200');

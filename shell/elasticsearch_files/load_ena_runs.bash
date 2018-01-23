@@ -11,4 +11,4 @@ perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.es.pl \
   -study_id ERP007111 \
   -study_id ERP013436 \
   -study_id ERP017015 \
-  -demographic /nfs/research2/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+  -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv

@@ -34,9 +34,9 @@ my $peptracker_id;
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my %fasta_map = (
-              #contaminant => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/contaminant_proteins.fasta',
-              #uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_human_120712.fasta',
-              uniprot_120712 => '/nfs/research2/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_sp_human_120712.contam.rev-nonsense.decoy.fasta',
+              #contaminant => '/nfs/research1/hipsci/drop/hip-drop/tracked/proteomics/databases/contaminant_proteins.fasta',
+              #uniprot_120712 => '/nfs/research1/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_human_120712.fasta',
+              uniprot_120712 => '/nfs/research1/hipsci/drop/hip-drop/tracked/proteomics/databases/uniprot_sp_human_120712.contam.rev-nonsense.decoy.fasta',
               );
 my %disease_map = (
   'monogenic diabetes' => 'DOID:9351',

@@ -6,7 +6,7 @@ use Getopt::Long;
 use JSON qw();
 use ReseqTrack::Tools::HipSci::Peptracker qw(exp_design_to_pep_ids pep_id_to_tmt_lines);
 
-my $peptracker_json = '/nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json';
+my $peptracker_json = '/nfs/research1/hipsci/tracking_resources/dundee_peptracker/peptracker.json';
 my ($exp_design);
 
 &GetOptions(
@@ -48,13 +48,13 @@ The output readme file states which cell lines were used in the analysis. The ou
 
 Make sure you are using a recent export from Dundee's peptracker. Download a new version from: https://peptracker.com/dm/projects/1102/json
 
-The default file path for the exported json is: /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json. This should be a soft link to the newest version
+The default file path for the exported json is: /nfs/research1/hipsci/tracking_resources/dundee_peptracker/peptracker.json. This should be a soft link to the newest version
 
 You also need a experimentalDesignTemplate.txt file. This is one of the many files that is sent in by Dundee with the maxquant data.
 
 =head1 OPTIONS
 
--json: file path of peptracker json file, default is /nfs/research2/hipsci/tracking_resources/dundee_peptracker/peptracker.json
+-json: file path of peptracker json file, default is /nfs/research1/hipsci/tracking_resources/dundee_peptracker/peptracker.json
 
 -exp_design: file path of the experimentalDesignTemplate.txt file received from Dundee
 
