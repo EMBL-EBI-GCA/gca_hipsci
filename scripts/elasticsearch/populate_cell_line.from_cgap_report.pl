@@ -89,7 +89,7 @@ my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
 );
 my %ebisc_names;
 LINE:
-foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/full_list/hipsci")}) {
+foreach my $ebisc_name (@{$hESCreg->find_lines(url=>"/api/export/hipsci")}) {
   next LINE if $ebisc_name !~ /^WTSI/;
   my $line = eval{$hESCreg->get_line($ebisc_name);};
   next LINE if !$line || $@;
