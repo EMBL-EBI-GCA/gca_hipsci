@@ -5,12 +5,31 @@ use warnings;
 
 use WWW::Mechanize;
 use JSON -support_by_pp;
+use Getopt::Long;
 use Data::Dumper;
 
+my ($dev, $authuser, $authpass);
 
+GetOptions("dev" => \$dev,
+           "authuser=s" => \$authuser,
+           "authpass=s" => \$authpass,
+);
+
+my $authurl;
+
+#Obtain AAI access token (if --dev then use dev authentication environment)
+if ($dev){
+  $authurl = 'https://explore.api.aap.tsi.ebi.ac.uk/auth'
+}else{
+  $authurl = 'https://api.aai.ebi.ac.uk/auth'
+}
+my $auth = WWW::Mechanize->new();
+$auth->credentials( $authuser => $authpass);
+$auth->get($authurl);
+my $token = $auth->content();
 
 #Search for project hipsci
-my $searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=1000&sort=id,asc&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
+my $searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=10&sort=id,asc&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
 my @samples = fetch_biosamples_json($searchurl);
 
 my %biosamplestofix;
@@ -26,16 +45,100 @@ foreach my $sample (@samples){
 foreach my $key (keys(%biosamplestofix)){
   my $sampleurl = "https://www.ebi.ac.uk/biosamples/samples/".$key;
   my $cellline = fetch_json_by_url($sampleurl);
-  print Dumper($cellline);
-  exit(0);
+  my $derivedbiosample;
+  foreach my $derivedfrom (@{$$cellline{relationships}}){
+    if ($$derivedfrom{type} eq 'derived from'){
+      $derivedbiosample = $$derivedfrom{target};
+    }
+  }
+  my $derivedsampleurl = "https://www.ebi.ac.uk/biosamples/samples/".$derivedbiosample;
+  my $derivedline = fetch_json_by_url($derivedsampleurl);
+  my $curateurl = 'https://wwwdev.ebi.ac.uk/biosamples/samples/'.$key.'/curationlinks';
+  foreach my $fieldtofix (@{$biosamplestofix{$key}}){
+    my %curatedata;
+    my $toprocess = $$derivedline{characteristics}{$fieldtofix};
+    if($toprocess){
+      foreach my $within (@{$toprocess}){
+        foreach my $key (keys($within)){
+          if ($key eq 'text'){
+            $curatedata{text} = $$within{$key};
+          }elsif ($key eq 'ontologyTerms'){
+            $curatedata{iri} = $$within{$key};
+          }elsif ($key eq 'unit'){
+            $curatedata{unit} = $$within{$key};
+          }
+        }
+      }
+      my $JSONpayload;
+      if($curatedata{iri}){
+        $JSONpayload = '{
+        "sample": "'.$key.'",
+        "curation": {
+          "attributesPre": [],
+          "attributesPost": [
+            {
+              "type":"'.$fieldtofix.'",
+              "value":"'.$curatedata{text}.'",
+              "iri":["'.join('","', @{$curatedata{iri}}).'"],
+            }
+          ],
+          "externalReferencesPre": [],
+          "externalReferencesPost": []
+        },
+        "domain": "self.HipSci_DCC_curation"
+        }';
+      }elsif($curatedata{unit}){
+        $JSONpayload = '{
+      "sample": "'.$key.'",
+      "curation": {
+        "attributesPre": [],
+        "attributesPost": [
+          {
+            "type":"'.$fieldtofix.'",
+            "value":"'.$curatedata{text}.'",
+            "unit":"'.$curatedata{unit}.'",
+          }
+        ],
+        "externalReferencesPre": [],
+        "externalReferencesPost": []
+      },
+      "domain": "self.HipSci_DCC_curation"
+    }';
+      }else{
+        $JSONpayload = '{
+      "sample": "'.$key.'",
+      "curation": {
+        "attributesPre": [],
+        "attributesPost": [
+          {
+            "type":"'.$fieldtofix.'",
+            "value":"'.$curatedata{text}.'",
+          }
+        ],
+        "externalReferencesPre": [],
+        "externalReferencesPost": []
+      },
+      "domain": "self.HipSci_DCC_curation"
+    }';
+      }
+    print $JSONpayload;
+    #Run BioSamples curation script
+    my $currationurl;
+    if ($dev){
+      $currationurl = 'https://wwwdev.ebi.ac.uk/biosamples/samples/'
+    }else{
+      $currationurl = 'https://www.ebi.ac.uk/biosamples/samples/'
+    }
+    my $currate = WWW::Mechanize->new();
+    $currate->add_header("accept" => "application/hal+json");
+    $currate->add_header("Content-Type" => "application/json");
+    $currate->credentials($token);
+    my $response = $currate->post($JSONpayload);
+    print response;
+    exit(0);
+    }
+  }
 }
-
-#age
-#Sex
-#subject id
-#ethnicity
-#phenotype
-#disease state
 
 sub identify_missing_fields{
   my ($biosamplestofix, $sample, $field) = @_;
