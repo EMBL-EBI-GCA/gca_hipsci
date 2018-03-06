@@ -239,7 +239,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   else {
     push(@bankingStatus, 'Pending selection');
   }
-  push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && $sample_index->{'openAccess'};
+  push(@bankingStatus, 'Shipped to ECACC') if (List::Util::any {$_->type =~ /ecacc/i} @{$ips_line->release}) && exists($sample_index->{'openAccess'});
   if (my $ecacc_cat_no = $catalog_numbers{$sample_index->{name}}) {
     $sample_index->{ecaccCatalogNumber} = $ecacc_cat_no;
     my $html_content = get(sprintf('http://www.phe-culturecollections.org.uk/products/celllines/ipsc/detail.jsp?refId=%s&collection=ecacc_ipsc',
