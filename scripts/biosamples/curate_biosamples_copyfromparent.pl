@@ -6,6 +6,7 @@ use warnings;
 use WWW::Mechanize;
 use JSON -support_by_pp;
 use Getopt::Long;
+use JSON;
 use Data::Dumper;
 
 my ($dev, $authuser, $authpass);
@@ -14,6 +15,10 @@ GetOptions("dev" => \$dev,
            "authuser=s" => \$authuser,
            "authpass=s" => \$authpass,
 );
+
+die "missing authuser" if !$authuser;
+die "missing authpass" if !$authpass;
+
 
 my $authurl;
 
@@ -29,7 +34,13 @@ $auth->get($authurl);
 my $token = $auth->content();
 
 #Search for project hipsci
-my $searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=10&sort=id,asc&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
+my $searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=10&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
+#my $searchurl;
+#if ($dev){
+#  $searchurl = "https://wwwdev.ebi.ac.uk/biosamples/samples?size=10&sort=id,asc&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
+#}else{
+#$searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=10&sort=id,asc&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
+#}
 my @samples = fetch_biosamples_json($searchurl);
 
 my %biosamplestofix;
@@ -79,7 +90,7 @@ foreach my $key (keys(%biosamplestofix)){
             {
               "type":"'.$fieldtofix.'",
               "value":"'.$curatedata{text}.'",
-              "iri":["'.join('","', @{$curatedata{iri}}).'"],
+              "iri":["'.join('","', @{$curatedata{iri}}).'"]
             }
           ],
           "externalReferencesPre": [],
@@ -96,7 +107,7 @@ foreach my $key (keys(%biosamplestofix)){
           {
             "type":"'.$fieldtofix.'",
             "value":"'.$curatedata{text}.'",
-            "unit":"'.$curatedata{unit}.'",
+            "unit":"'.$curatedata{unit}.'"
           }
         ],
         "externalReferencesPre": [],
@@ -105,37 +116,41 @@ foreach my $key (keys(%biosamplestofix)){
       "domain": "self.HipSci_DCC_curation"
     }';
       }else{
-        $JSONpayload = '{
-      "sample": "'.$key.'",
-      "curation": {
-        "attributesPre": [],
-        "attributesPost": [
-          {
-            "type":"'.$fieldtofix.'",
-            "value":"'.$curatedata{text}.'",
-          }
-        ],
-        "externalReferencesPre": [],
-        "externalReferencesPost": []
-      },
-      "domain": "self.HipSci_DCC_curation"
-    }';
+        $JSONpayload = 
+'{
+  "sample": "'.$key.'",
+  "curation": {
+    "attributesPre": [],
+    "attributesPost": [
+      {
+        "type":"'.$fieldtofix.'",
+        "value":"'.$curatedata{text}.'"
       }
-    print $JSONpayload;
-    #Run BioSamples curation script
-    my $currationurl;
+    ],
+    "externalReferencesPre": [],
+    "externalReferencesPost": []
+  },
+  "domain": "self.HipSci_DCC_curation"
+}';
+      }
+    print $JSONpayload, "\n";
+    my $currationbaseurl;
     if ($dev){
-      $currationurl = 'https://wwwdev.ebi.ac.uk/biosamples/samples/'
+      $currationbaseurl = "https://wwwdev.ebi.ac.uk/biosamples/samples/"
     }else{
-      $currationurl = 'https://www.ebi.ac.uk/biosamples/samples/'
+      $currationbaseurl = "https://www.ebi.ac.uk/biosamples/samples/"
     }
+    my $currationurl = $currationbaseurl.$key."/curationlinks";
+    print $currationurl, "\n\n";
     my $currate = WWW::Mechanize->new();
-    $currate->add_header("accept" => "application/hal+json");
-    $currate->add_header("Content-Type" => "application/json");
-    $currate->credentials($token);
-    my $response = $currate->post($JSONpayload);
-    print response;
-    exit(0);
+    $token = "Bearer ".$token;
+    my $response = $currate->post($currationurl, 
+    "Content" => $JSONpayload, 
+    "accept" => "application/hal+json",
+    "Content-Type" => "application/json",
+    "Authorization" => $token
+    );
+    print $key, "\t", $fieldtofix, "\t", $currate->status, "\n";
     }
   }
 }
