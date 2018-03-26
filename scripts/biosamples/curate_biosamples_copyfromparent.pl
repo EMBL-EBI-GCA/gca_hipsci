@@ -32,6 +32,7 @@ my $auth = WWW::Mechanize->new();
 $auth->credentials( $authuser => $authpass);
 $auth->get($authurl);
 my $token = $auth->content();
+$token = "Bearer ".$token;
 
 #Search for project hipsci
 my $searchurl = "https://www.ebi.ac.uk/biosamples/samples?size=10&text=&filter=attr%3Aproject%3AHipSci&filter=attr%3Acell+type%3Ainduced+pluripotent+stem+cell";
@@ -142,8 +143,7 @@ foreach my $key (keys(%biosamplestofix)){
     }
     my $currationurl = $currationbaseurl.$key."/curationlinks";
     print $currationurl, "\n\n";
-    my $currate = WWW::Mechanize->new();
-    $token = "Bearer ".$token;
+    my $currate = WWW::Mechanize->new();    
     my $response = $currate->post($currationurl, 
     "Content" => $JSONpayload, 
     "accept" => "application/hal+json",
