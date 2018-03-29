@@ -163,6 +163,7 @@ foreach my $study_id (@sequencing_study_id, keys %analysis_study_id) {
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bGATK haplotype caller\b/i ? 'GATK haplotype calls'
                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{PROCESSED_READS} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bkallisto\b/i ? 'Abundances of transcripts'
                     : $short_assay eq 'gtarray' && $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bGenotype calls\b/i ? 'Genotyping array calls'
+                    : $short_assay eq 'gtarray' && $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bHipSci HumanExome Beadchip variants\b/i ? 'Genotyping array calls'
                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
 
     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
