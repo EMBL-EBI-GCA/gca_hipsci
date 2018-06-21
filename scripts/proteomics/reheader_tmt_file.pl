@@ -67,7 +67,7 @@ You also need a experimentalDesignTemplate.txt file. This is one of the many fil
 
 Note the data file is read on STDIN and written on STDOUT:
 
-perl create_tmt_readme.pl -exp_design ./data/experimentalDesignTemplate.txt
+perl reheader_tmt_file.pl -exp_design ./data/experimentalDesignTemplate.txt
   < ./incoming/peptides.txt > ./fixed/hipsci.proteomics.maxquant.xxx.TMT_batch_xx.2017xxxx.peptides.txt
 
 =cut
