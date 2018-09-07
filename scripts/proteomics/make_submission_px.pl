@@ -16,19 +16,19 @@ my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_private_track';
-my $json_file = 'dev_exp.json';
+my $json_file = '/nfs/research1/hipsci/tracking_resources/dundee_peptracker/peptracker.json';
 my $es_host='ves-pg-e3:9200';
 my $peptracker_id;
 
 &GetOptions( 
-	    'dbhost=s'      => \$dbhost,
-	    'dbname=s'      => \$dbname,
-	    'dbuser=s'      => \$dbuser,
-	    'dbpass=s'      => \$dbpass,
-	    'dbport=s'      => \$dbport,
-	    'json_file=s'   => \$json_file,
-	    'peptracker_id=s'      => \$peptracker_id,
-            'es_host=s' => \$es_host,
+	    'dbhost=s'         => \$dbhost,
+	    'dbname=s'         => \$dbname,
+	    'dbuser=s'         => \$dbuser,
+	    'dbpass=s'         => \$dbpass,
+	    'dbport=s'         => \$dbport,
+	    'json_file=s'      => \$json_file,
+	    'peptracker_id=s'  => \$peptracker_id,
+      'es_host=s'        => \$es_host,
     );
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);

@@ -59,13 +59,12 @@ foreach my $key (keys(%biosamplestofix)){
   my $cellline = fetch_json_by_url($sampleurl);
   my $derivedbiosample;
   foreach my $derivedfrom (@{$$cellline{relationships}}){
-    if ($$derivedfrom{type} eq 'derived from'){
+    if ($$derivedfrom{type} eq 'derived from' and $$derivedfrom{source} eq $key){
       $derivedbiosample = $$derivedfrom{target};
     }
   }
   my $derivedsampleurl = "https://www.ebi.ac.uk/biosamples/samples/".$derivedbiosample;
   my $derivedline = fetch_json_by_url($derivedsampleurl);
-  my $curateurl = 'https://wwwdev.ebi.ac.uk/biosamples/samples/'.$key.'/curationlinks';
   foreach my $fieldtofix (@{$biosamplestofix{$key}}){
     my %curatedata;
     my $toprocess = $$derivedline{characteristics}{$fieldtofix};
