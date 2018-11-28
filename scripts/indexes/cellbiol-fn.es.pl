@@ -11,6 +11,7 @@ use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(impro
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use File::Basename qw(dirname);
 use Data::Compare;
+use Data::Dumper;
 use POSIX qw(strftime);
 
 my $es_host='ves-hx-e3:9200';
@@ -20,7 +21,7 @@ my $dbuser = 'g1kro';
 my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_track';
-my $file_type = 'CELLBIOL-FN_MISC';
+my $file_type = 'CELLBIOL-FN_PDF';
 my $trim = '/nfs/hipsci';
 my $description = 'Images and figures';
 
@@ -48,35 +49,40 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
 my $fa = $db->get_FileAdaptor;
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+# return {donors => [values %donors], tissues => [values %tissues], ips_lines => [values %ips_lines], file => $file};
+
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {
-  $cgap_ips_line_hash{$cell_line->name} = $cell_line;
+
+  $cgap_ips_line_hash{$cell_line->name} = $cell_line; 
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
 }
 
 my %cell_line_files;
+my $counter = 1;
 FILE:
 foreach my $file (@{$fa->fetch_by_type($file_type)}) {
+
   next FILE if $file->name !~ /pdf$/;
   next FILE if $file->name !~ /$trim/ || $file->name =~ m{/withdrawn/};
+  next FILE if $file->name =~ /CTRL0214pf-iely/ || $file->name =~ /CTRM_20/ || $file->name =~ /JACK/; # Needs to be reviewed
   my ($cell_line_name) = split(/\./, $file->filename);
   next FILE if $cell_line_name =~ m{zumy};
   next FILE if $cell_line_name =~ m{qifc};
   $cell_line_files{$cell_line_name} //= [];
-  push(@{$cell_line_files{$cell_line_name}}, $file);
+  push(@{$cell_line_files{$cell_line_name}}, $file); 
 }
-
 my %docs;
 SAMPLE:
-while (my ($cell_line, $files) = each %cell_line_files) {
+while (my ($cell_line, $files) = each %cell_line_files) { # 110 times, 3 of them kills it. 
   my $dir = dirname($files->[0]->name);
   $dir =~ s{$trim}{};
-
   my $cgap_ips_line = $cgap_ips_line_hash{$cell_line};
+  # print Dumper($cgap_ips_line);
   my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                   : $cgap_tissues_hash{$cell_line};
-  die 'did not recognise sample '.$cell_line if !$cgap_tissue;
+  die 'did not recognise sample '.$cell_line if !$cgap_tissue;   # these three kill it: CTRL0214pf-iely  CTRM_20  JACK
 
   my $source_material = $cgap_tissue->tissue_type || '';
   my $cell_type = $cgap_ips_line ? 'iPSC'
