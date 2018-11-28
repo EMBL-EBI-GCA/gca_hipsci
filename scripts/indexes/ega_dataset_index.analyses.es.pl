@@ -69,13 +69,14 @@ foreach my $dataset_id (@dataset_id) {
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
+  print "$xml_hash\n";
   my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : die "did not recognise assay for $dataset_id";
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  print "$disease\n";
+  # print "$disease\n";
   die "did not recognise disease for $dataset_id" if !$disease;
 
   $sth_analysis->bind_param(1, $dataset_id);
