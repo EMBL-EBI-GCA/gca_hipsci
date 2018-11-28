@@ -18,6 +18,7 @@ my @era_params;
 my @dataset_id;
 my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
+my %dataset_files;
 
 GetOptions(
     'era_dbuser=s'  => \$era_params[0],
