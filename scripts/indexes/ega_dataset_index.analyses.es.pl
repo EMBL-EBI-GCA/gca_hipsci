@@ -13,6 +13,8 @@ use XML::Simple qw(XMLin);
 use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use File::Basename qw(fileparse);
+use Data::Dumper;
+
 
 my @era_params;
 my @dataset_id;
@@ -69,7 +71,7 @@ foreach my $dataset_id (@dataset_id) {
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-  print "$xml_hash\n";
+  print Dumper($xml_hash);
   my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
