@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Data::Dumper;
 
 use Getopt::Long;
 use Search::Elasticsearch;
@@ -53,11 +54,13 @@ my $fa = $db->get_FileAdaptor;
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
+# print Dumper(@$cgap_ips_lines);
 my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
 }
+# print $cgap_ips_line_hash;
 
 my %file_sets;
 foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
@@ -93,18 +96,27 @@ foreach my $file_set (values %file_sets) {
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : $cgap_tissues_hash{$cell_line};
     die 'did not recognise sample '.$cell_line if !$cgap_tissue;
+    # print Dumper($cgap_ips_line->tissue);
+    # print Dumper($cgap_tissue);
 
     my $source_material = $cgap_tissue->tissue_type || '';
+    # print Dumper($source_material);
     my $cell_type = $cgap_ips_line ? 'iPSC'
                   : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                   : die "did not recognise source material $source_material";
-
+    # print Dumper($cell_type);
+    # print Dumper($cgap_tissue);
+    # print $cgap_tissue->reasons;
     my $disease = $cgap_tissue->donor->disease;
-    $disease = $disease eq 'normal' ? 'Normal'
-            : $disease =~ /bardet-/ ? 'Bardet-Biedl'
-            : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
-            : die "did not recognise disease $disease";
+    # if ($disease) {
+    #   print 'ok';
+    # }
+    $disease = 'Normal';
+    # $disease = $disease eq 'normal' ? 'Normal'
+    #         : $disease =~ /bardet-/ ? 'Bardet-Biedl'
+    #         : $disease eq 'neonatal diabetes' ? 'Monogenic diabetes'
+    #         : die "did not recognise disease $disease";
 
     my %sample = (
         name => $cell_line,
@@ -130,7 +142,7 @@ foreach my $file_set (values %file_sets) {
     else {
       $sample{growingConditions} = $cell_type;
     }
-    
+
     push(@samples, \%sample);
   }
 
