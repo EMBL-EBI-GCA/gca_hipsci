@@ -15,7 +15,7 @@ use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use Getopt::Long;
 
-my @era_params = ('ops$laura', undef, 'ERAPRO');
+my @era_params;
 my $demographic_filename;
 my %dataset_files;
 my $dbhost = 'mysql-g1kdcc-public';
@@ -26,8 +26,10 @@ my $dbname = 'hipsci_private_track';
 my $es_host='ves-hx-e3:9200';
 
 GetOptions(
-    'era_password=s'    => \$era_params[1],
-    'dataset=s'    => \%dataset_files,
+    'era_dbuser=s'  => \$era_params[0],
+    'era_dbpass=s'  => \$era_params[1],
+    'era_dbname=s'  => \$era_params[2],
+    'dataset=s'     => \%dataset_files,
     'demographic_file=s' => \$demographic_filename,
     'dbhost=s'      => \$dbhost,
     'dbname=s'      => \$dbname,

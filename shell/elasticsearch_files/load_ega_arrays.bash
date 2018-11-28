@@ -8,7 +8,7 @@ HIPSCI_CODE=`dirname $0`/../..
 # The submission file is the tab-delimited text file which was sent to EGA to create the dataset.
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
-  -era_password $RESEQTRACK_PASS \
+  $ERA_DB_ARGS \
   -dataset EGAD00010001147=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt \
   -dataset EGAD00010001139=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.20161212.txt \
   -dataset EGAD00010001143=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.20161212.txt \
