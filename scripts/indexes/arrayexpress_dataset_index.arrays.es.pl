@@ -50,31 +50,32 @@ my $fa = $db->get_FileAdaptor;
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
+# Review E-MTAB-4748 and E-MTAB-7032 
 my %docs;
-foreach my $dataset_id (@dataset_id) {
+foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
 
-  my $sdrf = "http://www.ebi.ac.uk/arrayexpress/files/".$dataset_id."/".$dataset_id.".sdrf.txt";
+  my $sdrf = "http://www.ebi.ac.uk/arrayexpress/files/".$dataset_id."/".$dataset_id.".sdrf.txt"; 
   my $idf = "http://www.ebi.ac.uk/arrayexpress/files/".$dataset_id."/".$dataset_id.".idf.txt";
 
   my $idf_file = get $idf;
   open( IDF, '<', \$idf_file );
-  while (my $line = <IDF>) {
+  while (my $line = <IDF>) { 
     if ($line =~/^Investigation Title/){
       my @parts = split("\t", $line);
       $study_title = $parts[1];
-      ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array')
-            : $study_title =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
-            : $study_title =~ /expression/i ? ('gexarray', 'Expression array')
-            : die "did not recognise assay for $study_title";
+      ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array') # E-MTAB-4059
+            : $study_title =~ /HumanExome/i ? ('gtarray', 'Genotyping array') 
+            : $study_title =~ /expression/i ? ('gexarray', 'Expression array') # E-MTAB-4057
+            : die "did not recognise assay for $study_title";  # doesnt recognise E-MTAB-4748 or E-MTAB-7032. 
       $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'
             : $study_title =~ /Illumina 450K Methylation/i ? 'HumanMethylation450'
             : die "did not recognise platform for $study_title";
     }
   }
   close(IDF);
-
   my $sdrf_file = get $sdrf;
   open( SDRF, '<', \$sdrf_file );
 
@@ -86,39 +87,42 @@ foreach my $dataset_id (@dataset_id) {
   my @header_parts = split("\t", $header_line);
   foreach my $i (0..$#header_parts) {
     $column_of{$header_parts[$i]} = $i;
-  }
-  
-  if ($short_assay eq 'gexarray'){
+  } 
+  if ($short_assay eq 'gexarray'){  
     foreach my $line (@sdrflines) {
       chomp $line;
       my @parts = split("\t", $line);
-      my $cellline = $parts[$column_of{"Source Name"}];
+      # my $initial_cellline = $parts[$column_of{"Source Name"}]; # original line 
+      my $full_cellline = $parts[$column_of{"Assay Name"}];
+      my @line_array = split('\.', $full_cellline);
+      my $cellline = $line_array[0];
       my $raw_file = $parts[$column_of{"Array Data File"}];
       my $raw_ftp_link = $parts[$column_of{"Comment [ArrayExpress FTP file]"}];
       my $processed_file = $parts[$column_of{"Derived Array Data File"}];
       my $processed_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       $processed_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;  
       $raw_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
-      $arrayexpress{$cellline} = [$raw_ftp_link.'/'.$raw_file, $processed_ftp_link.'/'.$processed_file];
+      $arrayexpress{$cellline} = [$raw_ftp_link.'/'.$raw_file, $processed_ftp_link.'/'.$processed_file]; # it's been checked later
     }
-  }elsif($short_assay eq 'mtarray'){
+  }elsif($short_assay eq 'mtarray'){ 
     foreach my $line (@sdrflines) {
       my @parts = split("\t", $line);
-      my $cellline = $parts[$column_of{"Source Name"}];
+      my $full_cellline = $parts[$column_of{"Assay Name"}];
+      my @line_array = split('\.', $full_cellline);
+      my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       my $mt_file = $parts[$column_of{"Derived Array Data File"}];
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
-      #Get specific methylation version
       $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
             : $mt_file =~ /MethylationEPICv1/i ? 'MethylationEPIC v1'
             : die "did not recognise platform for $study_title in file $mt_file";
-      $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
+      $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file]; 
     }
   }
 
   close(SDRF);
   foreach my $cell_line (keys %arrayexpress){
-    my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
+    my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines; 
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
     die 'did not recognise sample ->'.$cell_line.'<-' if !$cgap_tissue;
@@ -139,12 +143,11 @@ foreach my $dataset_id (@dataset_id) {
     foreach my $file (@files) {
       push(@dates, $file =~ /\.(\d{8})\./);
     }
-    my ($date) = sort {$a <=> $b} @dates;
-
+    my ($date) = sort {$a <=> $b} @dates;   
     my ($passage_number, $growing_conditions);
-      if ($cgap_ips_line) {
-        my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
-        my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
+      if ($cgap_ips_line) { 
+        my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';  
+        my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date); 
         $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
                           : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
                           : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
@@ -189,7 +192,7 @@ foreach my $dataset_id (@dataset_id) {
     }
 
     while (my ($ext, $date_hash) = each %files) {
-      while (my ($file_description, $file_hash) = each %{$files{$ext}}) {
+      while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
         my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
         $es_id =~ s/\s/_/g;
         my @folderparts = split("-", $dataset_id);
@@ -250,11 +253,12 @@ my $scroll = $elasticsearch->call('scroll_helper', (
     }
   }
 ));
-
+ 
 my $date = strftime('%Y%m%d', localtime);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  my $new_doc = $docs{$es_doc->{_id}};
+  my $new_doc = $docs{$es_doc->{_id}}; 
+
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
@@ -265,7 +269,7 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
   $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc); 
 }
 while (my ($es_id, $new_doc) = each %docs) {
   $new_doc->{_indexCreated} = $date;
