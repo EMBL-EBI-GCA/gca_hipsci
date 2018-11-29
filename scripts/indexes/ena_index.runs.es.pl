@@ -16,22 +16,19 @@ use File::Basename qw(fileparse);
 use URI::Escape qw(uri_escape);
 
 my @era_params;
+my @study_id;
 my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
-my @sequencing_study_id;
-my %analysis_study_id;
 
 
 GetOptions(
     'era_dbuser=s'  => \$era_params[0],
     'era_dbpass=s'  => \$era_params[1],
     'era_dbname=s'  => \$era_params[2],
-    'study_id=s'    => \@sequencing_study_id,
-    'analysis_study_id=s'    => \%analysis_study_id,
+    'dataset_id=s'    => \@study_id,
     'demographic_file=s' => \$demographic_filename,
     'es_host=s' => \$es_host,
 );
-
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
