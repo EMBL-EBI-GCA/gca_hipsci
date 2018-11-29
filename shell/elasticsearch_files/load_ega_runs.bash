@@ -21,7 +21,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001001953 \
   -dataset_id EGAD00001001954 \
   -dataset_id EGAD00001001955 \
-  -dataset_id EGAD00001001999 \
   -dataset_id EGAD00001002000 \
   -dataset_id EGAD00001003161 \
   -dataset_id EGAD00001003180 \
@@ -54,3 +53,5 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+
+#  -dataset_id EGAD00001001999 \
