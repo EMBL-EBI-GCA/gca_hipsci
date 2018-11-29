@@ -6,7 +6,7 @@ HIPSCI_CODE=`dirname $0`/../..
 # Remove old dataset ids from this command line, and add any new ones before running this script.
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
-  -era_password $RESEQTRACK_PASS \
+  $ERA_DB_ARGS \
   -dataset_id EGAD00001000893 \
   -dataset_id EGAD00001000897 \
   -dataset_id EGAD00001001422 \
