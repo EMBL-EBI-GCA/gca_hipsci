@@ -6,7 +6,7 @@ HIPSCI_CODE=`dirname $0`/../..
 # Add any new ids to this command line before running this script.
 
 perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.es.pl \
-  -era_password $RESEQTRACK_PASS \
+  $ERA_DB_ARGS \
   -study_id ERP006946 \
   -study_id ERP007111 \
   -study_id ERP013436 \
