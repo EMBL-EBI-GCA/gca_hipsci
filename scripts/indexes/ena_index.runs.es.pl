@@ -86,6 +86,7 @@ foreach my $study_id (@study_id) {
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 
+
     my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
     my $source_material = $cgap_tissue->tissue_type || '';
     my $cell_type = $cgap_ips_line ? 'iPSC'
