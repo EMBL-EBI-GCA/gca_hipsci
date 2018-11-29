@@ -21,7 +21,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -dataset_id EGAD00001001953 \
   -dataset_id EGAD00001001954 \
   -dataset_id EGAD00001001955 \
-  -dataset_id EGAD00001002000 \
   -dataset_id EGAD00001003161 \
   -dataset_id EGAD00001003180 \
   -dataset_id EGAD00001003181 \
@@ -56,6 +55,8 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
 
 
 
-##  -dataset_id EGAD00001001999 \
+#  -dataset_id EGAD00001001999 \
+#  -dataset_id EGAD00001002000 \
+
 
 
