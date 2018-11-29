@@ -20,8 +20,6 @@ my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
 my @sequencing_study_id;
 my %analysis_study_id;
-# my %dataset_files;
-# my @dataset_id;
 
 
 GetOptions(
