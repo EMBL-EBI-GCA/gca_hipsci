@@ -20,7 +20,6 @@ my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
 my %dataset_files;
 
-
 GetOptions(
     'era_dbuser=s'  => \$era_params[0],
     'era_dbpass=s'  => \$era_params[1],
@@ -30,6 +29,7 @@ GetOptions(
     'demographic_file=s' => \$demographic_filename,
     'es_host=s' => \$es_host,
 );
+
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
