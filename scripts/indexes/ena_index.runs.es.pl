@@ -14,6 +14,7 @@ use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use File::Basename qw(fileparse);
 use URI::Escape qw(uri_escape);
+use Data::Dumper;
 
 my @era_params;
 my $demographic_filename;
@@ -72,7 +73,7 @@ foreach my $study_id (@study_id) {
     $disease = get_disease_for_elasticsearch('normal');
   }
   die "did not recognise disease for $study_id" if !$disease;
-
+  print Dumper($sth_study);
   $sth_run->bind_param(1, $study_id);
   $sth_run->execute or die "could not execute";
 
