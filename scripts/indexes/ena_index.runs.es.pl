@@ -73,7 +73,8 @@ foreach my $study_id (@study_id) {
     $disease = get_disease_for_elasticsearch('normal');
   }
   die "did not recognise disease for $study_id" if !$disease;
-  print $sth_study;
+  print $row;
+  print Dumper($row);
   $sth_run->bind_param(1, $study_id);
   $sth_run->execute or die "could not execute";
 
