@@ -53,7 +53,7 @@ my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-
+my $counter = 1;
 my %docs;
 foreach my $study_id (@study_id) {
   $sth_study->bind_param(1, $study_id);
@@ -88,6 +88,8 @@ foreach my $study_id (@study_id) {
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     if ($cgap_tissue) {
       print ' sample: '.$row->{BIOSAMPLE_ID};
+      print $counter;
+      $counter = $counter + 1;
     }
     # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 
