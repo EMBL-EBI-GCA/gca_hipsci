@@ -55,6 +55,7 @@ my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ip
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 my $counter = 1;
 my %docs;
+my @problematic_samples = ('SAMEA4939006', 'SAMEA4939007', 'SAMEA4939008', 'SAMEA4939009', 'SAMEA4939010');
 foreach my $study_id (@study_id) {
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
@@ -72,6 +73,7 @@ foreach my $study_id (@study_id) {
   if (!$disease && $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /ipsc_reference_set/i) {
     $disease = get_disease_for_elasticsearch('normal');
   }
+
   die "did not recognise disease for $study_id" if !$disease;
   # print $row;
   # print Dumper($row);
@@ -86,10 +88,16 @@ foreach my $study_id (@study_id) {
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-    if (!$cgap_tissue) {
-      print ' sample: '.$row->{BIOSAMPLE_ID};
-      # print "$counter\n";
+    # if (!$cgap_tissue) {
+    #   print ' sample: '.$row->{BIOSAMPLE_ID};
+    #   # print "$counter\n";
+    #   $counter = $counter + 1;
+    # }
+    if (grep { $_ eq $row->{BIOSAMPLE_ID} } @problematic_samples) {
+      print "$counter\n";
       $counter = $counter + 1;
+    } else {
+      print "not ok";
     }
     # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 
