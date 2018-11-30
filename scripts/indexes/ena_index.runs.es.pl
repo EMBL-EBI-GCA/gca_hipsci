@@ -87,7 +87,7 @@ foreach my $study_id (@study_id) {
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     if ($cgap_tissue) {
-      print ' sample: '.$row->{BIOSAMPLE_ID};
+      # print ' sample: '.$row->{BIOSAMPLE_ID};
       print $counter;
       $counter = $counter + 1;
     }
