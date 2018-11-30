@@ -52,7 +52,7 @@ my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 my %docs;
-my @problematic_samples = ('SAMEA4939006', 'SAMEA4939007', 'SAMEA4939008', 'SAMEA4939009', 'SAMEA4939010');
+my @problematic_samples = ('SAMEA4939006', 'SAMEA4939007', 'SAMEA4939008', 'SAMEA4939009', 'SAMEA4939010'); # they need to be reviewed
 
 foreach my $study_id (@study_id) {
   $sth_study->bind_param(1, $study_id);
