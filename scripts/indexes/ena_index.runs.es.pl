@@ -96,8 +96,9 @@ foreach my $study_id (@study_id) {
     if (grep { $_ eq $row->{BIOSAMPLE_ID} } @problematic_samples) {
       print "$counter\n";
       $counter = $counter + 1;
+      next;
     } else {
-      print "not ok";
+        die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
     }
     # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 
