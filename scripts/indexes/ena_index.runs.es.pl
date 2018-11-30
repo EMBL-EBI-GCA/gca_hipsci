@@ -89,7 +89,7 @@ foreach my $study_id (@study_id) {
     if (!$cgap_tissue) {
       print $row->{BIOSAMPLE_ID};
     }
-    die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+    # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 
 
     # my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
