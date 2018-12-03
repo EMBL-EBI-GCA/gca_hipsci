@@ -6,7 +6,7 @@ HIPSCI_CODE=`dirname $0`/../..
 # Remove old dataset ids from this command line, and add any new ones before running this script.
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
-  -era_password $RESEQTRACK_PASS \
+  $ERA_DB_ARGS \
   -dataset_id EGAD00001000893 \
   -dataset_id EGAD00001000897 \
   -dataset_id EGAD00001001422 \
@@ -21,8 +21,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001001953 \
   -dataset_id EGAD00001001954 \
   -dataset_id EGAD00001001955 \
-  -dataset_id EGAD00001001999 \
-  -dataset_id EGAD00001002000 \
   -dataset_id EGAD00001003161 \
   -dataset_id EGAD00001003180 \
   -dataset_id EGAD00001003181 \
@@ -43,6 +41,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003530 \
   -dataset_id EGAD00001003531 \
   -dataset_id EGAD00001003532 \
+  -dataset_id EGAD00001003533 \
   -dataset_id EGAD00001003534 \
   -dataset_id EGAD00001003535 \
   -dataset_id EGAD00001003536 \
@@ -54,3 +53,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+
+#  -dataset_id EGAD00001001999 \
+#  -dataset_id EGAD00001002000 \

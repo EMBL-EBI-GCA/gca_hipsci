@@ -14,14 +14,18 @@ use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use File::Basename qw(fileparse);
 
-my @era_params = ('ops$laura', undef, 'ERAPRO');
-my @sequencing_study_id;
-my %analysis_study_id;
+
+my @era_params;
 my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
+my @sequencing_study_id;
+my %analysis_study_id;
+
 
 GetOptions(
-    'era_password=s'    => \$era_params[1],
+    'era_dbuser=s'  => \$era_params[0],
+    'era_dbpass=s'  => \$era_params[1],
+    'era_dbname=s'  => \$era_params[2],
     'study_id=s'    => \@sequencing_study_id,
     'analysis_study_id=s'    => \%analysis_study_id,
     'demographic_file=s' => \$demographic_filename,

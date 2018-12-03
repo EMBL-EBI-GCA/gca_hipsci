@@ -14,14 +14,18 @@ use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use File::Basename qw(fileparse);
 use URI::Escape qw(uri_escape);
+use Data::Dumper;
 
-my @era_params = ('ops$laura', undef, 'ERAPRO');
-my @study_id;
+my @era_params;
 my $demographic_filename;
 my $es_host='ves-hx-e3:9200';
+my @study_id;
+
 
 GetOptions(
-    'era_password=s'    => \$era_params[1],
+    'era_dbuser=s'  => \$era_params[0],
+    'era_dbpass=s'  => \$era_params[1],
+    'era_dbname=s'  => \$era_params[2],
     'study_id=s'    => \@study_id,
     'demographic_file=s' => \$demographic_filename,
     'es_host=s' => \$es_host,
@@ -47,8 +51,9 @@ my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-
 my %docs;
+my @problematic_samples = ('SAMEA4939006', 'SAMEA4939007', 'SAMEA4939008', 'SAMEA4939009', 'SAMEA4939010'); # they need to be reviewed
+
 foreach my $study_id (@study_id) {
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
@@ -66,8 +71,8 @@ foreach my $study_id (@study_id) {
   if (!$disease && $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /ipsc_reference_set/i) {
     $disease = get_disease_for_elasticsearch('normal');
   }
-  die "did not recognise disease for $study_id" if !$disease;
 
+  die "did not recognise disease for $study_id" if !$disease;
   $sth_run->bind_param(1, $study_id);
   $sth_run->execute or die "could not execute";
 
@@ -79,7 +84,14 @@ foreach my $study_id (@study_id) {
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-    die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+
+    # this line has been removed to temporarily ignore samples in @problematic_samples
+    # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+    if (grep { $_ eq $row->{BIOSAMPLE_ID} } @problematic_samples) {
+      next;
+    } else {
+        die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+    }
 
     my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
     my $source_material = $cgap_tissue->tissue_type || '';
