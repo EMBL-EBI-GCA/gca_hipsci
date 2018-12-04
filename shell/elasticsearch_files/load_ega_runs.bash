@@ -48,11 +48,12 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003537 \
   -dataset_id EGAD00001003538 \
   -dataset_id EGAD00001003539 \
+  -dataset_id EGAD00001003539 \
   -dataset_id EGAD00001003540 \
   -dataset_id EGAD00001003541 \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
-  -dataset_id EGAD00001003204 \
+  -dataset_id EGAD00001002235 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
 #  -dataset_id EGAD00001001999 \ commented out
