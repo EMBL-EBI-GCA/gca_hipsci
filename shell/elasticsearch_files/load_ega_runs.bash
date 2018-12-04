@@ -53,13 +53,13 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003541 \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
-  -dataset_id EGAD00001002235 \
+  -dataset_id EGAD00001004266 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
 #  -dataset_id EGAD00001001999 \ commented out
 #  -dataset_id EGAD00001002000 \ Commented out
 #  -dataset_id EGAD00001003204 \ new
-#  -dataset_id EGAD00001002235 \ new
+#  -dataset_id EGAD00001002235 \ new    # did not recognise sample SAMEA3672120
 #  -dataset_id EGAD00001004266 \ new
 #  -dataset_id EGAD00001004295 \ new
 #This is the last one that was already here:
