@@ -52,6 +52,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003541 \
   -dataset_id EGAD00001003542 \
   -dataset_id EGAD00001003543 \
+  -dataset_id EGAD00001003204 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
 #  -dataset_id EGAD00001001999 \ commented out
