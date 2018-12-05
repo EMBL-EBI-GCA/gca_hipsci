@@ -145,7 +145,7 @@ foreach my $dataset_id (@dataset_id) {
     # if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
     #   push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
     # }
-  }
+  
 
 }
 #
