@@ -86,7 +86,8 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($file);
       # print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
       # print $_;
-      print Dumper($cgap_ips_lines)[0];
+      # print Dumper($cgap_ips_lines);
+      print @$cgap_ips_lines;
       last;
 
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
