@@ -76,18 +76,18 @@ foreach my $dataset_id (@dataset_id) {
   ROW:
   while (my $row = $sth_run->fetchrow_hashref) {
     # print Dumper($row);
-      print "$counter\n";
-      $counter ++;
+    #   print "$counter\n";
+    #   $counter ++;
 
       my $xml_hash = XMLin($row->{RUN_XML});
       # print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
     my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
       # print Dumper($file);
-      # print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
+      print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
       # print $_;
       # print Dumper($cgap_ips_lines);
-      print Dumper(@$cgap_ips_lines[0]);
+      # print Dumper(@$cgap_ips_lines[0]);
       last;
 
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
