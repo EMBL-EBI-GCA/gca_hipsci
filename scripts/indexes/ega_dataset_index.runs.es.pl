@@ -84,7 +84,7 @@ foreach my $dataset_id (@dataset_id) {
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
     my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
       # print Dumper($file);
-      print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
+      # print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
       # print $_;
       # print Dumper($cgap_ips_lines);
       # print Dumper(@$cgap_ips_lines[0]);
@@ -95,9 +95,11 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($cgap_ips_line);
       my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-    #   if (!$cgap_tissue) {
-    #       print "no\n";
-    #   }
+      if (!$cgap_tissue) {
+          print "no\n";
+      } else {
+          print $row->{BIOSAMPLE_ID};
+      }
     # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
     #
     # my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
