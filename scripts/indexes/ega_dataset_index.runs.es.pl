@@ -61,134 +61,131 @@ foreach my $dataset_id (@dataset_id) {
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-    print Dumper($xml_hash->{DATASET}{TITLE});
-    print "\n";
-    print Dumper($xml_hash->{DATASET}{DESCRIPTION});
-  # my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
-  #           : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
-  #           : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
-  #           : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
-  #           : die "did not recognise assay for $dataset_id";
-  # my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  # die "did not recognise disease for $dataset_id" if !$disease;
-  #
-  # $sth_run->bind_param(1, $dataset_id);
-  # $sth_run->execute or die "could not execute";
-  #
-  # ROW:
-  # while (my $row = $sth_run->fetchrow_hashref) {
-  #     my $xml_hash = XMLin($row->{RUN_XML});
-  #   my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
-  #   my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
-  #   my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
-  #     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-  #                   : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-    # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
-    #
-    # my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
-    # my $source_material = $cgap_tissue->tissue_type || '';
-    # my $cell_type = $cgap_ips_line ? 'iPSC'
-    #               : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-    #               : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-    #               : die "did not recognise source material $source_material";
-    #
-    # my $run_time = DateTime::Format::ISO8601->parse_datetime($row->{FIRST_CREATED})->subtract(days => 90);
-    # my ($growing_conditions, $passage_number);
-    # if ($cgap_ips_line) {
-    #   my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-    #   $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
-    #   $passage_number = $cgap_release->passage;
-    # }
-    # else {
-    #   $growing_conditions = $cell_type;
-    # }
-    #
-    # my $filename = fileparse($file->{filename});
-    # $filename =~ s/\.gpg$//;
-    # my $file_description = 'Raw sequencing reads';
-    #
-    # my $es_id = join('-', $sample_name, $short_assay, $row->{RUN_ID});
-    # $es_id =~ s/\s/_/g;
-    #
-    # $docs{$es_id} = {
-    #   description => $file_description,
-    #   files => [
-    #     {
-    #       name => $filename,
-    #       md5 => $file->{unencrypted_checksum},
-    #       type => $file->{filetype},
-    #     }
-    #   ],
-    #   archive => {
-    #     name => 'EGA',
-    #     accession => $dataset_id,
-    #     accessionType => 'DATASET_ID',
-    #     url => 'https://ega-archive.org/datasets/'.$dataset_id,
-    #     ftpUrl => 'secure access via EGA',
-    #     openAccess => 0,
-    #   },
-    #   samples => [{
-    #     name => $sample_name,
-    #     bioSamplesAccession => $row->{BIOSAMPLE_ID},
-    #     cellType => $cell_type,
-    #     diseaseStatus => $disease,
-    #     sex => $cgap_tissue->donor->gender,
-    #     growingConditions => $growing_conditions,
-    #   }],
-    #   assay => {
-    #     type => $long_assay,
-    #     description => [ map {$_.'='.$row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
-    #     instrument => $row->{INSTRUMENT_MODEL}
-    #   }
-    # };
-    # if ($passage_number) {
-    #   $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
-    # }
-    # if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
-    #   push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
-    # }
+  my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
+            : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
+            : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
+            : die "did not recognise assay for $dataset_id";
+  my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
+  die "did not recognise disease for $dataset_id" if !$disease;
 
+  $sth_run->bind_param(1, $dataset_id);
+  $sth_run->execute or die "could not execute";
+
+  ROW:
+  while (my $row = $sth_run->fetchrow_hashref) {
+      my $xml_hash = XMLin($row->{RUN_XML});
+    my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
+    my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
+    my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
+      my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                    : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
+    die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+
+    my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
+    my $source_material = $cgap_tissue->tissue_type || '';
+    my $cell_type = $cgap_ips_line ? 'iPSC'
+                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                  : die "did not recognise source material $source_material";
+
+    my $run_time = DateTime::Format::ISO8601->parse_datetime($row->{FIRST_CREATED})->subtract(days => 90);
+    my ($growing_conditions, $passage_number);
+    if ($cgap_ips_line) {
+      my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+      $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+      $passage_number = $cgap_release->passage;
+    }
+    else {
+      $growing_conditions = $cell_type;
+    }
+
+    my $filename = fileparse($file->{filename});
+    $filename =~ s/\.gpg$//;
+    my $file_description = 'Raw sequencing reads';
+
+    my $es_id = join('-', $sample_name, $short_assay, $row->{RUN_ID});
+    $es_id =~ s/\s/_/g;
+
+    $docs{$es_id} = {
+      description => $file_description,
+      files => [
+        {
+          name => $filename,
+          md5 => $file->{unencrypted_checksum},
+          type => $file->{filetype},
+        }
+      ],
+      archive => {
+        name => 'EGA',
+        accession => $dataset_id,
+        accessionType => 'DATASET_ID',
+        url => 'https://ega-archive.org/datasets/'.$dataset_id,
+        ftpUrl => 'secure access via EGA',
+        openAccess => 0,
+      },
+      samples => [{
+        name => $sample_name,
+        bioSamplesAccession => $row->{BIOSAMPLE_ID},
+        cellType => $cell_type,
+        diseaseStatus => $disease,
+        sex => $cgap_tissue->donor->gender,
+        growingConditions => $growing_conditions,
+      }],
+      assay => {
+        type => $long_assay,
+        description => [ map {$_.'='.$row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)],
+        instrument => $row->{INSTRUMENT_MODEL}
+      }
+    };
+    if ($passage_number) {
+      $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+    }
+    if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
+      push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
+    }
+  }
 
 }
-#
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'EGA',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
-#
-# my $date = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   next ES_DOC if $es_doc->{_id} !~ /-ERR\d+$/;
-#   my $new_doc = $docs{$es_doc->{_id}};
-#   if (!$new_doc) {
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
-#
+
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'EGA',
+          },
+        }
+      }
+    }
+  }
+));
+
+my $date = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  next ES_DOC if $es_doc->{_id} !~ /-ERR\d+$/;
+  my $new_doc = $docs{$es_doc->{_id}};
+  if (!$new_doc) {
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) {
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
+
