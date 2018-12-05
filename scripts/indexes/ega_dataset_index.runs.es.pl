@@ -52,7 +52,6 @@ my $sql_run =  "
 my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run";
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-print Dumper($cgap_ips_lines);
 improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
@@ -86,6 +85,8 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($file);
       # print $row->{BIOSAMPLE_ID}; # returns biosample id for the ones with error even.
       # print $_;
+      print Dumper($cgap_ips_lines);
+
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
       # print Dumper($cgap_ips_line);
       my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
