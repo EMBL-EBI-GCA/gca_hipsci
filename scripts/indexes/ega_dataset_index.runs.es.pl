@@ -78,6 +78,7 @@ foreach my $dataset_id (@dataset_id) {
     # print Dumper($row);
       print "$counter\n";
       $counter ++;
+      next;
       my $xml_hash = XMLin($row->{RUN_XML});
       # print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
