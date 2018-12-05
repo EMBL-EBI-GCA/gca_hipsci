@@ -79,9 +79,10 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
     my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
-      print Dumper($file);
+      # print Dumper($file);
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
-    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+      print Dumper($cgap_ips_line);
+      my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
     #
