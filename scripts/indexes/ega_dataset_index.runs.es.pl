@@ -95,7 +95,7 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($cgap_ips_line);
       my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-      if (!$cgap_tissue) {
+      if ($cgap_tissue) {
           print "no\n";
       } else {
           print $row->{BIOSAMPLE_ID};
