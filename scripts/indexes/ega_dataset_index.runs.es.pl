@@ -88,7 +88,8 @@ foreach my $dataset_id (@dataset_id) {
       # print $_;
       # print Dumper($cgap_ips_lines);
       # print Dumper(@$cgap_ips_lines[0]);
-      last;
+      print "\n";
+      # last;
 
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
       # print Dumper($cgap_ips_line);
