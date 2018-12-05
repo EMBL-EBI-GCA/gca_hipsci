@@ -68,3 +68,8 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
 #  -dataset_id EGAD00001003541 \
 #  -dataset_id EGAD00001003542 \
 #  -dataset_id EGAD00001003543 \
+
+
+# testing with these two
+#  -dataset_id EGAD00001000893 \ 30 samples
+#  -dataset_id EGAD00001002235 \ 80
