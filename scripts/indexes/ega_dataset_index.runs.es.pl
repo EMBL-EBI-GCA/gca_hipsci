@@ -74,8 +74,9 @@ foreach my $dataset_id (@dataset_id) {
 
   ROW:
   while (my $row = $sth_run->fetchrow_hashref) {
-    print Dumper($row);
+    # print Dumper($row);
       my $xml_hash = XMLin($row->{RUN_XML});
+      print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
     my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
