@@ -62,6 +62,8 @@ foreach my $dataset_id (@dataset_id) {
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
     print Dumper($xml_hash->{DATASET}{TITLE});
+    print "\n";
+    print Dumper($xml_hash->{DATASET}{DESCRIPTION});
   # my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
   #           : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
   #           : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
