@@ -74,7 +74,7 @@ foreach my $dataset_id (@dataset_id) {
 
   ROW:
   while (my $row = $sth_run->fetchrow_hashref) {
-    # print Dumper($row);
+    print Dumper($row);
       my $xml_hash = XMLin($row->{RUN_XML});
       print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
