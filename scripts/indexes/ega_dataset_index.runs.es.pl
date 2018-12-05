@@ -72,9 +72,12 @@ foreach my $dataset_id (@dataset_id) {
   $sth_run->bind_param(1, $dataset_id);
   $sth_run->execute or die "could not execute";
 
+    my $counter = 1;
   ROW:
   while (my $row = $sth_run->fetchrow_hashref) {
     # print Dumper($row);
+      print $counter;
+      $counter ++;
       my $xml_hash = XMLin($row->{RUN_XML});
       # print Dumper($xml_hash);
     my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
