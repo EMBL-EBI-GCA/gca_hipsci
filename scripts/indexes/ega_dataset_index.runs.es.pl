@@ -95,10 +95,10 @@ foreach my $dataset_id (@dataset_id) {
       # print Dumper($cgap_ips_line);
       my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-      if (!$cgap_tissue) {
-          print "\n";
-      }
-    die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+    #   if (!$cgap_tissue) {
+    #       print "no\n";
+    #   }
+    # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
     #
     # my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
     # my $source_material = $cgap_tissue->tissue_type || '';
