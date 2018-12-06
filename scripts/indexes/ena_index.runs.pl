@@ -10,15 +10,28 @@ use ReseqTrack::Tools::HipSci::DiseaseParser qw(get_disease_for_elasticsearch);
 use Getopt::Long;
 use XML::Simple qw(XMLin);
 
-my @era_params = ('ops$laura', undef, 'ERAPRO');
-my @study_id;
+my @era_params;
 my $demographic_filename;
+my $es_host='ves-hx-e3:9200';
+my @study_id;
+
 
 GetOptions(
-    'era_password=s'    => \$era_params[1],
+    'era_dbuser=s'  => \$era_params[0],
+    'era_dbpass=s'  => \$era_params[1],
+    'era_dbname=s'  => \$era_params[2],
     'study_id=s'    => \@study_id,
     'demographic_file=s' => \$demographic_filename,
 );
+# my @era_params = ('ops$laura', undef, 'ERAPRO');
+# my @study_id;
+# my $demographic_filename;
+#
+# GetOptions(
+#     'era_password=s'    => \$era_params[1],
+#     'study_id=s'    => \@study_id,
+#     'demographic_file=s' => \$demographic_filename,
+# );
 
 my $era_db = get_erapro_conn(@era_params);
 $era_db->dbc->db_handle->{LongReadLen} = 4000000;
