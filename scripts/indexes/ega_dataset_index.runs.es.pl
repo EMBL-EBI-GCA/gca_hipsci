@@ -67,22 +67,23 @@ foreach my $dataset_id (@dataset_id) {
             : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
             : die "did not recognise assay for $dataset_id";
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  print Dumper($disease);
+  # print Dumper($disease);
   # die "did not recognise disease for $dataset_id" if !$disease;
-  #
-  # $sth_run->bind_param(1, $dataset_id);
-  # $sth_run->execute or die "could not execute";
-  #
-  # ROW:
-  # while (my $row = $sth_run->fetchrow_hashref) {
-  #     my $xml_hash = XMLin($row->{RUN_XML});
-  #   my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
-  #   my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
-  #   my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
-  #     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-  #                   : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-  #   die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
-  #
+
+  $sth_run->bind_param(1, $dataset_id);
+  $sth_run->execute or die "could not execute";
+
+  ROW:
+  while (my $row = $sth_run->fetchrow_hashref) {
+    my $xml_hash = XMLin($row->{RUN_XML});
+    my $experiment_xml_hash = XMLin($row->{EXPERIMENT_XML});
+    my $file = $xml_hash->{RUN}{DATA_BLOCK}{FILES}{FILE};
+    my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
+    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                    : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
+    print Dumper($row->{BIOSAMPLE_ID});
+    # die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+
   #   my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
   #   my $source_material = $cgap_tissue->tissue_type || '';
   #   my $cell_type = $cgap_ips_line ? 'iPSC'
