@@ -72,13 +72,13 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   die "no study $study_id" if !$row;
   my $xml_hash = XMLin($row->{STUDY_XML});
 
-  my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /expression/i ? ('gexarray', 'Expression array')
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /methylation/i ? ('mtarray', 'Methylation array')
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /expression/i ? ('gexarray', 'Expression array')
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
-            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
-            : die "did not recognise assay for $study_id";
+  # my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /expression/i ? ('gexarray', 'Expression array')
+  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
+  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /methylation/i ? ('mtarray', 'Methylation array')
+  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /expression/i ? ('gexarray', 'Expression array')
+  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
+  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
+  #           : die "did not recognise assay for $study_id";
   print $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE};
   # my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
   # die "did not recognise disease for $study_id" if !$disease;
