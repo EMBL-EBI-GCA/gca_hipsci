@@ -6,12 +6,12 @@ perl $HIPSCI_CODE/scripts/indexes/ena_index.runs.pl \
   -study_id ERP007111 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
-#perl $HIPSCI_CODE/scripts/indexes/ena_index.analyses.pl \
-#  $ERA_DB_ARGS \
-#  -study_id ERP006946 \
-#  -study_id ERP007111 \
-#  -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
-#
+perl $HIPSCI_CODE/scripts/indexes/ena_index.analyses.pl \
+  $ERA_DB_ARGS \
+  -study_id ERP006946 \
+  -study_id ERP007111 \
+  -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+
 #perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.pl \
 #  $ERA_DB_ARGS \
 #  -dataset_id EGAD00001001437 \
