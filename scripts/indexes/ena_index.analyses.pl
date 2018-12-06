@@ -37,7 +37,7 @@ GetOptions(
     'study_id=s'    => \@sequencing_study_id,
     'analysis_study_id=s'    => \%analysis_study_id,
     'demographic_file=s' => \$demographic_filename,
-    # 'es_host=s' => \$es_host,
+    'es_host=s' => \$es_host,
 );
 
 my $era_db = get_erapro_conn(@era_params);
