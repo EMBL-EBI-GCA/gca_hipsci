@@ -9,7 +9,7 @@ HIPSCI_CODE=`dirname $0`/../..
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
   $ERA_DB_ARGS \
-  -dataset EGAD00010001344=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002005.gtarray.201812.tsv
+  -dataset EGAD00010001344=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002005.gtarray.201812.tsv \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 # old working ones:
 #  -dataset EGAD00010001147=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt \
