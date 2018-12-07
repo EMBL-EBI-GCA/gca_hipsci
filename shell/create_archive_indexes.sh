@@ -50,7 +50,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.pl \
   -dataset EGAD00010001386=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002029.gexarray.201812.tsv \
   -dataset EGAD00010001388=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002030.gexarray.201812.tsv \
   -dataset EGAD00010001390=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002031.gexarray.201812.tsv \
-  -dataset EGAD00010000909=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001728.mtarray.201812.tsv \
   -dataset EGAD00010000910=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001729.gexarray.201812.tsv \
   -dataset EGAD00010000911=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001730.gtarray.201812.tsv \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
@@ -59,3 +58,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.pl \
 #  -dataset EGAD00010000773=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.201411.tsv \
 #  -dataset EGAD00010000771=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.201504.tsv \
 #  -dataset EGAD00010000775=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.201411.tsv \
+
+
+#  -dataset EGAD00010000909=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001728.mtarray.201812.tsv \
