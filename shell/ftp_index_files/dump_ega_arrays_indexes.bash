@@ -9,7 +9,7 @@ HIPSCI_CODE=`dirname $0`/../..
 # There will be one output tsv file written per dataset id.
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.pl \
-  -era_password $RESEQTRACK_PASS \
+  $ERA_DB_ARGS \
   -dataset EGAD00010000773=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.201411.tsv \
   -dataset EGAD00010000771=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.201504.tsv \
   -dataset EGAD00010000775=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.201411.tsv \
