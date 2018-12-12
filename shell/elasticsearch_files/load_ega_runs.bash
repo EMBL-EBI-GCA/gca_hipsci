@@ -7,7 +7,7 @@ HIPSCI_CODE=`dirname $0`/../..
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   $ERA_DB_ARGS \
-  -dataset_id EGAD00001002235 \
+  -dataset_id EGAD00001000893 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
 
