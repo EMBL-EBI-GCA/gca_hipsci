@@ -112,7 +112,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       my @parts = split("\t", $line);
       my $full_cellline = $parts[$column_of{"Assay Name"}];  # works, HGII_16432_1, HGII_16366_1 ...
       my @line_array = split('\.', $full_cellline);
-      print "@line_array\n";
+      print "@line_array";
       my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       my $mt_file = $parts[$column_of{"Derived Array Data File"}];
