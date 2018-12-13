@@ -114,7 +114,8 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       # print "@line_array";
       my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
-      my $mt_file = $parts[$column_of{"Derived Array Data File"}]; # works
+      my $mt_file = $parts[$column_of{"Derived Array Data File"}]; # bulk_individuals_count.csv, instead of
+      # HPSI0114pf-bezi.gexarray.HumanHT-12_V4_0.quantile_sample_probe_profile.20140829.txt
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
       print "$mt_file\n";
       # $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
