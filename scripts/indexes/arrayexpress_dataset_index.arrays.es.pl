@@ -115,86 +115,88 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       my $mt_file = $parts[$column_of{"Derived Array Data File"}]; # bulk_individuals_count.csv, instead of
-      # HPSI0114pf-bezi.gexarray.HumanHT-12_V4_0.quantile_sample_probe_profile.20140829.txt
+      # HPSI0114pf-bezi.gexarray.HumanHT-12_V4_0.quantile_sample_probe_profile.20140829.txt    OR
+      # HPSI1014i-xiyh_4.mtarray.HumanMethylationEPICv1.0_B1.profile.20170125.txt
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
-      print "$mt_file\n";
+      # print "$mt_file\n";
       # $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
       #       : $mt_file =~ /MethylationEPICv1/i ? 'MethylationEPIC v1'
       #       : die "did not recognise platform for $study_title in file $mt_file";
-      # $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
+      $platform = 'HumanMethylation450 v1'; # test line, to be removed.
+      $arrayexpress{$cellline} = [$mt_ftp_link."/".$mt_file];
     }
   }
-  #
-  # close(SDRF);
-  # foreach my $cell_line (keys %arrayexpress){
-  #   my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
-  #   my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-  #                   : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
-  #   die 'did not recognise sample ->'.$cell_line.'<-' if !$cgap_tissue;
-  #   my $source_material = $cgap_tissue->tissue_type || '';
-  #   my $cell_type = $cgap_ips_line ? 'iPSC'
-  #                 : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-  #                 : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-  #                 : die "did not recognise source material $source_material";
-  #   my @files;
-  #   my %zip_file;
-  #   foreach my $file (@{$arrayexpress{$cell_line}}){
-  #     my @fileparts = split("/", $file);
-  #     my $filename = $fileparts[-1];
-  #     push(@files, $filename);
-  #     $zip_file{$filename} = $fileparts[-2];
-  #   }
-  #   my @dates;
-  #   foreach my $file (@files) {
-  #     push(@dates, $file =~ /\.(\d{8})\./);
-  #   }
-  #   my ($date) = sort {$a <=> $b} @dates;
-  #   my ($passage_number, $growing_conditions);
-  #     if ($cgap_ips_line) {
-  #       my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
-  #       my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
-  #       $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
-  #                         : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
-  #                         : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
-  #                         : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
-  #                         : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
-  #                         : die "could not get growing conditions for @files";
-  #       $passage_number = $cgap_release->passage;
-  #     }
-  #     else {
-  #       $growing_conditions = $cell_type;
-  #   }
-  #
-  #   my $disease;
-  #   if ( $cell_line =~ /HPSI.*-([a-z]{4})/ ) {
-  #     my $short_name = $1;
-  #     my $es_donor = $elasticsearch->fetch_donor_by_short_name($short_name);
-  #     die "did not get donor $short_name" if !$es_donor;
-  #     $disease = $es_donor->{_source}{diseaseStatus}{value};
-  #   }
-  #
-  #   my %files;
-  #   FILE:
-  #   foreach my $filename (@files) {
-  #     $filename =~ s/\.gpg$//;
-  #     my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
-  #     next FILE if $ext eq 'tbi';
-  #     my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
-  #     if (!@files) {
-  #       print "skipping $filename - did not recognise it\n";
-  #       next FILE;
-  #     }
-  #     die "multiple files for $filename" if @files>1;
-  #
-  #     my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'Imputed and phased genotypes'
-  #                         : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
-  #                         : $ext eq 'idat' ? 'Array signal intensity data'
-  #                         : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
-  #                         : $ext eq 'txt' && $short_assay eq 'gexarray' ? 'GenomeStudio text file'
-  #                         : die "did not recognise type of $filename";
-  #
-  #     $files{$ext}{$file_description}{$filename} = $files[0];
-  #   }
+
+  close(SDRF);
+  foreach my $cell_line (keys %arrayexpress){
+    my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
+    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                    : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
+    die 'did not recognise sample ->'.$cell_line.'<-' if !$cgap_tissue;
+    my $source_material = $cgap_tissue->tissue_type || '';
+    my $cell_type = $cgap_ips_line ? 'iPSC'
+                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                  : die "did not recognise source material $source_material";
+    my @files;
+    my %zip_file;
+    foreach my $file (@{$arrayexpress{$cell_line}}){
+      my @fileparts = split("/", $file);
+      my $filename = $fileparts[-1];
+      push(@files, $filename);
+      $zip_file{$filename} = $fileparts[-2];
+    }
+    my @dates;
+    foreach my $file (@files) {
+      push(@dates, $file =~ /\.(\d{8})\./);
+    }
+    my ($date) = sort {$a <=> $b} @dates;
+    my ($passage_number, $growing_conditions);
+      if ($cgap_ips_line) {
+        my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
+        my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
+        $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
+                          : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
+                          : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
+                          : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
+                          : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
+                          : die "could not get growing conditions for @files";
+        $passage_number = $cgap_release->passage;
+      }
+      else {
+        $growing_conditions = $cell_type;
+    }
+
+    my $disease;
+    if ( $cell_line =~ /HPSI.*-([a-z]{4})/ ) {
+      my $short_name = $1;
+      my $es_donor = $elasticsearch->fetch_donor_by_short_name($short_name);
+      die "did not get donor $short_name" if !$es_donor;
+      $disease = $es_donor->{_source}{diseaseStatus}{value};
+    }
+
+    my %files;
+    FILE:
+    foreach my $filename (@files) {
+      $filename =~ s/\.gpg$//;
+      my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
+      next FILE if $ext eq 'tbi';
+      my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
+      if (!@files) {
+        print "skipping $filename - did not recognise it\n";
+        next FILE;
+      }
+      die "multiple files for $filename" if @files>1;
+
+      my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'Imputed and phased genotypes'
+                          : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
+                          : $ext eq 'idat' ? 'Array signal intensity data'
+                          : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
+                          : $ext eq 'txt' && $short_assay eq 'gexarray' ? 'GenomeStudio text file'
+                          : die "did not recognise type of $filename";
+
+      $files{$ext}{$file_description}{$filename} = $files[0];
+    }
 
     # while (my ($ext, $date_hash) = each %files) {
     #   while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
@@ -237,7 +239,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     #     # }
     #   }
     # }
-  # }
+  }
 }
 
 # my $scroll = $elasticsearch->call('scroll_helper', (
