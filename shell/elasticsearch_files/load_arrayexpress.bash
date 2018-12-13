@@ -7,6 +7,7 @@ HIPSCI_CODE=`dirname $0`/../..
 
 perl $HIPSCI_CODE/scripts/indexes/arrayexpress_dataset_index.arrays.es.pl \
   -dataset_id E-MTAB-7032 \
+  -dataset_id E-MTAB-4057 \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
 
   # -dataset_id E-MTAB-7032 \ # needs to be added.
