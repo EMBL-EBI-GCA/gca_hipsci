@@ -64,16 +64,17 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
   open( IDF, '<', \$idf_file );
   while (my $line = <IDF>) { 
     if ($line =~/^Investigation Title/){
-      my @parts = split("\t", $line); # Bulk RNA-seq of of human dermal fibroblasts from up to 66 individuals (supplementary)
-      $study_title = $parts[1];
-      print $study_title;
-      ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array') # E-MTAB-4059
-            : $study_title =~ /HumanExome/i ? ('gtarray', 'Genotyping array') 
-            : $study_title =~ /expression/i ? ('gexarray', 'Expression array') # E-MTAB-4057
-            : die "did not recognise assay for $study_title";  # doesnt recognise E-MTAB-4748 or E-MTAB-7032.
-      $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'
-            : $study_title =~ /Illumina 450K Methylation/i ? 'HumanMethylation450'
-            : die "did not recognise platform for $study_title";
+      my @parts = split("\t", $line);
+      $study_title = $parts[1]; # Bulk RNA-seq of of human dermal fibroblasts from up to 66 individuals (supplementary)
+      # ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array') # E-MTAB-4059
+      #       : $study_title =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
+      #       : $study_title =~ /expression/i ? ('gexarray', 'Expression array') # E-MTAB-4057
+      #       : die "did not recognise assay for $study_title";  # doesnt recognise E-MTAB-4748 or E-MTAB-7032.
+      # $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'
+      #       : $study_title =~ /Illumina 450K Methylation/i ? 'HumanMethylation450'
+      #       : die "did not recognise platform for $study_title";
+      ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array');  # test line - remove it
+      $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'; # test line - remove it
     }
   }
   close(IDF);
@@ -192,47 +193,47 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       $files{$ext}{$file_description}{$filename} = $files[0];
     }
 
-    while (my ($ext, $date_hash) = each %files) {
-      while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
-        my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
-        $es_id =~ s/\s/_/g;
-        my @folderparts = split("-", $dataset_id);
-        my $folderid = $folderparts[1];
-
-        $docs{$es_id} = {
-          description => $file_description,
-          files => [
-          ],
-          archive => {
-            name => 'ArrayExpress',
-            accession => $dataset_id,
-            accessionType => 'EXPERIMENT_ID',
-            url => 'http://www.ebi.ac.uk/arrayexpress/experiments/'.$dataset_id.'/',
-            ftpUrl => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/'.$folderid."/".$dataset_id.'/',
-            openAccess => 1,
-          },
-          samples => [{
-            name => $cell_line,
-            bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
-            cellType => $cell_type,
-            diseaseStatus => $disease,
-            sex => $cgap_tissue->donor->gender,
-            growingConditions => $growing_conditions,
-          }],
-          assay => {
-            type => $long_assay,
-            description => ["PLATFORM=$platform",],
-            instrument => $platform
-          }
-        };
-        if ($passage_number) {
-          $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
-        }
-        while (my ($filename, $file_object) = each %$file_hash) {
-          push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
-        }
-      }
-    }
+    # while (my ($ext, $date_hash) = each %files) {
+    #   while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
+    #     my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
+    #     $es_id =~ s/\s/_/g;
+    #     my @folderparts = split("-", $dataset_id);
+    #     my $folderid = $folderparts[1];
+    #
+    #     $docs{$es_id} = {
+    #       description => $file_description,
+    #       files => [
+    #       ],
+    #       archive => {
+    #         name => 'ArrayExpress',
+    #         accession => $dataset_id,
+    #         accessionType => 'EXPERIMENT_ID',
+    #         url => 'http://www.ebi.ac.uk/arrayexpress/experiments/'.$dataset_id.'/',
+    #         ftpUrl => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/'.$folderid."/".$dataset_id.'/',
+    #         openAccess => 1,
+    #       },
+    #       samples => [{
+    #         name => $cell_line,
+    #         bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
+    #         cellType => $cell_type,
+    #         diseaseStatus => $disease,
+    #         sex => $cgap_tissue->donor->gender,
+    #         growingConditions => $growing_conditions,
+    #       }],
+    #       assay => {
+    #         type => $long_assay,
+    #         description => ["PLATFORM=$platform",],
+    #         instrument => $platform
+    #       }
+    #     };
+    #     if ($passage_number) {
+    #       $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
+    #     }
+    #     # while (my ($filename, $file_object) = each %$file_hash) {
+    #     #   push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
+    #     # }
+    #   }
+    # }
   }
 }
 
