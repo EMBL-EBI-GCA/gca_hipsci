@@ -111,6 +111,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     foreach my $line (@sdrflines) {
       my @parts = split("\t", $line);
       my $full_cellline = $parts[$column_of{"Assay Name"}];
+      print "$full_cellline\n";
       my @line_array = split('\.', $full_cellline);
       my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
