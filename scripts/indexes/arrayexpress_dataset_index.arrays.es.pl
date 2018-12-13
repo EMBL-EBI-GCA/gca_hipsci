@@ -95,9 +95,9 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       chomp $line; # print the hshs kl ;
       my @parts = split("\t", $line);
       # my $initial_cellline = $parts[$column_of{"Source Name"}]; # original line
-      my $full_cellline = $parts[$column_of{"Assay Name"}];
-      print "$full_cellline\n";
+      my $full_cellline = $parts[$column_of{"Assay Name"}]; # works
       my @line_array = split('\.', $full_cellline);
+      print "@line_array\n";
       my $cellline = $line_array[0];
       my $raw_file = $parts[$column_of{"Array Data File"}];
       my $raw_ftp_link = $parts[$column_of{"Comment [ArrayExpress FTP file]"}];
@@ -110,9 +110,9 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
   }elsif($short_assay eq 'mtarray'){
     foreach my $line (@sdrflines) {
       my @parts = split("\t", $line);
-      my $full_cellline = $parts[$column_of{"Assay Name"}];
-      print "$full_cellline\n";
+      my $full_cellline = $parts[$column_of{"Assay Name"}];  # works, HGII_16432_1, HGII_16366_1 ...
       my @line_array = split('\.', $full_cellline);
+      print "@line_array\n";
       my $cellline = $line_array[0];
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
       my $mt_file = $parts[$column_of{"Derived Array Data File"}];
