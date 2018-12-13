@@ -64,12 +64,13 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
   open( IDF, '<', \$idf_file );
   while (my $line = <IDF>) { 
     if ($line =~/^Investigation Title/){
-      my @parts = split("\t", $line);
-      $study_title = $parts[1];
+      my @parts = split("\t", $line); # line = Bulk RNA-seq of of human dermal fibroblasts from up to 66 individuals (supplementary)
+      $study_title = $parts[1]; #
+      print $study_title;
       ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array') # E-MTAB-4059
             : $study_title =~ /HumanExome/i ? ('gtarray', 'Genotyping array') 
             : $study_title =~ /expression/i ? ('gexarray', 'Expression array') # E-MTAB-4057
-            : die "did not recognise assay for $study_title";  # doesnt recognise E-MTAB-4748 or E-MTAB-7032. 
+            : die "did not recognise assay for $study_title";  # doesnt recognise E-MTAB-4748 or E-MTAB-7032.
       $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'
             : $study_title =~ /Illumina 450K Methylation/i ? 'HumanMethylation450'
             : die "did not recognise platform for $study_title";
@@ -85,7 +86,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
   chomp $header_line;
   my %column_of;
   my @header_parts = split("\t", $header_line);
-  foreach my $i (0..$#header_parts) {
+  foreach my $i (0..$#header_parts) {did not recognise assay
     $column_of{$header_parts[$i]} = $i;
   } 
   if ($short_assay eq 'gexarray'){  
@@ -234,45 +235,45 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     }
   }
 }
-
-my $scroll = $elasticsearch->call('scroll_helper', (
-  index => 'hipsci',
-  type => 'file',
-  search_type => 'scan',
-  scroll => '5m',
-  size => 500,
-  body => {
-    query => {
-      filtered => {
-        filter => {
-          term => {
-            'archive.name' => 'ArrayExpress',
-          },
-        }
-      }
-    }
-  }
-));
- 
-my $date = strftime('%Y%m%d', localtime);
-ES_DOC:
-while (my $es_doc = $scroll->next) {
-  my $new_doc = $docs{$es_doc->{_id}}; 
-
-  if (!$new_doc) {
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-    next ES_DOC;
-  }
-  delete $docs{$es_doc->{_id}};
-  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-  next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc); 
-}
-while (my ($es_id, $new_doc) = each %docs) {
-  $new_doc->{_indexCreated} = $date;
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(body => $new_doc, id => $es_id);
-}
+#
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   scroll => '5m',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#             'archive.name' => 'ArrayExpress',
+#           },
+#         }
+#       }
+#     }
+#   }
+# ));
+#
+# my $date = strftime('%Y%m%d', localtime);
+# ES_DOC:
+# while (my $es_doc = $scroll->next) {
+#   my $new_doc = $docs{$es_doc->{_id}};
+#
+#   if (!$new_doc) {
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) {
+#   $new_doc->{_indexCreated} = $date;
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
