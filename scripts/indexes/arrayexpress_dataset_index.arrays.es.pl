@@ -235,7 +235,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     #     # }
     #   }
     # }
-  }
+  # }
 }
 
 # my $scroll = $elasticsearch->call('scroll_helper', (
