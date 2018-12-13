@@ -97,7 +97,6 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       # my $initial_cellline = $parts[$column_of{"Source Name"}]; # original line
       my $full_cellline = $parts[$column_of{"Assay Name"}]; # works
       my @line_array = split('\.', $full_cellline);
-      print "@line_array\n";
       my $cellline = $line_array[0];
       my $raw_file = $parts[$column_of{"Array Data File"}];
       my $raw_ftp_link = $parts[$column_of{"Comment [ArrayExpress FTP file]"}];
@@ -114,10 +113,10 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       my @line_array = split('\.', $full_cellline);
       # print "@line_array";
       my $cellline = $line_array[0];
-      print $cellline;
       my $mt_ftp_link = $parts[$column_of{"Comment [Derived ArrayExpress FTP file]"}];
-      my $mt_file = $parts[$column_of{"Derived Array Data File"}];
+      my $mt_file = $parts[$column_of{"Derived Array Data File"}]; # works
       $mt_ftp_link =~ s?ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/MTAB?http://www.ebi.ac.uk/arrayexpress/files?;
+      print $mt_file;
       # $platform = $mt_file =~ /HumanMethylation450v1/i ? 'HumanMethylation450 v1'
       #       : $mt_file =~ /MethylationEPICv1/i ? 'MethylationEPIC v1'
       #       : die "did not recognise platform for $study_title in file $mt_file";
