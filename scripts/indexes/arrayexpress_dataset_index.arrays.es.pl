@@ -73,8 +73,8 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
       # $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'
       #       : $study_title =~ /Illumina 450K Methylation/i ? 'HumanMethylation450'
       #       : die "did not recognise platform for $study_title";
-      ($short_assay, $long_assay) = $study_title =~ /methylation/i ? ('mtarray', 'Methylation array');  # test line - remove it
-      $platform = $study_title =~ /HumanHT 12v4/i ? 'HumanHT-12 v4'; # test line - remove it
+      ($short_assay, $long_assay) = ('mtarray', 'Methylation array');  # test line - remove it
+      $platform = 'HumanHT-12 v4'; # test line - remove it
     }
   }
   close(IDF);
