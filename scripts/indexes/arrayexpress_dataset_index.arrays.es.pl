@@ -15,7 +15,6 @@ use Getopt::Long;
 use Data::Dumper;
 
 
-
 my @dataset_id;
 my $demographic_filename;
 my $dbhost = 'mysql-g1kdcc-public';
@@ -50,7 +49,6 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
 my $fa = $db->get_FileAdaptor;
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-print Dumper($elasticsearch);
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 
@@ -239,47 +237,46 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     }
   }
 }
-#
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   scroll => '5m',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'ArrayExpress',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
-#
-# print Dumper($scroll);
-#
-# my $date = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   my $new_doc = $docs{$es_doc->{_id}};
-#
-#   if (!$new_doc) {
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  scroll => '5m',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'ArrayExpress',
+          },
+        }
+      }
+    }
+  }
+));
+
+my $date = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  my $new_doc = $docs{$es_doc->{_id}};
+
+  if (!$new_doc) {
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) {
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+  print Dumper($elasticsearch);
+}
