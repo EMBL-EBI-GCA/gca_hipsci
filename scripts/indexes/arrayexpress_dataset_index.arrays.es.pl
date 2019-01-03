@@ -202,6 +202,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
         print Dumper($es_id); # 'HPSI0214i-eiwy_1-gexarray-genomestudio_text_file-txt'
         my @folderparts = split("-", $dataset_id);
         my $folderid = $folderparts[1];
+        print Dumper($folderid);
 
         $docs{$es_id} = {
           description => $file_description,
