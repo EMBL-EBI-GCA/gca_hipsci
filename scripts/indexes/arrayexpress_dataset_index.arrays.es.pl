@@ -46,8 +46,9 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -dbname => $dbname,
   -pass => $dbpass,
     );
-print Dumper($db);
+# print Dumper($db);
 my $fa = $db->get_FileAdaptor;
+print Dumper($fa);
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
