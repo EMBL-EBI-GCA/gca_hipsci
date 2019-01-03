@@ -234,10 +234,11 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
         if ($passage_number) {
           $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
         }
-        print Dumper($docs{$es_id});
+        # print Dumper($docs{$es_id});
         while (my ($filename, $file_object) = each %$file_hash) {
           push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
         }
+        print Dumper(@{$docs{$es_id}{files}});
       }
     }
   }
