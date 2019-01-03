@@ -12,7 +12,6 @@ use Data::Compare qw(Compare);
 use LWP::Simple;
 use POSIX qw(strftime);
 use Getopt::Long;
-use Data::Dumper;
 
 
 my @dataset_id;
@@ -278,5 +277,4 @@ while (my ($es_id, $new_doc) = each %docs) {
   $new_doc->{_indexCreated} = $date;
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-  print Dumper($elasticsearch);
 }
