@@ -48,9 +48,10 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
     );
 # print Dumper($db);
 my $fa = $db->get_FileAdaptor;
-print Dumper($fa);
+# print Dumper($fa);
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
+print Dumper($elasticsearch);
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 #
