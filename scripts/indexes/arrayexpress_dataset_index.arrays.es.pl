@@ -197,8 +197,9 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     while (my ($ext, $date_hash) = each %files) {
       while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
         my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
-        print Dumper($es_id);
+        # print Dumper($es_id); # 'HPSI0514pf-tert-gexarray-genomestudio text file-txt';
         $es_id =~ s/\s/_/g;
+        print Dumper($es_id);
         my @folderparts = split("-", $dataset_id);
         my $folderid = $folderparts[1];
 
