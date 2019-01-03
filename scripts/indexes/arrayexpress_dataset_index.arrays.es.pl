@@ -199,10 +199,10 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
         my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
         # print Dumper($es_id); # 'HPSI0514pf-tert-gexarray-genomestudio text file-txt';
         $es_id =~ s/\s/_/g;
-        print Dumper($es_id); # 'HPSI0214i-eiwy_1-gexarray-genomestudio_text_file-txt'
+        # print Dumper($es_id); # 'HPSI0214i-eiwy_1-gexarray-genomestudio_text_file-txt'
         my @folderparts = split("-", $dataset_id);
         my $folderid = $folderparts[1];
-        print Dumper($folderid);
+        # print Dumper($folderid); # MTAB
 
         $docs{$es_id} = {
           description => $file_description,
@@ -230,6 +230,7 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
             instrument => $platform
           }
         };
+        print Dumper($docs{$es_id});
         if ($passage_number) {
           $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
         }
