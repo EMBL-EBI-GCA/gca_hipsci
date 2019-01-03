@@ -12,7 +12,6 @@ use Data::Compare qw(Compare);
 use LWP::Simple;
 use POSIX qw(strftime);
 use Getopt::Long;
-use Data::Dumper;
 
 
 my @dataset_id;
@@ -197,12 +196,9 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     while (my ($ext, $date_hash) = each %files) {
       while (my ( $file_description, $file_hash) = each %{$files{$ext}}) {
         my $es_id = join('-', $cell_line, $short_assay, lc($file_description), $ext);
-        # print Dumper($es_id); # 'HPSI0514pf-tert-gexarray-genomestudio text file-txt';
         $es_id =~ s/\s/_/g;
-        # print Dumper($es_id); # 'HPSI0214i-eiwy_1-gexarray-genomestudio_text_file-txt'
         my @folderparts = split("-", $dataset_id);
         my $folderid = $folderparts[1];
-        # print Dumper($folderid); # MTAB
 
         $docs{$es_id} = {
           description => $file_description,
@@ -230,38 +226,37 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
             instrument => $platform
           }
         };
-        # print Dumper($docs{$es_id});
         if ($passage_number) {
           $docs{$es_id}{samples}[0]{passageNumber} = $passage_number
         }
-        # print Dumper($docs{$es_id});
         while (my ($filename, $file_object) = each %$file_hash) {
           push(@{$docs{$es_id}{files}}, {name => $zip_file{$filename}."/".$filename, md5 => $file_object->md5, type => $ext});
         }
-        print Dumper(@{$docs{$es_id}{files}});
       }
     }
   }
 }
-#
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   scroll => '5m',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'ArrayExpress',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
+
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  scroll => '5m',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'ArrayExpress',
+          },
+        }
+      }
+    }
+  }
+));
+
+print Dumper($scroll);
 #
 # my $date = strftime('%Y%m%d', localtime);
 # ES_DOC:
