@@ -50,6 +50,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
 my $fa = $db->get_FileAdaptor;
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
+print Dumper($elasticsearch);
 
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 
@@ -238,27 +239,27 @@ foreach my $dataset_id (@dataset_id) { # E-MTAB-4057, E-MTAB-4059, E-MTAB-4748
     }
   }
 }
-
-my $scroll = $elasticsearch->call('scroll_helper', (
-  index => 'hipsci',
-  type => 'file',
-  search_type => 'scan',
-  scroll => '5m',
-  size => 500,
-  body => {
-    query => {
-      filtered => {
-        filter => {
-          term => {
-            'archive.name' => 'ArrayExpress',
-          },
-        }
-      }
-    }
-  }
-));
-
-print Dumper($scroll);
+#
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   scroll => '5m',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#             'archive.name' => 'ArrayExpress',
+#           },
+#         }
+#       }
+#     }
+#   }
+# ));
+#
+# print Dumper($scroll);
 #
 # my $date = strftime('%Y%m%d', localtime);
 # ES_DOC:
