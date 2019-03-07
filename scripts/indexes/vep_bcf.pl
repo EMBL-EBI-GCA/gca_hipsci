@@ -120,7 +120,7 @@ foreach my $file_set (values %file_sets) {
       type => $filetype,
     });
   }
-  
+
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
   $es_id =~ s/\s/_/g;
   $docs{$es_id} = {
