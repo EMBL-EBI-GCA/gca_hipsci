@@ -44,32 +44,35 @@ my $fa = $db->get_FileAdaptor;
 # print Dumper($db);
 #
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-print Dumper($cgap_ips_lines);
-# improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-# my (%cgap_ips_line_hash, %cgap_tissues_hash);
-# foreach my $cell_line (@$cgap_ips_lines) {
-#   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-#   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-# }
-#
-# my $date = '20180831';
-# my $label = 'vep_openaccess_bcf';
-#
-# my %file_sets;
-# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
-#   my $file_path = $file->name;
-#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
-#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-#   push(@{$file_sets{$label}{files}}, $file);
-# }
-#
-# open my $fh, '<', $sample_list or die "could not open $sample_list $!";
-# my @open_access_samples;
-# my @lines = <$fh>;
-# foreach my $line (@lines){
-#   chomp($line);
-#   push(@open_access_samples, $line)
-# }
+# the above uses read_cgap_reportfrom  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
+#  some data.
+# print Dumper($cgap_ips_lines);
+improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
+my (%cgap_ips_line_hash, %cgap_tissues_hash);
+print Dumper(%cgap_ips_line_hash);
+foreach my $cell_line (@$cgap_ips_lines) {
+  $cgap_ips_line_hash{$cell_line->name} = $cell_line;
+  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
+}
+
+my $date = '20180831';
+my $label = 'vep_openaccess_bcf';
+
+my %file_sets;
+foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
+  my $file_path = $file->name;
+  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+  $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+  push(@{$file_sets{$label}{files}}, $file);
+}
+
+open my $fh, '<', $sample_list or die "could not open $sample_list $!";
+my @open_access_samples;
+my @lines = <$fh>;
+foreach my $line (@lines){
+  chomp($line);
+  push(@open_access_samples, $line)
+}
 #
 # my %docs;
 # FILE:
