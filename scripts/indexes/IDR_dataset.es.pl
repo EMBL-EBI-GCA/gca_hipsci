@@ -43,7 +43,8 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
 my $fa = $db->get_FileAdaptor;
 print Dumper($db);
 #
-# my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+print $cgap_ips_lines;
 # improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 # my (%cgap_ips_line_hash, %cgap_tissues_hash);
 # foreach my $cell_line (@$cgap_ips_lines) {
