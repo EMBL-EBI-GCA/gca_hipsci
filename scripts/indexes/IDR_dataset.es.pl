@@ -41,7 +41,7 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -pass => $dbpass,
     );
 my $fa = $db->get_FileAdaptor;
-print Dummper($db);
+print Dumper($db);
 #
 # my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 # improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
