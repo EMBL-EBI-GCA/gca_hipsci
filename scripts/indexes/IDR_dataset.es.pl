@@ -79,6 +79,7 @@ FILE:
 # print Dumper($file_set);
 foreach my $file_set (values %file_sets) {
     print Dumper($file_set);
+    last
 }
 #   my $dir = $file_set->{dir};
 #   $dir =~ s{$trim}{};
