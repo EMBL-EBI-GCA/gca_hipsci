@@ -77,11 +77,11 @@ foreach my $line (@lines){
 my %docs;
 FILE:
 # print Dumper($file_set);
-i = 0;
+my $i = 0;
 foreach my $file_set (values %file_sets) {
     print Dumper($file_set);
-    print i;
-    i = i +1;
+    print $i;
+    $i = $i +1;
     last;
 }
 #   my $dir = $file_set->{dir};
