@@ -76,7 +76,7 @@ foreach my $line (@lines){
 
 my %docs;
 FILE:
-print $file_set
+print Dumper($file_set);
 # foreach my $file_set (values %file_sets) {
 #   my $dir = $file_set->{dir};
 #   $dir =~ s{$trim}{};
