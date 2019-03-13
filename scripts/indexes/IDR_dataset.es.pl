@@ -78,14 +78,15 @@ my $fa = $db->get_FileAdaptor;
 my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
 # the above uses read_cgap_report from  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
 #  some data.
-print Dumper($cgap_ips_lines);
-print '#############################';
-print Dumper($cgap_tissues);
-print '#############################';
-print Dumper($cgap_donors);
-# improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
-# my (%cgap_ips_line_hash, %cgap_tissues_hash);
-# # print Dumper(%cgap_ips_line_hash);
+# print Dumper($cgap_ips_lines);
+# print '#############################';
+# print Dumper($cgap_tissues);
+# print '#############################';
+# print Dumper($cgap_donors);
+improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
+
+my (%cgap_ips_line_hash, %cgap_tissues_hash);
+print Dumper(%cgap_ips_line_hash);
 # foreach my $cell_line (@$cgap_ips_lines) {
 #   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
 #   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
