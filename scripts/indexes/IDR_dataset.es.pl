@@ -107,7 +107,7 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
   push(@{$file_sets{$label}{files}}, $file);
 }
-print @{$file_sets{$label}{files}};
+print Dumper(@{$file_sets{$label}{files}});
 # #####
 # open my $fh, '<', $sample_list or die "could not open $sample_list $!";
 # my @open_access_samples;
