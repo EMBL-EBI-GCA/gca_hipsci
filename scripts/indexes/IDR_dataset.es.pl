@@ -103,7 +103,38 @@ my $label = 'vep_openaccess_bcf';
 my %file_sets;
 foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
   print Dumper($file);
-  last;
+  # $VAR1 = bless( {
+  #                'withdrawn' => '0',
+  #                'adaptor' => bless( {
+  #                                      'db' => bless( {
+  #                                                       'ReseqTrack::DBSQL::HostAdaptor' => bless( {
+  #                                                                                                    'db' => $VAR1->{'adaptor'}{'db'},
+  #                                                                                                    'dbc' => bless( {
+  #                                                                                                                      '_username' => 'g1kro',
+  #                                                                                                                      '_timeout' => 0,
+  #                                                                                                                      'db_handle39055' => bless( {}, 'DBI::db' ),
+  #                                                                                                                      '_host' => 'mysql-g1kdcc-public',
+  #                                                                                                                      '_port' => 4197,
+  #                                                                                                                      '_query_count' => 24,
+  #                                                                                                                      '_driver' => 'mysql',
+  #                                                                                                                      'connected39055' => 1,
+  #                                                                                                                      '_dbname' => 'hipsci_track'
+  #                                                                                                                    }, 'ReseqTrack::DBSQL::DBConnection' )
+  #                                                                                                  }, 'ReseqTrack::DBSQL::HostAdaptor' ),
+  #                                                       '_dbc' => $VAR1->{'adaptor'}{'db'}{'ReseqTrack::DBSQL::HostAdaptor'}{'dbc'},
+  #                                                       'ReseqTrack::DBSQL::FileAdaptor' => $VAR1->{'adaptor'}
+  #                                                     }, 'ReseqTrack::DBSQL::DBAdaptor' ),
+  #                                      'dbc' => $VAR1->{'adaptor'}{'db'}{'ReseqTrack::DBSQL::HostAdaptor'}{'dbc'}
+  #                                    }, 'ReseqTrack::DBSQL::FileAdaptor' ),
+  #                'host_id' => '1',
+  #                'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr11.bcf',
+  #                'size' => '457795918',
+  #                'created' => '2018-09-06 12:37:25',
+  #                'dbID' => '59644',
+  #                'updated' => '2018-09-06 13:14:45',
+  #                'type' => 'MISC',
+  #                'md5' => '186c0e5235891ea2cfdce6d7a4d25898'
+  #              }, 'ReseqTrack::File' );
   my $file_path = $file->name;
   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
