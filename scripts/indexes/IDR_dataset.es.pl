@@ -154,11 +154,7 @@ my %docs;
 FILE:
 # my $i = 0;
 foreach my $file_set (values %file_sets) {
-  # print Dumper($file_set);
-  # print $i;
-  # $i = $i +1;
-  # last;
-  # }
+  print Dumper($file_set);
   my $dir = $file_set->{dir}; # defined $dir, used defined var no 3.
   $dir =~ s{$trim}{};
   ############################# the below bit is to define @samples
@@ -223,7 +219,7 @@ foreach my $file_set (values %file_sets) {
 
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
   $es_id =~ s/\s/_/g;
-  print $es_id;
+  # print $es_id; # vep_openaccess_bcf-vep_openaccess_bcf (these are two probably)
   $docs{$es_id} = {
     description => $description,
     files => \@files,
