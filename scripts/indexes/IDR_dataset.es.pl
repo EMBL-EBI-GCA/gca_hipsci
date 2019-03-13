@@ -108,30 +108,65 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
   push(@{$file_sets{$label}{files}}, $file);
 }
 print Dumper(@{$file_sets{$label}{files}});
+# $VAR22 = bless( {
+#                   'withdrawn' => '0',
+#                   'adaptor' => $VAR1->{'adaptor'},
+#                   'host_id' => '1',
+#                   'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr2.bcf',
+#                   'size' => '757225864',
+#                   'created' => '2018-09-06 12:36:25',
+#                   'dbID' => '59597',
+#                   'updated' => '2018-09-06 13:14:44',
+#                   'type' => 'MISC',
+#                   'md5' => 'ab15228dff995b2d3fadc2096c9b55be'
+#                 }, 'ReseqTrack::File' );
+# $VAR23 = bless( {
+#                   'withdrawn' => '0',
+#                   'adaptor' => $VAR1->{'adaptor'},
+#                   'host_id' => '1',
+#                   'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr17.bcf',
+#                   'size' => '265755167',
+#                   'created' => '2018-09-06 12:36:21',
+#                   'dbID' => '59596',
+#                   'updated' => '2018-09-06 13:14:45',
+#                   'type' => 'MISC',
+#                   'md5' => '156c1fcfd2b83ef6c76fd5b7980eb549'
+#                 }, 'ReseqTrack::File' );
 # #####
-# open my $fh, '<', $sample_list or die "could not open $sample_list $!";
-# my @open_access_samples;
-# my @lines = <$fh>;
-# foreach my $line (@lines){
-#   chomp($line);
-#   push(@open_access_samples, $line)
-# }
-#
-# my %docs;
-# FILE:
-# # my $i = 0;
-# foreach my $file_set (values %file_sets) {
-#     # print Dumper($file_set);
-#     # print $i;
-#     # $i = $i +1;
-#     # last;
-# # }
-#   my $dir = $file_set->{dir};
-#   $dir =~ s{$trim}{};
-#   my @samples;
-#   CELL_LINE:
-#   foreach my $cell_line (@open_access_samples){
-#     print $cell_line;
+open my $fh, '<', $sample_list or die "could not open $sample_list $!";  # opens a file.
+my @open_access_samples;
+my @lines = <$fh>;
+foreach my $line (@lines){
+  chomp($line);
+  push(@open_access_samples, $line)
+}
+
+# SO fra we built below:
+#    1 %cgap_ips_line_hash
+#    2 %cgap_tissues_hash
+#    3 $file_sets
+#    4 @open_access_samples
+# I think so far was just preparing data.
+
+
+#############################
+my %docs;
+FILE:
+# my $i = 0;
+foreach my $file_set (values %file_sets) {
+  # print Dumper($file_set);
+  # print $i;
+  # $i = $i +1;
+  # last;
+  # }
+  my $dir = $file_set->{dir}; # defined $dir, used defined var no 3.
+  $dir =~ s{$trim}{};
+  my @samples;
+  CELL_LINE:
+  foreach my $cell_line (@open_access_samples) { # used defined var no 4
+    print $cell_line;                            #
+  }
+}
 #     my $browser = WWW::Mechanize->new();
 #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
 #     my $query =
