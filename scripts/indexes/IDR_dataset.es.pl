@@ -152,9 +152,23 @@ foreach my $line (@lines){
 #############################
 my %docs;
 FILE:
-# my $i = 0;
+my $i = 0;
 foreach my $file_set (values %file_sets) {
-  print Dumper($file_set);
+  print $i;
+  $i = $i +1;
+  # print Dumper($file_set);
+   # bless( {
+   #                              'withdrawn' => '0',
+   #                              'adaptor' => $VAR1->{'files'}[0]{'adaptor'},
+   #                              'host_id' => '1',
+   #                              'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr16.bcf',
+   #                              'size' => '306029751',
+   #                              'created' => '2018-09-06 12:36:50',
+   #                              'dbID' => '59621',
+   #                              'updated' => '2018-09-06 13:14:46',
+   #                              'type' => 'MISC',
+   #                              'md5' => 'aa419fc7e9f5ce4961f2131dc539b2cc'
+   #                            }, 'ReseqTrack::File' ),    ...........
   my $dir = $file_set->{dir}; # defined $dir, used defined var no 3.
   $dir =~ s{$trim}{};
   ############################# the below bit is to define @samples
