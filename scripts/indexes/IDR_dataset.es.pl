@@ -101,12 +101,15 @@ my $date = '20180831';
 my $label = 'vep_openaccess_bcf';
 
 my %file_sets;
-foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
+foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+  print $file;
+  last;
   my $file_path = $file->name;
   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
   push(@{$file_sets{$label}{files}}, $file);
 }
+
 # print Dumper(@{$file_sets{$label}{files}});
 # $VAR22 = bless( {
 #                   'withdrawn' => '0',
@@ -133,12 +136,12 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
 #                   'md5' => '156c1fcfd2b83ef6c76fd5b7980eb549'
 #                 }, 'ReseqTrack::File' );
 # #####
-open my $fh, '<', $sample_list or die "could not open $sample_list $!";  # opens a file.
+open my $fh, '<', $sample_list or die "could not open $sample_list $!";  # opens a file that has all the celllines.
 my @open_access_samples;
 my @lines = <$fh>;
 foreach my $line (@lines){
   chomp($line);
-  push(@open_access_samples, $line)
+  push(@open_access_samples, $line)  # makes a array with all the cellines ids.
 }
 
 # SO fra we built below:
@@ -152,10 +155,7 @@ foreach my $line (@lines){
 #############################
 my %docs;
 FILE:
-my $i = 0;
 foreach my $file_set (values %file_sets) {
-  print $i;
-  $i = $i +1;
   # print Dumper($file_set);
    # bless( {
    #                              'withdrawn' => '0',
@@ -252,44 +252,44 @@ foreach my $file_set (values %file_sets) {
   }
 }
 ############################
+
+# # No need to change this part.
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#             description => $description
+#           },
+#         }
+#       }
+#     }
+#   }
+# ));
 #
-# # # No need to change this part.
-# # my $scroll = $elasticsearch->call('scroll_helper', (
-# #   index => 'hipsci',
-# #   type => 'file',
-# #   search_type => 'scan',
-# #   size => 500,
-# #   body => {
-# #     query => {
-# #       filtered => {
-# #         filter => {
-# #           term => {
-# #             description => $description
-# #           },
-# #         }
-# #       }
-# #     }
-# #   }
-# # ));
-# #
-# # my $systemdate = strftime('%Y%m%d', localtime);
-# # ES_DOC:
-# # while (my $es_doc = $scroll->next) {
-# #   my $new_doc = $docs{$es_doc->{_id}};
-# #   if (!$new_doc) {
-# #     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-# #     next ES_DOC;
-# #   }
-# #   delete $docs{$es_doc->{_id}};
-# #   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-# #   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
-# #   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
-# #   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-# #   $new_doc->{_indexUpdated} = $systemdate;
-# #   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# # }
-# # while (my ($es_id, $new_doc) = each %docs) {
-# #   $new_doc->{_indexCreated} = $systemdate;
-# #   $new_doc->{_indexUpdated} = $systemdate;
-# #   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# # }
+# my $systemdate = strftime('%Y%m%d', localtime);
+# ES_DOC:
+# while (my $es_doc = $scroll->next) {
+#   my $new_doc = $docs{$es_doc->{_id}};
+#   if (!$new_doc) {
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) {
+#   $new_doc->{_indexCreated} = $systemdate;
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
