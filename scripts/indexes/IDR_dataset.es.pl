@@ -94,17 +94,20 @@ foreach my $cell_line (@$cgap_ips_lines) {   # for each cellline in this array (
   # last;
 }
 # so far we have defined two dictionaries, one $cgap_ips_line_hash and one  $cgap_tissues_hash.
-print Dumper(%cgap_ips_line_hash);
-# my $date = '20180831';
-# my $label = 'vep_openaccess_bcf';
-#
-# my %file_sets;
-# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
-#   my $file_path = $file->name;
-#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
-#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-#   push(@{$file_sets{$label}{files}}, $file);
-# }
+# print Dumper(%cgap_ips_line_hash);
+# $VAR6271 = 'HPSI0613i-oomz_3';
+# $VAR6272 = $VAR1710->{'tissue'}{'ips_lines'}[2];
+my $date = '20180831';
+my $label = 'vep_openaccess_bcf';
+
+my %file_sets;
+foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
+  my $file_path = $file->name;
+  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+  $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+  push(@{$file_sets{$label}{files}}, $file);
+}
+print @{$file_sets{$label}{files}};
 # #####
 # open my $fh, '<', $sample_list or die "could not open $sample_list $!";
 # my @open_access_samples;
