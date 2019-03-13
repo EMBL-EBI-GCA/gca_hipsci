@@ -90,10 +90,11 @@ my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {   # for each cellline in this array (dereferencing an array ref)
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-  print Dumper($cgap_ips_line_hash);
-  last;
+  # print Dumper($cgap_ips_line_hash); # returns an error.
+  # last;
 }
-# print Dumper(%cgap_ips_line_hash);
+# so far we have defined two dictionaries, one $cgap_ips_line_hash and one  $cgap_tissues_hash.
+print Dumper(%cgap_ips_line_hash);
 # my $date = '20180831';
 # my $label = 'vep_openaccess_bcf';
 #
