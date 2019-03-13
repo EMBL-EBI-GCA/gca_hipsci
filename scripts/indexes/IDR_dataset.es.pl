@@ -33,7 +33,9 @@ my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_b
 #
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 print Dumper($elasticsearch);
-
+# $VAR1 = bless( {
+#                  'host' => 'ves-hx-e3:9200'
+#                }, 'ReseqTrack::Tools::HipSci::ElasticsearchClient' );
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
   -user => $dbuser,
@@ -43,8 +45,20 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
     );
 print '#############################';
 print Dumper($db);
+# $VAR1 = bless( {
+#  '_dbc' => bless( {
+#                     '_port' => 4197,
+#                     '_host' => 'mysql-g1kdcc-public',
+#                     '_driver' => 'mysql',
+#                     '_dbname' => 'hipsci_track',
+#                     '_username' => 'g1kro',
+#                     '_timeout' => 0
+#                   }, 'ReseqTrack::DBSQL::DBConnection' )
+# }, 'ReseqTrack::DBSQL::DBAdaptor' );
+print '#############################';
 
 my $fa = $db->get_FileAdaptor;
+print Dumper($fa);
 # print Dumper($db);
 #
 # my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
