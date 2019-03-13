@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-# use Search::Elasticsearch;
+use Search::Elasticsearch;
 use ReseqTrack::DBSQL::DBAdaptor;
 use ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils qw(read_cgap_report);
 use ReseqTrack::Tools::HipSci::CGaPReport::Improved::CGaPReportImprover qw(improve_donors);
@@ -32,6 +32,7 @@ my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_b
 
 #
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
+print Dumper($elasticsearch);
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -host => $dbhost,
@@ -40,117 +41,121 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -dbname => $dbname,
   -pass => $dbpass,
     );
+print '#############################';
+print Dumper($db);
+
 my $fa = $db->get_FileAdaptor;
 # print Dumper($db);
 #
-my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-# the above uses read_cgap_reportfrom  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
-#  some data.
-# print Dumper($cgap_ips_lines);
-improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
-my (%cgap_ips_line_hash, %cgap_tissues_hash);
-# print Dumper(%cgap_ips_line_hash);
-foreach my $cell_line (@$cgap_ips_lines) {
-  $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-}
-print Dumper(%cgap_ips_line_hash);
-my $date = '20180831';
-my $label = 'vep_openaccess_bcf';
-
-my %file_sets;
-foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
-  my $file_path = $file->name;
-  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
-  $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-  push(@{$file_sets{$label}{files}}, $file);
-}
-#####
-open my $fh, '<', $sample_list or die "could not open $sample_list $!";
-my @open_access_samples;
-my @lines = <$fh>;
-foreach my $line (@lines){
-  chomp($line);
-  push(@open_access_samples, $line)
-}
-
-my %docs;
-FILE:
-# my $i = 0;
-foreach my $file_set (values %file_sets) {
-    # print Dumper($file_set);
-    # print $i;
-    # $i = $i +1;
-    # last;
+# my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+# # the above uses read_cgap_reportfrom  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
+# #  some data.
+# # print Dumper($cgap_ips_lines);
+# improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
+# my (%cgap_ips_line_hash, %cgap_tissues_hash);
+# # print Dumper(%cgap_ips_line_hash);
+# foreach my $cell_line (@$cgap_ips_lines) {
+#   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
+#   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
 # }
-  my $dir = $file_set->{dir};
-  $dir =~ s{$trim}{};
-  my @samples;
-  CELL_LINE:
-  foreach my $cell_line (@open_access_samples){
-    print $cell_line;
-    my $browser = WWW::Mechanize->new();
-    my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-    my $query =
-    '{
-      "size": 1000,
-      "query": {
-        "filtered": {
-          "filter": {
-            "term": {"samples.name": "'.$cell_line.'"}
-          }
-        }
-      }
-    }';
-    $browser->post( $hipsci_api, content => $query );
-    my $content = $browser->content();
-    my $json = new JSON;
-    my $json_text = $json->decode($content);
-    foreach my $record (@{$json_text->{hits}{hits}}){
-      if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
-        my %sample = (
-          name => $cell_line,
-          bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
-          cellType => $record->{_source}{samples}[0]{cellType},
-          diseaseStatus => $record->{_source}{samples}[0]{diseaseStatus},
-          sex => $record->{_source}{samples}[0]{sex},
-          growingConditions => $record->{_source}{samples}[0]{growingConditions},
-          passageNumber => $record->{_source}{samples}[0]{passageNumber},
-        );
-        push(@samples, \%sample);
-      }
-    }
-  }
-
-  my @files;
-  foreach my $file (@{$file_set->{files}}) {
-    my $filetype = 'vep_bcf';
-    push(@files, {
-      name => $file->filename,
-      md5 => $file->md5,
-      type => $filetype,
-    });
-  }
-
-  my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
-  $es_id =~ s/\s/_/g;
-  $docs{$es_id} = {
-    description => $description,
-    files => \@files,
-    archive => {
-      name => 'HipSci FTP',
-      url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      openAccess => 1,
-    },
-    samples => \@samples,
-    assay => {
-      type => 'Genotyping array',
-      description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
-      instrument => 'Illumina beadchip HumanCoreExome-12',
-    }
-  }
-}
+# print Dumper(%cgap_ips_line_hash);
+# my $date = '20180831';
+# my $label = 'vep_openaccess_bcf';
+#
+# my %file_sets;
+# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
+#   my $file_path = $file->name;
+#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+#   push(@{$file_sets{$label}{files}}, $file);
+# }
+# #####
+# open my $fh, '<', $sample_list or die "could not open $sample_list $!";
+# my @open_access_samples;
+# my @lines = <$fh>;
+# foreach my $line (@lines){
+#   chomp($line);
+#   push(@open_access_samples, $line)
+# }
+#
+# my %docs;
+# FILE:
+# # my $i = 0;
+# foreach my $file_set (values %file_sets) {
+#     # print Dumper($file_set);
+#     # print $i;
+#     # $i = $i +1;
+#     # last;
+# # }
+#   my $dir = $file_set->{dir};
+#   $dir =~ s{$trim}{};
+#   my @samples;
+#   CELL_LINE:
+#   foreach my $cell_line (@open_access_samples){
+#     print $cell_line;
+#     my $browser = WWW::Mechanize->new();
+#     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+#     my $query =
+#     '{
+#       "size": 1000,
+#       "query": {
+#         "filtered": {
+#           "filter": {
+#             "term": {"samples.name": "'.$cell_line.'"}
+#           }
+#         }
+#       }
+#     }';
+#     $browser->post( $hipsci_api, content => $query );
+#     my $content = $browser->content();
+#     my $json = new JSON;
+#     my $json_text = $json->decode($content);
+#     foreach my $record (@{$json_text->{hits}{hits}}){
+#       if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
+#         my %sample = (
+#           name => $cell_line,
+#           bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
+#           cellType => $record->{_source}{samples}[0]{cellType},
+#           diseaseStatus => $record->{_source}{samples}[0]{diseaseStatus},
+#           sex => $record->{_source}{samples}[0]{sex},
+#           growingConditions => $record->{_source}{samples}[0]{growingConditions},
+#           passageNumber => $record->{_source}{samples}[0]{passageNumber},
+#         );
+#         push(@samples, \%sample);
+#       }
+#     }
+#   }
+#
+#   my @files;
+#   foreach my $file (@{$file_set->{files}}) {
+#     my $filetype = 'vep_bcf';
+#     push(@files, {
+#       name => $file->filename,
+#       md5 => $file->md5,
+#       type => $filetype,
+#     });
+#   }
+#
+#   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+#   $es_id =~ s/\s/_/g;
+#   $docs{$es_id} = {
+#     description => $description,
+#     files => \@files,
+#     archive => {
+#       name => 'HipSci FTP',
+#       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+#       ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+#       openAccess => 1,
+#     },
+#     samples => \@samples,
+#     assay => {
+#       type => 'Genotyping array',
+#       description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+#       instrument => 'Illumina beadchip HumanCoreExome-12',
+#     }
+#   }
+# }
+############################
 #
 # # # No need to change this part.
 # # my $scroll = $elasticsearch->call('scroll_helper', (
