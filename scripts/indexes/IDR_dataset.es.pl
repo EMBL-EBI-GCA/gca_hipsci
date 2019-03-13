@@ -180,9 +180,11 @@ foreach my $file_set (values %file_sets) {
     }';
     $browser->post( $hipsci_api, content => $query );
     my $content = $browser->content();
-    print $content;
+    # print $content;
+    # {"_index":"hipsci_20190313_070003","_type":"file","_id":"HPSI0114i-bezi_1-rnaseq-ERZ267062","_score":1.0,"_source":{"samples":[{"cellType":"iPSC","growingConditions":"Feeder-free","diseaseStatus":"Normal","bioSamplesAccession":"SAMEA2518325","name":"HPSI0114i-bezi_1","sex":"female","passageNumber":"29"}],"assay":{"instrument":"Illumina HiSeq 2000","type":"RNA-seq","description":["INSTRUMENT_PLATFORM=ILLUMINA","INSTRUMENT_MODEL=Illumina HiSeq 2000","LIBRARY_LAYOUT=PAIRED","LIBRARY_STRATEGY=RNA-Seq","LIBRARY_SOURCE=TRANSCRIPTOMIC","LIBRARY_SELECTION=cDNA","PAIRED_NOMINAL_LENGTH=550"]},"archive":{"accessionType":"ANALYSIS_ID","openAccess":1,"ftpUrl":"ftp://ftp.sra.ebi.ac.uk/vol1/ERZ267/ERZ267062/","url":"http://www.ebi.ac.uk/ena/data/view/ERZ267062","name":"ENA","accession":"ERZ267062"},"_indexUpdated":"20181129","files":[{"name":"HPSI0114i-bezi_1.GRCh37.75.cdna.kallisto.transcripts.abundance.rnaseq.20150415.tsv","type":"other","md5":"7bf7dee6e08b61b899809fa063d83a82"}],"_indexCreated":"20181129","description":"Abundances of transcripts"}}
     my $json = new JSON;
     my $json_text = $json->decode($content);
+    print $json_text;
     foreach my $record (@{$json_text->{hits}{hits}}){
       if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
         my %sample = (
