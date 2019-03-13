@@ -198,7 +198,7 @@ foreach my $file_set (values %file_sets) {
     #              'md5' => '80ce4f3455d9fc10def95ce3d2fad62c'
     #            }, 'ReseqTrack::File' );
     foreach my $record (@{$json_text->{hits}{hits}}){
-      print DUmper($record);
+      # print Dumper($record);
       if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
         my %sample = (
           name => $cell_line,
