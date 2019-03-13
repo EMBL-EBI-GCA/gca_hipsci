@@ -161,6 +161,7 @@ foreach my $file_set (values %file_sets) {
   # }
   my $dir = $file_set->{dir}; # defined $dir, used defined var no 3.
   $dir =~ s{$trim}{};
+  ############################# the below bit is to define @samples
   my @samples;
   CELL_LINE:
   foreach my $cell_line (@open_access_samples) { # used defined var no 4
@@ -197,13 +198,19 @@ foreach my $file_set (values %file_sets) {
           growingConditions => $record->{_source}{samples}[0]{growingConditions},
           passageNumber => $record->{_source}{samples}[0]{passageNumber},
         );
-        print Dumper(%sample);
-        last;
-        push(@samples, \%sample);
+        # print Dumper(%sample);
+        # $VAR1 = 'cellType'; $VAR2 = 'iPSC';
+        # $VAR3 = 'growingConditions'; $VAR4 = 'Feeder-dependent';
+        # $VAR5 = 'diseaseStatus'; $VAR6 = 'Normal';
+        # $VAR7 = 'bioSamplesAccession'; $VAR8 = 'SAMEA2494988';
+        # $VAR9 = 'name'; $VAR10 = 'HPSI1213i-xuja_2';
+        # $VAR11 = 'sex'; $VAR12 = 'female';
+        # $VAR13 = 'passageNumber'; $VAR14 = '12';
+        push(@samples, \%sample); # an array with all refrences to samples.
       }
     }
   }
-
+  ############################# the below bit is to define @files
   my @files;
   foreach my $file (@{$file_set->{files}}) {
     my $filetype = 'vep_bcf';
@@ -216,6 +223,7 @@ foreach my $file_set (values %file_sets) {
 
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
   $es_id =~ s/\s/_/g;
+  print $es_id;
   $docs{$es_id} = {
     description => $description,
     files => \@files,
