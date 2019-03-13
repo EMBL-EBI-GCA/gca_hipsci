@@ -102,7 +102,7 @@ my $label = 'vep_openaccess_bcf';
 
 my %file_sets;
 foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
-  print $file;
+  print Dumper($file);
   last;
   my $file_path = $file->name;
   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
