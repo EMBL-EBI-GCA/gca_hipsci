@@ -32,7 +32,7 @@ my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_b
 
 #
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-print Dumper($elasticsearch);
+# print Dumper($elasticsearch);
 # $VAR1 = bless( {
 #                  'host' => 'ves-hx-e3:9200'
 #                }, 'ReseqTrack::Tools::HipSci::ElasticsearchClient' );
@@ -43,8 +43,8 @@ my $db = ReseqTrack::DBSQL::DBAdaptor->new(
   -dbname => $dbname,
   -pass => $dbpass,
     );
-print '#############################';
-print Dumper($db);
+# print '#############################';
+# print Dumper($db);
 # $VAR1 = bless( {
 #  '_dbc' => bless( {
 #                     '_port' => 4197,
@@ -55,16 +55,34 @@ print Dumper($db);
 #                     '_timeout' => 0
 #                   }, 'ReseqTrack::DBSQL::DBConnection' )
 # }, 'ReseqTrack::DBSQL::DBAdaptor' );
-print '#############################';
+# print '#############################';
 
 my $fa = $db->get_FileAdaptor;
-print Dumper($fa);
+# print Dumper($fa);
+# $VAR1 = bless( {
+#    'db' => bless( {
+#                     '_dbc' => bless( {
+#                                        '_port' => 4197,
+#                                        '_host' => 'mysql-g1kdcc-public',
+#                                        '_driver' => 'mysql',
+#                                        '_dbname' => 'hipsci_track',
+#                                        '_username' => 'g1kro',
+#                                        '_timeout' => 0
+#                                      }, 'ReseqTrack::DBSQL::DBConnection' ),
+#                     'ReseqTrack::DBSQL::FileAdaptor' => $VAR1
+#                   }, 'ReseqTrack::DBSQL::DBAdaptor' ),
+#    'dbc' => $VAR1->{'db'}{'_dbc'}
+#  }, 'ReseqTrack::DBSQL::FileAdaptor' );
 # print Dumper($db);
-#
-# my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-# # the above uses read_cgap_reportfrom  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
-# #  some data.
-# # print Dumper($cgap_ips_lines);
+
+my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+# the above uses read_cgap_report from  ReseqTrack::Tools::HipSci::CGaPReport::CGaPReportUtils module to get
+#  some data.
+print Dumper($cgap_ips_lines);
+print '#############################';
+print Dumper($cgap_tissues);
+print '#############################';
+print Dumper($cgap_donors);
 # improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename); # improve_donors method
 # my (%cgap_ips_line_hash, %cgap_tissues_hash);
 # # print Dumper(%cgap_ips_line_hash);
