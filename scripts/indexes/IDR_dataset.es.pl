@@ -186,7 +186,7 @@ foreach my $line (@lines){
 #############################
 my %docs;
 FILE:
-foreach my $file_set (values %file_sets) {
+  foreach my $file_set (values %file_sets) {
   # print Dumper($file_set);
    # bless( {
    #                              'withdrawn' => '0',
