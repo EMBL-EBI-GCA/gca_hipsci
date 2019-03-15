@@ -51,23 +51,26 @@ foreach my $cell_line (@$cgap_ips_lines) {   # not sure if we need this
 }
 my $date = '20190314';
 my $label = 'IDR';
-# my %file_sets; # need to build a file hash!
+my %file_sets; # need to build a file hash!
 
 # no need to fetch anything from database. Here loads of information is collected from a database, like
 # 'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr11.bcf',
 # 'size' => '457795918', 'created' => '2018-09-06 12:37:25', 'dbID' => '59644',
 # 'updated' => '2018-09-06 13:14:45', 'type' => 'MISC', 'md5' => '186c0e5235891ea2cfdce6d7a4d25898'
 #  Not sure if this info is required. We can manually alocate some for testing.
-# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
-#   my $file_path = $file->name; #
-#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
-#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-#   push(@{$file_sets{$label}{files}}, $file);
-# }
+
+# Question for Peter: can we add something with extention IDR in database?
+foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+  # my $file_path = $file->name; #
+  my $file_path = "test/IDR";
+  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+  $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+  push(@{$file_sets{$label}{files}}, $file);
+}
 
 my $file_path = "test/IDR";
 # I think we need these two lines from the above code:
-my $file_sets{$label} = {label => $label, date => $date, files => []};
+# my $file_sets{$label} //= {label => $label, date => $date, files => []};
 print Dumper($file_sets);
 # push(@{$file_sets{$label}{files}}, $file);
 
