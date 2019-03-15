@@ -65,10 +65,10 @@ my %file_sets; # need to build a file hash!
 #   push(@{$file_sets{$label}{files}}, $file);
 # }
 
-my $file_path = "test/IDR"
+my $file_path = "test/IDR";
 # I think we need these two lines from the above code:
 $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-print Dumper($file_sets)
+print Dumper($file_sets);
 # push(@{$file_sets{$label}{files}}, $file);
 
 # instead of building an array with all the celllines, we can manually build one for now.
