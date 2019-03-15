@@ -51,7 +51,7 @@ foreach my $cell_line (@$cgap_ips_lines) {   # not sure if we need this
 }
 my $date = '20190314';
 my $label = 'IDR';
-my %file_sets; # need to build a file hash!
+# my %file_sets; # need to build a file hash!
 
 # no need to fetch anything from database. Here loads of information is collected from a database, like
 # 'name' => '/nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr11.bcf',
