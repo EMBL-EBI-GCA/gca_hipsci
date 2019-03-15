@@ -67,7 +67,7 @@ my %file_sets; # need to build a file hash!
 
 my $file_path = "test/IDR";
 # I think we need these two lines from the above code:
-my $file_sets{$label} = {label => $label, date => $date, files => [], dir => dirname($file_path)};
+$file_sets{$label} = {label => $label, date => $date, files => [], dir => dirname($file_path)};
 print Dumper($file_sets);
 # push(@{$file_sets{$label}{files}}, $file);
 
