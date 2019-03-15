@@ -58,19 +58,25 @@ my %file_sets; # need to build a file hash!
 # 'size' => '457795918', 'created' => '2018-09-06 12:37:25', 'dbID' => '59644',
 # 'updated' => '2018-09-06 13:14:45', 'type' => 'MISC', 'md5' => '186c0e5235891ea2cfdce6d7a4d25898'
 #  Not sure if this info is required. We can manually alocate some for testing.
-foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
-  my $file_path = $file->name; #
-  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
-  $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
-  push(@{$file_sets{$label}{files}}, $file);
-}
+# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+#   my $file_path = $file->name; #
+#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+#   push(@{$file_sets{$label}{files}}, $file);
+# }
+
+my $file_path = "test/IDR"
+# I think we need these two lines from the above code:
+$file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+print Dumper($file_sets)
+# push(@{$file_sets{$label}{files}}, $file);
 
 # instead of building an array with all the celllines, we can manually build one for now.
 # open my $fh, '<', $sample_list ...
- # ......  push(@open_access_samples, $line)}
+# ......  push(@open_access_samples, $line)}
 @open_access_samples = ($test_cell_line);
 
-my %docs;
+# my %docs;
 FILE:
-foreach my $file_set (values %file_sets) { # this is the hash that was defined before, then we had
-# $file_sets{$label}  which is $file_sets{'IDR'}  = .....,       this is only one probably, the same as vep...
+# foreach my $file_set (values %file_sets) { # this is the hash that was defined before, then we had
+# $file_sets{$label}  which is $file_sets{'IDR'}  = .....,       this is only one probably, the same as vep...]

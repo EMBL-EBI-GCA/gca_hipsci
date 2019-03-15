@@ -102,6 +102,8 @@ my $label = 'vep_openaccess_bcf';
 
 my %file_sets;
 foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+  # in database in files we have names like this: /nfs/hipsci/vol1/ftp/data/vep_openaccess_bcf/chr11.bcf
+  # but couldn't find this file.
   print Dumper($file);
   # $VAR1 = bless( {
   #                'withdrawn' => '0',
@@ -175,7 +177,7 @@ foreach my $line (@lines){
   push(@open_access_samples, $line)  # makes a array with all the cellines ids.
 }
 
-# SO fra we built below:
+# So fra we built below:
 #    1 %cgap_ips_line_hash
 #    2 %cgap_tissues_hash
 #    3 $file_sets
@@ -186,7 +188,7 @@ foreach my $line (@lines){
 #############################
 my %docs;
 FILE:
-  foreach my $file_set (values %file_sets) {
+foreach my $file_set (values %file_sets) {
   # print Dumper($file_set);
    # bless( {
    #                              'withdrawn' => '0',
