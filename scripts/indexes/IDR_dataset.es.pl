@@ -90,8 +90,110 @@ my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {   # for each cellline in this array (dereferencing an array ref)
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-  print Dumper(%cgap_ips_line_hash); # returns an error.
-  last;
+  # print Dumper(%cgap_ips_line_hash); #
+  # $VAR1 = 'HPSI0914i-oini_10';
+  # $VAR2 = bless( {
+  #                  'genomic_assay' => '',
+  #                  'reprogramming_tech' => 'CytoTune 2',
+  #                  'sent_for_genotyping' => '',
+  #                  'uuid' => 'd10a4a0f-eccb-4f2f-924f-5d09e45b77a3',
+  #                  'cellomics_data_submitted' => '',
+  #                  'ips_created' => '2016-03-14 11:21:27',
+  #                  'release_to_kcl' => '',
+  #                  'release_to_dundee' => '',
+  #                  'frozen_ips' => '',
+  #                  'macs_purify_ips' => '',
+  #                  'reasons' => '',
+  #                  'freeze_pellet' => '',
+  #                  'name' => 'HPSI0914i-oini_10',
+  #                  'biosample_id' => 'SAMEA4340431',
+  #                  'tissue' => bless( {
+  #                                       'reasons' => 'Not required',
+  #                                       'name' => 'HPSI0914pf-oini',
+  #                                       'biosample_id' => 'SAMEA2755290',
+  #                                       'colony_picking' => '2016-02-16 14:33:14',
+  #                                       'passage_ips' => '',
+  #                                       'uuid' => '7adaed88-a631-4476-9d56-ace5db00ad52',
+  #                                       'registration' => '2014-09-08 15:56:12',
+  #                                       'check_mycoplasma_result' => '2014-10-17 16:50:09',
+  #                                       'donor' => bless( {
+  #                                                           'biosample_id' => 'SAMEA2755285',
+  #                                                           'ethnicity' => '',
+  #                                                           'age' => '',
+  #                                                           'disease' => '',
+  #                                                           'uuid' => '20b19648-6ebb-467d-9987-e8a4cbeca018',
+  #                                                           'supplier_name' => 'C0EXDD',
+  #                                                           'tissues' => [
+  #                                                                          $VAR2->{'tissue'}
+  #                                                                        ],
+  #                                                           'hmdmc' => '13_042',
+  #                                                           'gender' => ''
+  #                                                         }, 'ReseqTrack::Tools::HipSci::CGaPReport::Improved::Donor' ),
+  #                                       'observed_outgrowths' => '',
+  #                                       'type' => 'Skin tissue',
+  #                                       'qc1' => '2016-04-22 15:18:01',
+  #                                       'ips_lines' => [
+  #                                                        bless( {
+  #                                                                 'genomic_assay' => '',
+  #                                                                 'reprogramming_tech' => 'CytoTune 2',
+  #                                                                 'sent_for_genotyping' => '',
+  #                                                                 'uuid' => '47b858c4-9098-4221-b050-940346c477bb',
+  #                                                                 'cellomics_data_submitted' => '',
+  #                                                                 'ips_created' => '2016-03-11 16:33:40',
+  #                                                                 'release_to_kcl' => '',
+  #                                                                 'release_to_dundee' => '',
+  #                                                                 'frozen_ips' => '',
+  #                                                                 'macs_purify_ips' => '',
+  #                                                                 'reasons' => '',
+  #                                                                 'freeze_pellet' => '2016-03-18 10:47:31',
+  #                                                                 'name' => 'HPSI0914i-oini_1',
+  #                                                                 'biosample_id' => 'SAMEA4339724',
+  #                                                                 'tissue' => $VAR2->{'tissue'},
+  #                                                                 'passage_ips' => '',
+  #                                                                 'freeze_ips' => '2016-04-17 11:17:29',
+  #                                                                 'release_to_faculty_gaffney' => '',
+  #                                                                 'split_line' => '2016-03-11 16:33:40',
+  #                                                                 'expand' => '2016-04-11 15:16:10',
+  #                                                                 'qc1' => '',
+  #                                                                 'conjure' => ''
+  #                                                               }, 'ReseqTrack::Tools::HipSci::CGaPReport::IPSLine' ),
+  #                                                        bless( {
+  #                                                                 'genomic_assay' => '',
+  #                                                                 'reprogramming_tech' => 'CytoTune 2',
+  #                                                                 'sent_for_genotyping' => '',
+  #                                                                 'uuid' => '7ff0f20b-12fb-45ce-9f64-cfa1d75ceaee',
+  #                                                                 'cellomics_data_submitted' => '',
+  #                                                                 'ips_created' => '2016-03-14 11:21:27',
+  #                                                                 'release_to_kcl' => '',
+  #                                                                 'release_to_dundee' => '',
+  #                                                                 'frozen_ips' => '',
+  #                                                                 'macs_purify_ips' => '',
+  #                                                                 'reasons' => '',
+  #                                                                 'freeze_pellet' => '',
+  #                                                                 'name' => 'HPSI0914i-oini_12',
+  #                                                                 'biosample_id' => 'SAMEA4340430',
+  #                                                                 'tissue' => $VAR2->{'tissue'},
+  #                                                                 'passage_ips' => '',
+  #                                                                 'freeze_ips' => '2016-03-29 12:00:07',
+  #                                                                 'release_to_faculty_gaffney' => '',
+  #                                                                 'split_line' => '2016-03-14 11:21:28',
+  #                                                                 'expand' => '',
+  #                                                                 'qc1' => '',
+  #                                                                 'conjure' => ''
+  #                                                               }, 'ReseqTrack::Tools::HipSci::CGaPReport::IPSLine' )
+  #                                                      ],
+  #                                       'conjure' => '',
+  #                                       'observed_fibroblasts' => ''
+  #                                     }, 'ReseqTrack::Tools::HipSci::CGaPReport::Tissue' ),
+  #                  'passage_ips' => '',
+  #                  'freeze_ips' => '2016-03-29 12:00:18',
+  #                  'release_to_faculty_gaffney' => '',
+  #                  'split_line' => '2016-03-14 11:21:28',
+  #                  'expand' => '',
+  #                  'qc1' => '',
+  #                  'conjure' => ''
+  #                }, 'ReseqTrack::Tools::HipSci::CGaPReport::IPSLine' );
+  # last;
 }
 # so far we have defined two dictionaries, one $cgap_ips_line_hash and one  $cgap_tissues_hash.
 # print Dumper(%cgap_ips_line_hash);
