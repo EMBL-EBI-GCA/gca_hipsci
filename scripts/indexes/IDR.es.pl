@@ -23,15 +23,20 @@ my $dbpass;
 my $dbport = 4197;
 my $dbname = 'hipsci_track';
 my $trim = '/nfs/hipsci';
-my $description = 'Image Data Resource';  # it is important to add this so the search
-# can be done on this.
-my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
 my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
 my $drop_base = '/nfs/research1/hipsci/drop/hip-drop/incoming';
+my $line = "https://idr.openmicroscopy.org/webclient/?show=plate-6101";
+
+#  NEW
+# my $description = 'Varient Effect Predictor multiple cell lines';
+my $description = 'Image Data Resource';  # it is important to add this so the search can be done on this.
+#  NEW
+# my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+my $file_pattern = 'IDR';
+#  NEW
+my $test_cell_line = "HPSI0713i-qimz_1";
 # my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_bcf/hipsci_openaccess_samples';
 
-my $test_cell_line = "HPSI0713i-qimz_1";
-my $line = "https://idr.openmicroscopy.org/webclient/?show=plate-6101";
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my $db = ReseqTrack::DBSQL::DBAdaptor->new(  # probably dont need it
@@ -83,3 +88,44 @@ my @open_access_samples = ($test_cell_line);
 FILE:
 # foreach my $file_set (values %file_sets) { # this is the hash that was defined before, then we had
 # $file_sets{$label}  which is $file_sets{'IDR'}  = .....,       this is only one probably, the same as vep...]
+
+
+# THis is what I have to build:
+$docs{$es_id} = {   # this is for array express
+    description => $file_description,
+    files           => [
+    ],
+    archive         => {
+        name          => 'ArrayExpress',
+        accession     => $dataset_id,
+        accessionType => 'EXPERIMENT_ID',
+        url           => 'http://www.ebi.ac.uk/arrayexpress/experiments/' . $dataset_id . '/',
+        ftpUrl        => 'ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/' . $folderid . "/" . $dataset_id . '/',
+        openAccess    => 1,
+    },
+    samples         => [ {
+        name                => $cell_line,
+        bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
+        cellType            => $cell_type,
+        diseaseStatus       => $disease,
+        sex                 => $cgap_tissue->donor->gender,
+        growingConditions   => $growing_conditions,
+    } ],
+
+$docs{$es_id} = {   # this is for vep_bcf
+    description => $description,
+    files       => \@files,
+    archive     => {
+        name       => 'HipSci FTP',
+        url        => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+        ftpUrl     => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+        openAccess => 1,
+    },
+    samples     => \@samples,
+    assay       => {
+        type        => 'Genotyping array',
+        description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
+        instrument  => 'Illumina beadchip HumanCoreExome-12',
+    }
+}
+}

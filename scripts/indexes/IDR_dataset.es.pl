@@ -351,14 +351,14 @@ foreach my $file_set (values %file_sets) {
         # $VAR9 = 'name'; $VAR10 = 'HPSI1213i-xuja_2';
         # $VAR11 = 'sex'; $VAR12 = 'female';
         # $VAR13 = 'passageNumber'; $VAR14 = '12';
-        push(@samples, \%sample); # an array with all refrences to samples.
+        push(@samples, \%sample); # an array with all refrences to samples. each one is a dictionary with the above info.
       }
     }
   }
   ############################# the below bit is to define @files
   my @files;
   foreach my $file (@{$file_set->{files}}) {
-    my $filetype = 'vep_bcf';
+    my $filetype = 'vep_bcf'; # idr instead
     push(@files, {
       name => $file->filename,
       md5 => $file->md5,
