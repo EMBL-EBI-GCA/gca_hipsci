@@ -47,12 +47,49 @@ my $json_text = do {
 my $json = JSON->new;
 my $data = $json->decode($json_text);
 my @experiment_array = keys %$data;
-
+print Dumper($data);
 my %docs;
 FILE:
 foreach my $exp (@experiment_array) {
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
+    my $cell_type;
+    foreach my $celllines ($data->{$exp}{'Cell line'}) {
+        my %celltype_hash;
+        foreach my $cell_line (@$celllines) {
+            # print Dumper($data->{$exp}{'Accession'});
+            # print Dumper($cell_line);
+            my $browser = WWW::Mechanize->new();
+            my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+            my $query =
+                '{
+              "size": 1,
+              "query": {
+                "filtered": {
+                  "filter": {
+                    "term": {"name": "' . $cell_line . '"}
+                  }
+                }
+              }
+            }';
+            $browser->post($hipsci_api, content => $query);
+            my $content = $browser->content();
+            my $json = new JSON;
+            my $json_text = $json->decode($content);
+            my @record = @{$json_text->{hits}{hits}};
+            my $cellline_data = $record[0];
+            $celltype_hash{$cell_line} = ($cellline_data->{_source}{cellType}{value});
+            # print($cellline_data -> {_source}{cellType}{value});
+        }
+        # print %celltype_hash;
+        foreach my $cellline (keys %celltype_hash) {
+            if ($celltype_hash{$cellline} ne 'iPSC') {
+                print "check why the cell type is not iPSC for $cellline";
+                $cell_type = $celltype_hash{$cellline}; last;
+            }
+            else {$cell_type = 'iPSC'}
+        }
+    }
     $docs{$es_id} = {
         description => $description,
         files => [{
@@ -68,6 +105,7 @@ foreach my $exp (@experiment_array) {
         samples => [{
             name => $data->{$exp}{'Cell line'},
             bioSamplesAccession => $exp,
+            cellType => $cell_type,
             sex => $data->{$exp}{'Sex'},
         }],
         assay       => {
@@ -75,45 +113,46 @@ foreach my $exp (@experiment_array) {
             description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
             instrument  => 'Operetta',
         }
-    }
+    };
+    print Dumper($docs{$es_id});
 }
-
-my $scroll = $elasticsearch->call('scroll_helper', (
-  index => 'hipsci',
-  type => 'file',
-  search_type => 'scan',
-  size => 500,
-  body => {
-    query => {
-      filtered => {
-        filter => {
-          term => {
-            description => $description
-          },
-        }
-      }
-    }
-  }
-));
-
-my $systemdate = strftime('%Y%m%d', localtime);
-ES_DOC:
-while (my $es_doc = $scroll->next) {
-  my $new_doc = $docs{$es_doc->{_id}};
-  if (!$new_doc) {
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-    next ES_DOC;
-  }
-  delete $docs{$es_doc->{_id}};
-  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
-  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
-  next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  $new_doc->{_indexUpdated} = $systemdate;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-}
-while (my ($es_id, $new_doc) = each %docs) {
-  $new_doc->{_indexCreated} = $systemdate;
-  $new_doc->{_indexUpdated} = $systemdate;
-  $elasticsearch->index_file(body => $new_doc, id => $es_id);
-}
+#
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#             description => $description
+#           },
+#         }
+#       }
+#     }
+#   }
+# ));
+#
+# my $systemdate = strftime('%Y%m%d', localtime);
+# ES_DOC:
+# while (my $es_doc = $scroll->next) {
+#   my $new_doc = $docs{$es_doc->{_id}};
+#   if (!$new_doc) {
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) {
+#   $new_doc->{_indexCreated} = $systemdate;
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
