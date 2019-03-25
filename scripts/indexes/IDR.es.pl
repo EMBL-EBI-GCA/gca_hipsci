@@ -155,7 +155,7 @@ my $json_text = do {
 
 my $json = JSON->new;
 my $data = $json->decode($json_text);
-
-for ( @{$data->{experiment_2}} ) {
-   print $_->{Accession}."\n";
-}
+print Dumper($json);
+# for ( @{$data->{experiment_2}} ) {
+#    print $_->{Accession}."\n";
+# }
