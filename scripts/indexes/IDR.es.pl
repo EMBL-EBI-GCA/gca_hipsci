@@ -3,6 +3,8 @@ use warnings;
 use strict;
 use JSON::MaybeXS;
 
+
+# IDR data is saved in a json format in
 # use Getopt::Long;
 # use Search::Elasticsearch;
 # use ReseqTrack::DBSQL::DBAdaptor;
