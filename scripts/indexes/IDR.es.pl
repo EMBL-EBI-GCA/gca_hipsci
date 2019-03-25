@@ -29,7 +29,8 @@ use Data::Dumper;
 # my $drop_base = '/nfs/research1/hipsci/drop/hip-drop/incoming';
 # my $line = "https://idr.openmicroscopy.org/webclient/?show=plate-6101";
 # add this file to the home directory.
-my $json_file = '/Users/amirp/Documents/apax_tasks/hipsci_IDR_data/IDR_API_Python/IDR_data/IDR_json_data.json';
+# my $json_file = '/Users/amirp/Documents/apax_tasks/hipsci_IDR_data/IDR_API_Python/IDR_data/IDR_json_data.json';
+my $json_file = '/homes/hipdcc/IDR_data/IDR_json_data.json';
 open my $fh, '<', $json_file or die "could not open $json_file $!";
 print Dumper($fh);
 #
