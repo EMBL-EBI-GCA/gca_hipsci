@@ -34,7 +34,7 @@ my $json_file = '/homes/hipdcc/IDR_data/IDR_json_data.json';
 open my $fh, '<', $json_file or die "could not open $json_file $!";
 # print Dumper($fh);
 
-my $data_structure = decode_json($json_file);
+my $data_structure = decode_json($fh);
 print Dumper($data_structure);
 
 #
