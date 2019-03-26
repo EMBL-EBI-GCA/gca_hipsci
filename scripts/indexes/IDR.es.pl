@@ -157,7 +157,8 @@ my $json_text = do {
 
 my $json = JSON->new;
 my $data = $json->decode($json_text);
-print Dumper($data);
+print $data;
+# print Dumper($data);
 # for ( @{$data->{experiment_2}} ) {
 #    print $_->{Accession}."\n";
 # }
