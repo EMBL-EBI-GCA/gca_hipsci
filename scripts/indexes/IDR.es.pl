@@ -29,10 +29,20 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data as required.
-   print Dumper(%cgap_tissues_hash);
-   last;
+  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data and builds both as required.
 }
+my $date = '20190326';
+my $label = 'IDR';
+
+my $json_text = do {
+   open(my $json_fh, "<:encoding(UTF-8)", $filename)
+      or die("Can't open \$filename\": $!\n");
+   local $/;
+   <$json_fh>
+};
+my $json = JSON->new;
+my $data = $json->decode($json_text);
+print Dumper($data);
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
 # my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
@@ -40,7 +50,7 @@ foreach my $cell_line (@$cgap_ips_lines) {
 # my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_bcf/hipsci_openaccess_samples';
 
 
-### --> The part to search elasticsearch based on description (this needs to be IDR) and update the elasticsearch:
+######### --> The part to search elasticsearch based on description (this needs to be IDR) and update the elasticsearch:
 # my $scroll = $elasticsearch->call('scroll_helper', (
 #   index => 'hipsci',
 #   type => 'file',
