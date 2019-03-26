@@ -43,9 +43,23 @@ my $json_text = do {
 my $json = JSON->new;
 my $data = $json->decode($json_text); # hash reference
 # print Dumper($data);
-
+my @IDR_celllines;
 my @experiment_array = keys %$data;
-print @experiment_array;
+foreach my $experiment (@experiment_array) {
+   foreach my $celllines ($data->{$experiment}{'Cell line'}) {
+      foreach my $cellline (@$celllines) {
+         push(@IDR_celllines, $cellline)
+      }
+   }
+}
+print @IDR_celllines
+
+# 
+#
+#    push(@open_access_samples, $line)
+# }
+#
+# print @experiment_array;
 
 # print Dumper($data->{'experiment_31'}{'Cell line'});
 # foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
