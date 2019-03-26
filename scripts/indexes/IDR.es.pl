@@ -44,7 +44,7 @@ my $json = JSON->new;
 my $data = $json->decode($json_text);
 # print Dumper($data);
 
-print Dumepr($data->{'experiment_31'});
+print Dumper($data->{'experiment_31'});
 
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
