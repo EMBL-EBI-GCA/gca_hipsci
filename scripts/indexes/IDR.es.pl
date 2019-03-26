@@ -44,8 +44,10 @@ my $json = JSON->new;
 my $data = $json->decode($json_text);
 # print Dumper($data);
 
-print Dumper($data->{'experiment_31'}{'Cell line'});
-
+# print Dumper($data->{'experiment_31'}{'Cell line'});
+foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
+   print $cellline;
+}
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
 # my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
