@@ -29,9 +29,9 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue;
-  print Dumper(%cgap_ips_line_hash);
-  last;
+  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data as required.
+   print Dumper($cgap_tissues_hash);
+   last;
 }
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
