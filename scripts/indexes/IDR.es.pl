@@ -44,9 +44,12 @@ my $json = JSON->new;
 my $data = $json->decode($json_text); # hash reference
 # print Dumper($data);
 
+@experiment_array = keys %$data;
+print @experiment_array;
+
 # print Dumper($data->{'experiment_31'}{'Cell line'});
-foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
-   print @$cellline;
+# foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
+#    print @$cellline;
 #    foreach my $test (@$cellline) {
 #       print $test;
 #    # print Dumper($cellline);
