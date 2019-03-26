@@ -45,9 +45,12 @@ my $data = $json->decode($json_text);
 # print Dumper($data);
 
 # print Dumper($data->{'experiment_31'}{'Cell line'});
-foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
-   # print Dumper($cellline);
-   print $cellline->[0];
+foreach my $cellline (@$data->{'experiment_31'}{'Cell line'}) {
+   print Dumper($cellline);
+   # print $cellline->[0];
+# foreach my $n (@names) {
+#   say $n;
+}
 }
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
