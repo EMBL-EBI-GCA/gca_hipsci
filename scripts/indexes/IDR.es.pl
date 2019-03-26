@@ -16,4 +16,4 @@ my $json_text = do {
 };
 my $json = JSON->new;
 my $data = $json->decode($json_text);
-print $data;
+print Dumper($data);
