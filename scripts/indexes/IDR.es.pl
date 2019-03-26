@@ -21,19 +21,19 @@ my $demographic_filename;
 my $trim = '/nfs/hipsci';
 my $description = 'Image Data Resource';
 my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';  # IDR json data file
-
-my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-
-my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-my (%cgap_ips_line_hash, %cgap_tissues_hash);
-foreach my $cell_line (@$cgap_ips_lines) {
-  $cgap_ips_line_hash{$cell_line->name} = $cell_line;
-  $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data and builds both as required.
-}
-my $date = '20190326';
-my $label = 'IDR';
-
+###  uncomment them:
+# my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
+#
+# my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+# improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
+# my (%cgap_ips_line_hash, %cgap_tissues_hash);
+# foreach my $cell_line (@$cgap_ips_lines) {
+#   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
+#   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data and builds both as required.
+# }
+# my $date = '20190326';
+# my $label = 'IDR';
+###
 my $json_text = do {
    open(my $json_fh, "<:encoding(UTF-8)", $filename)
       or die("Can't open \$filename\": $!\n");
