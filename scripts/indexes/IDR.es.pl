@@ -30,7 +30,7 @@ my (%cgap_ips_line_hash, %cgap_tissues_hash);
 foreach my $cell_line (@$cgap_ips_lines) {
   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data as required.
-   print Dumper($cgap_tissues_hash);
+   print Dumper(%cgap_tissues_hash);
    last;
 }
 
