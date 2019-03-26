@@ -45,16 +45,14 @@ my $data = $json->decode($json_text); # hash reference
 # print Dumper($data);
 
 # print Dumper($data->{'experiment_31'}{'Cell line'});
-# foreach my $experiment ($data) {
-foreach my $cellline (@($data->{'$experiment'}{'Cell line'})) {
-   print $cellline;
-   # foreach my $test (@$cellline) {
-      # print $test;
-   # }
-   # print Dumper($cellline);
-   # print $cellline->[0];
-# foreach my $n (@names) {
-#   say $n;
+foreach my $cellline ($data->{'experiment_20'}{'Cell line'}) {
+   print @$cellline;
+#    foreach my $test (@$cellline) {
+#       print $test;
+#    # print Dumper($cellline);
+#    # print $cellline->[0];
+# # foreach my $n (@names) {
+# #   say $n;
 # }
 }
 
