@@ -57,7 +57,7 @@ print @experiment_array;
 # # foreach my $n (@names) {
 # #   say $n;
 # }
-}
+# }
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
 # my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
