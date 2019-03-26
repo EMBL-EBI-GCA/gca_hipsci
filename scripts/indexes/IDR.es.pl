@@ -41,9 +41,9 @@ my $json_text = do {
    <$json_fh>
 };
 my $json = JSON->new;
-my $data = $json->decode($json_text); # hash reference
+my $data = $json->decode($json_text); # hash reference, IDR json data
 # print Dumper($data);
-my @IDR_celllines;
+my @IDR_celllines; # cellline for the particular IDR like idr0034
 my @experiment_array = keys %$data;
 foreach my $experiment (@experiment_array) {
    foreach my $celllines ($data->{$experiment}{'Cell line'}) {
@@ -52,26 +52,90 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-print @IDR_celllines
 
-# 
-#
-#    push(@open_access_samples, $line)
+#### this is the only bit we haven't prepared:
+# my %file_sets;
+# foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
+#   my $file_path = $file->name;
+#   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+#   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
+#   push(@{$file_sets{$label}{files}}, $file);
 # }
-#
-# print @experiment_array;
+####
 
-# print Dumper($data->{'experiment_31'}{'Cell line'});
-# foreach my $cellline ($data->{'experiment_31'}{'Cell line'}) {
-#    print @$cellline;
-#    foreach my $test (@$cellline) {
-#       print $test;
-#    # print Dumper($cellline);
-#    # print $cellline->[0];
-# # foreach my $n (@names) {
-# #   say $n;
-# }
-# }
+
+my %docs;
+FILE:
+foreach my $file_set (values %file_sets) { # ???
+  my $dir = $file_set->{dir}; # ???
+  $dir =~ s{$trim}{}; # ???
+  my @samples; # ???
+  CELL_LINE:
+  foreach my $cell_line (@IDR_celllines){
+    my $browser = WWW::Mechanize->new();
+    my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+    my $query =
+    '{
+      "size": 1000,
+      "query": {
+        "filtered": {
+          "filter": {
+            "term": {"samples.name": "'.$cell_line.'"}
+          }
+        }
+      }
+    }';
+    $browser->post( $hipsci_api, content => $query );
+    my $content = $browser->content();
+    my $json = new JSON;
+    my $json_text = $json->decode($content);
+    foreach my $record (@{$json_text->{hits}{hits}}){ # below if probably needs to be removed
+      # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
+        my %sample = (
+          name => $cell_line,
+          bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
+          cellType => $record->{_source}{samples}[0]{cellType},
+          diseaseStatus => $record->{_source}{samples}[0]{diseaseStatus},
+          sex => $record->{_source}{samples}[0]{sex},
+          growingConditions => $record->{_source}{samples}[0]{growingConditions},
+          passageNumber => $record->{_source}{samples}[0]{passageNumber},
+        );
+        push(@samples, \%sample);
+      # }
+    }
+  }
+
+  my @files;
+  foreach my $file (@{$file_set->{files}}) { # ???
+    my $filetype = 'vep_bcf'; # ???
+    push(@files, {
+      name => $file->filename, # ???
+      md5 => $file->md5, # ???
+      type => $filetype, # ???
+    });
+  }
+
+  my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+  $es_id =~ s/\s/_/g;
+  $docs{$es_id} = {
+    description => $description,
+    files => \@files,
+    archive => {
+      name => 'HipSci FTP',
+      url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+      openAccess => 1,
+    },
+    samples => \@samples,
+    assay => {
+      type => 'Genotyping array',
+      description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+      instrument => 'Illumina beadchip HumanCoreExome-12',
+    }
+  }
+}
+
+
 
 # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
 # my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
