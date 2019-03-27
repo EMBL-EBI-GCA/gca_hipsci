@@ -241,11 +241,12 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_patter
   #              }, 'ReseqTrack::File' );
   my $file_path = $file->name;
   next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
+  next FILE if $file_path !~ /$trim/ || $file_path =~ m{/withdrawn/};
   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
   push(@{$file_sets{$label}{files}}, $file);
 }
 # print Dumper(%file_sets);
-print keys %file_sets{$label};
+print keys $file_sets->{$label};
 # print Dumper(@{$file_sets{$label}{files}});
 # $VAR22 = bless( {
 #                   'withdrawn' => '0',
