@@ -90,7 +90,7 @@ foreach my $exp (@experiment_array) {
             name => $data->{$exp}{'Cell line'},
             bioSamplesAccession => $exp,
             # cellType => $cell_type,
-            # sex => $data->{$exp}{'Cell line'},
+            sex => $data->{$exp}{'Sex'},
         }],
         # samples     => \@samples,
         assay       => {
