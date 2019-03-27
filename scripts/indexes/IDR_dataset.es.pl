@@ -369,6 +369,8 @@ foreach my $file_set (values %file_sets) {
   print Dumper(@files);
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
   $es_id =~ s/\s/_/g;
+    print $es_id;
+
   # print $es_id; # vep_openaccess_bcf-vep_openaccess_bcf (these are two probably)
   $docs{$es_id} = {
     description => $description,
