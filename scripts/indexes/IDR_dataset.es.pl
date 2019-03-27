@@ -375,6 +375,7 @@ foreach my $file_set (values %file_sets) {
   # print $es_id; # vep_openaccess_bcf-vep_openaccess_bcf (these are two probably)
   $docs{$es_id} = {
     description => $description,
+
     files => \@files,
     archive => {
       name => 'HipSci FTP',

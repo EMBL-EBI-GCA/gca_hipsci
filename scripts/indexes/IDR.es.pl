@@ -20,7 +20,7 @@ my $es_host='ves-hx-e3:9200';
 my $dbhost = 'mysql-g1kdcc-public';
 my $demographic_filename;
 my $trim = '/nfs/hipsci';
-my $description = 'Image Data Resource';
+my $description = 'High content fluorescence microscopy';
 my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';  # IDR json data file
 ###  uncomment them:
 # my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
@@ -70,81 +70,111 @@ my $IDR_No = 'idr0034-kilpinen-hipsci/screenA';
 
 my %docs;
 FILE:
-# foreach my $file_set (values %file_sets) { # ???
-#   my $dir = $file_set->{dir}; # ???
-#   $dir =~ s{$trim}{}; # ???
-  my @samples; # ???
-  CELL_LINE:
-  foreach my $cell_line (@IDR_celllines){
-    my $browser = WWW::Mechanize->new();
-    my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-    my $query =
-    '{
-      "size": 1000,
-      "query": {
-        "filtered": {
-          "filter": {
-            "term": {"samples.name": "'.$cell_line.'"}
-          }
+foreach my $exp (@experiment_array) {
+    my $es_id = join('-', $IDR_No, $exp);
+    $es_id =~ s/\s/_/g;
+    $docs{$es_id} = {
+        description => $description,
+        files => [{
+            name => $exp,
+            # md5 => $search_file->{md5},
+            # type => $search_type,
+        }],
+        archive     => {
+            name       => 'IDR',
+            url        => $data->{$exp}{'File download'},
+            ftpUrl     => $data->{$exp}{'File download'},
+            # openAccess => 1,
+        },
+        samples => [{
+            name => $data->{$exp}{'Cell line'},
+            bioSamplesAccession => $exp,
+            cellType => $cell_type,
+            # sex => $data->{$exp}{'Cell line'},
+        }],
+        # samples     => \@samples,
+        assay       => {
+            type        => 'High content imaging',
+            description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
+            instrument  => 'Operetta',
         }
-      }
-    }';
-    $browser->post( $hipsci_api, content => $query );
-    my $content = $browser->content();
-    my $json = new JSON;
-    my $json_text = $json->decode($content);
-    # print Dumper($json_text);
-    foreach my $record (@{$json_text->{hits}{hits}}){ # below if probably needs to be removed
-      # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
-        my %sample = (
-          name => $cell_line,
-          bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
-          cellType => $record->{_source}{samples}[0]{cellType},
-          diseaseStatus => $record->{_source}{samples}[0]{diseaseStatus},
-          sex => $record->{_source}{samples}[0]{sex},
-          growingConditions => $record->{_source}{samples}[0]{growingConditions},
-          passageNumber => $record->{_source}{samples}[0]{passageNumber},
-        );
-        push(@samples, \%sample);
-      # }
-    }
-  }
 
-  # my @files;
-  # foreach my $file (@{$file_set->{files}}) { # ???
-  #   my $filetype = 'vep_bcf'; # ???
-  #   push(@files, {
-  #     name => $file->filename, # ???
-  #     md5 => $file->md5, # ???
-  #     type => $filetype, # ???
-  #   });
-  # }
+    },
+    print Dumper($docs{$es_id});
+}
+# foreach my $file_set (values %file_sets) {
+#                                 # ???
+#     my $dir = $file_set->{dir}; # ???
+#     $dir =~ s{$trim}{};         # ???
+#     my @samples;                # ???
+#     CELL_LINE:
+#     foreach my $cell_line (@IDR_celllines) {
+#         my $browser = WWW::Mechanize->new();
+#         my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+#         my $query =
+#             '{
+#       "size": 1000,
+#       "query": {
+#         "filtered": {
+#           "filter": {
+#             "term": {"samples.name": "' . $cell_line . '"}
+#           }
+#         }
+#       }
+#     }';
+#         $browser->post($hipsci_api, content => $query);
+#         my $content = $browser->content();
+#         my $json = new JSON;
+#         my $json_text = $json->decode($content);
+#         # print Dumper($json_text);
+#         foreach my $record (@{$json_text->{hits}{hits}}) {
+#             # below if probably needs to be removed
+#             # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
+#             my %sample = (
+#                 name                => $cell_line,
+#                 bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
+#                 cellType            => $record->{_source}{samples}[0]{cellType},
+#                 diseaseStatus       => $record->{_source}{samples}[0]{diseaseStatus},
+#                 sex                 => $record->{_source}{samples}[0]{sex},
+#                 growingConditions   => $record->{_source}{samples}[0]{growingConditions},
+#                 passageNumber       => $record->{_source}{samples}[0]{passageNumber},
+#             );
+#             push(@samples, \%sample);
+#             # }
+#         }
+#     }
 
-
-    # foreach my $exp (@experiment_array) {
-    #     my $es_id = join('-', $IDR_No, $exp);
-    #
+    # my @files;
+    # foreach my $file (@{$file_set->{files}}) { # ???
+    #   my $filetype = 'vep_bcf'; # ???
+    #   push(@files, {
+    #     name => $file->filename, # ???
+    #     md5 => $file->md5, # ???
+    #     type => $filetype, # ???
+    #   });
     # }
 
-  my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
-  $es_id =~ s/\s/_/g;
-  print $es_id;
-  $docs{$es_id} = {
-    description => $description,
-    files => \@files,
-    archive => {
-      name => 'HipSci FTP',
-      url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-      openAccess => 1,
-    },
-    samples => \@samples,
-    assay => {
-      type => 'Genotyping array',
-      description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
-      instrument => 'Illumina beadchip HumanCoreExome-12',
-    }
-  }
+
+
+#   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+#   $es_id =~ s/\s/_/g;
+#   print $es_id;
+#   $docs{$es_id} = {
+#     description => $description,
+#     files => \@files,
+#     archive => {
+#       name => 'HipSci FTP',
+#       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+#       ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+#       openAccess => 1,
+#     },
+#     samples => \@samples,
+#     assay => {
+#       type => 'Genotyping array',
+#       description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+#       instrument => 'Illumina beadchip HumanCoreExome-12',
+#     }
+#   }
 # }
 
 
