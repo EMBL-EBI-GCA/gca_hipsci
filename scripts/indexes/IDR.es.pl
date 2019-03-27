@@ -70,9 +70,9 @@ my $IDR_No = 'idr0034-kilpinen-hipsci/screenA';
 
 my %docs;
 FILE:
-foreach my $file_set (values %file_sets) { # ???
-  my $dir = $file_set->{dir}; # ???
-  $dir =~ s{$trim}{}; # ???
+# foreach my $file_set (values %file_sets) { # ???
+#   my $dir = $file_set->{dir}; # ???
+#   $dir =~ s{$trim}{}; # ???
   my @samples; # ???
   CELL_LINE:
   foreach my $cell_line (@IDR_celllines){
@@ -110,15 +110,15 @@ foreach my $file_set (values %file_sets) { # ???
     }
   }
 
-  my @files;
-  foreach my $file (@{$file_set->{files}}) { # ???
-    my $filetype = 'vep_bcf'; # ???
-    push(@files, {
-      name => $file->filename, # ???
-      md5 => $file->md5, # ???
-      type => $filetype, # ???
-    });
-  }
+  # my @files;
+  # foreach my $file (@{$file_set->{files}}) { # ???
+  #   my $filetype = 'vep_bcf'; # ???
+  #   push(@files, {
+  #     name => $file->filename, # ???
+  #     md5 => $file->md5, # ???
+  #     type => $filetype, # ???
+  #   });
+  # }
 
 
     # foreach my $exp (@experiment_array) {
@@ -145,7 +145,7 @@ foreach my $file_set (values %file_sets) { # ???
       instrument => 'Illumina beadchip HumanCoreExome-12',
     }
   }
-}
+# }
 
 
 
