@@ -244,7 +244,7 @@ foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {  # my $file_patter
   $file_sets{$label} //= {label => $label, date => $date, files => [], dir => dirname($file_path)};
   push(@{$file_sets{$label}{files}}, $file);
 }
-
+print Dumper(%file_sets);
 # print Dumper(@{$file_sets{$label}{files}});
 # $VAR22 = bless( {
 #                   'withdrawn' => '0',
