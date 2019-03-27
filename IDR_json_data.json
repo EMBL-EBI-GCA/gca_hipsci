@@ -1,0 +1,373 @@
+{
+    "experiment_2": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6113", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0313i-airc_2", 
+            "HPSI0313i-airc_3"
+        ], 
+        "Accession": "experiment_2", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_3": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6124", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0313i-airc_2", 
+            "HPSI0313i-airc_3"
+        ], 
+        "Accession": "experiment_3", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_4": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6128", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0313i-airc_2", 
+            "HPSI0313i-airc_3"
+        ], 
+        "Accession": "experiment_4", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_8": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6129", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-qimz_1"
+        ], 
+        "Accession": "experiment_8", 
+        "Sex": "female", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_32": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6127", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0613i-riiv_1"
+        ], 
+        "Accession": "experiment_32", 
+        "Sex": "female", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_27": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6121", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-coio_2", 
+            "HPSI0813i-meqo_2", 
+            "HPSI0713i-ruyv_1", 
+            "HPSI0713i-darw_1"
+        ], 
+        "Accession": "experiment_27", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_26": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6120", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-euir_1", 
+            "HPSI0713i-darw_1", 
+            "HPSI0413i-ougl_1", 
+            "HPSI0413i-ougl_3"
+        ], 
+        "Accession": "experiment_26", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_25": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6119", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-ruyv_3", 
+            "HPSI0813i-meqo_2"
+        ], 
+        "Accession": "experiment_25", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_24": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6118", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-ruyv_1", 
+            "HPSI0813i-meqo_2", 
+            "HPSI0713i-ruyv_3"
+        ], 
+        "Accession": "experiment_24", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_23": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6117", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-ruyv_3", 
+            "HPSI0513i-euir_1", 
+            "HPSI0413i-ougl_1"
+        ], 
+        "Accession": "experiment_23", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_22": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6116", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0613i-auim_2", 
+            "HPSI0713i-darw_2"
+        ], 
+        "Accession": "experiment_22", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_21": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6115", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-darw_2", 
+            "HPSI0613i-auim_2"
+        ], 
+        "Accession": "experiment_21", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_20": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6114", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-cuau_2"
+        ], 
+        "Accession": "experiment_20", 
+        "Sex": "female", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_29": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6123", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-euir_1", 
+            "HPSI0513i-coio_1", 
+            "HPSI0513i-coio_2", 
+            "HPSI0413i-ougl_3"
+        ], 
+        "Accession": "experiment_29", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_28": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6122", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0413i-ougl_1", 
+            "HPSI0713i-darw_1", 
+            "HPSI0513i-coio_2", 
+            "HPSI0713i-ruyv_1"
+        ], 
+        "Accession": "experiment_28", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_14_plate2": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6106", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-cuau_1", 
+            "HPSI0513i-leeh_2", 
+            "HPSI0713i-kaks_3", 
+            "HPSI0713i-kaks_2"
+        ], 
+        "Accession": "experiment_14_plate2", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_14_plate3": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6107", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-kaks_2", 
+            "HPSI0513i-leeh_3", 
+            "HPSI0513i-leeh_2"
+        ], 
+        "Accession": "experiment_14_plate3", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_14_plate1": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6105", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-qimz_2", 
+            "HPSI0513i-cuau_1"
+        ], 
+        "Accession": "experiment_14_plate1", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_30": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6125", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-coio_1", 
+            "HPSI0413i-ougl_3", 
+            "HPSI0613i-riiv_1"
+        ], 
+        "Accession": "experiment_30", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_31": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6126", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-coio_1", 
+            "HPSI0613i-riiv_1"
+        ], 
+        "Accession": "experiment_31", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_18": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6111", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-darw_2", 
+            "HPSI0613i-auim_2", 
+            "HPSI0513i-cuau_2", 
+            "HPSI0813i-meqo_3"
+        ], 
+        "Accession": "experiment_18", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_19": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6112", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0813i-meqo_3", 
+            "HPSI0513i-cuau_2", 
+            "HPSI0613i-auim_2", 
+            "HPSI0713i-darw_2"
+        ], 
+        "Accession": "experiment_19", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_12": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6103", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0513i-leeh_3", 
+            "HPSI0513i-leeh_2", 
+            "HPSI0713i-qimz_2", 
+            "HPSI0713i-kaks_2", 
+            "HPSI0413i-iakz_2"
+        ], 
+        "Accession": "experiment_12", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_13": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6104", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-kaks_3"
+        ], 
+        "Accession": "experiment_13", 
+        "Sex": "male", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_10": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6101", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-qimz_1"
+        ], 
+        "Accession": "experiment_10", 
+        "Sex": "female", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_11": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6102", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-qimz_1"
+        ], 
+        "Accession": "experiment_11", 
+        "Sex": "female", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_16": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6109", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0613i-riiv_3", 
+            "HPSI0613i-auim_3", 
+            "HPSI0513i-euir_2"
+        ], 
+        "Accession": "experiment_16", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_17": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6110", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0813i-meqo_3"
+        ], 
+        "Accession": "experiment_17", 
+        "Sex": "male", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }, 
+    "experiment_15": {
+        "File download": "https://idr.openmicroscopy.org/webclient/?show=plate-6108", 
+        "Assay": "High content imaging", 
+        "Description": "High content fluorescence microscopy", 
+        "Cell line": [
+            "HPSI0713i-kaks_2", 
+            "HPSI0513i-euir_2", 
+            "HPSI0413i-iakz_1"
+        ], 
+        "Accession": "experiment_15", 
+        "Instrument": "Operetta", 
+        "Archive": null
+    }
+}
