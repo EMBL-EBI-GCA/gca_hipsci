@@ -89,6 +89,7 @@ foreach my $file_set (values %file_sets) { # ???
     my $content = $browser->content();
     my $json = new JSON;
     my $json_text = $json->decode($content);
+    print Dumper($json_text);
     foreach my $record (@{$json_text->{hits}{hits}}){ # below if probably needs to be removed
       # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
         my %sample = (
