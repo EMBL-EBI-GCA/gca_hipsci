@@ -1,3 +1,4 @@
+# Very importnt: Need to run this code for each IDR and give the IDR name like 'idr0034-kilpinen-hipsci/screenA' to a variable (IDR_NO)
 
 use strict;
 use warnings;
@@ -31,9 +32,9 @@ my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';  # IDR json data fil
 #   $cgap_ips_line_hash{$cell_line->name} = $cell_line;
 #   $cgap_tissues_hash{$cell_line->tissue->name} = $cell_line->tissue; # gets the data and builds both as required.
 # }
-# my $date = '20190326';
-# my $label = 'IDR';
 ###
+
+
 my $json_text = do {
    open(my $json_fh, "<:encoding(UTF-8)", $filename)
       or die("Can't open \$filename\": $!\n");
@@ -63,6 +64,9 @@ foreach my $experiment (@experiment_array) {
 # }
 ####
 
+my $date = '20190326';
+my $label = 'IDR';
+my $IDR_No = 'idr0034-kilpinen-hipsci/screenA';
 
 my %docs;
 FILE:
@@ -89,7 +93,7 @@ foreach my $file_set (values %file_sets) { # ???
     my $content = $browser->content();
     my $json = new JSON;
     my $json_text = $json->decode($content);
-    print Dumper($json_text);
+    # print Dumper($json_text);
     foreach my $record (@{$json_text->{hits}{hits}}){ # below if probably needs to be removed
       # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
         my %sample = (
@@ -116,7 +120,14 @@ foreach my $file_set (values %file_sets) { # ???
     });
   }
 
+
+    # foreach my $exp (@experiment_array) {
+    #     my $es_id = join('-', $IDR_No, $exp);
+    #
+    # }
+
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+    print $es_id;
   $es_id =~ s/\s/_/g;
   $docs{$es_id} = {
     description => $description,
