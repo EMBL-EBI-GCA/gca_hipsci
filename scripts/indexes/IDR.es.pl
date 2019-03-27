@@ -127,8 +127,8 @@ foreach my $file_set (values %file_sets) { # ???
     # }
 
   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
-    print $es_id;
   $es_id =~ s/\s/_/g;
+  print $es_id;
   $docs{$es_id} = {
     description => $description,
     files => \@files,
