@@ -85,7 +85,7 @@ foreach my $exp (@experiment_array) {
             url        => $data->{$exp}{'File download'},
             ftpUrl     => $data->{$exp}{'File download'},
             accession => $exp,
-            # openAccess => 1,
+            openAccess => 1,
         },
         samples => [{
             name => $data->{$exp}{'Cell line'},
