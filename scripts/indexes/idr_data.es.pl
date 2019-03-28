@@ -52,7 +52,7 @@ foreach my $exp (@experiment_array) {
     $docs{$es_id} = {
         description => $description,
         files => [{
-            name => $exp,
+            name => $IDR_No + '-' + $exp,
         }],
         archive     => {
             name       => 'IDR',
