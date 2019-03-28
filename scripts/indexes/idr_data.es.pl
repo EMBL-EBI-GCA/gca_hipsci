@@ -22,8 +22,10 @@ my $demographic_filename;
 my $description = 'High content fluorescence microscopy';
 
 # below two variables need to be updated accordingly based on each specific IDR:
-my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_2051.json';  # IDR json data file
-my $IDR_No = 'idr0037-vigilante-hipsci/screenA'; # IDR file name
+# my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_2051.json';  # IDR json data file
+# my $IDR_No = 'idr0037-vigilante-hipsci/screenA'; # IDR file name
+my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json data file
+my $IDR_No = 'idr0034-kilpinen-hipsci/screenA'; # IDR file name
 # for IDR0034: '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json' and 'idr0034-kilpinen-hipsci/screenA';
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
