@@ -46,7 +46,7 @@ my $json_text = do {
 my $json = JSON->new;
 my $data = $json->decode($json_text);
 my @experiment_array = keys %$data;
-
+print Dumper($data);
 my %docs;
 FILE:
 foreach my $exp (@experiment_array) {
