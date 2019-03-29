@@ -1,4 +1,5 @@
 # Need to run this code for each IDR separately. IDR data is saved in '/homes/hipdcc/IDR_data/IDR_data'
+# The python code to collect the data is also saved there.
 # $filename (json file containing IDR data) and  $IDR_No (name/number of the specific IDR)
 # Ex: '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json' and 'idr0034-kilpinen-hipsci/screenA'
 
