@@ -53,6 +53,34 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
+
+# foreach my $celllines ($data->{$exp}{'Cell line'}) {
+#     # print Dumper ($celllines);
+#     foreach my $cell_line (@$celllines) {
+#         # print $cell_line;
+foreach my $cell_line (@IDR_celllines) {
+    my $browser = WWW::Mechanize->new();
+    my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+    my $query =
+    '{
+      "size": 1000,
+      "query": {
+        "filtered": {
+          "filter": {
+            "term": {"samples.name": "'.$cell_line.'"}
+          }
+        }
+      }
+    }';
+    $browser->post( $hipsci_api, content => $query );
+    my $content = $browser->content();
+    my $json = new JSON;
+    my $json_text = $json->decode($content);
+    foreach my $record (@{$json_text->{hits}{hits}}) {
+        print Dumper($cell_line);
+        print Dumper($record->{_source}{samples}[0]{cellType});
+    }
+}
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
 # my %file_sets;
@@ -74,33 +102,33 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    foreach my $celllines ($data->{$exp}{'Cell line'}) {
-        # print Dumper ($celllines);
-        foreach my $cell_line (@$celllines) {
-            print $cell_line;
-        #     my $browser = WWW::Mechanize->new();
-        #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-        #     my $query =
-        #     '{
-        #       "size": 1000,
-        #       "query": {
-        #         "filtered": {
-        #           "filter": {
-        #             "term": {"samples.name": "'.$cell_line.'"}
-        #           }
-        #         }
-        #       }
-        #     }';
-        #     $browser->post( $hipsci_api, content => $query );
-        #     my $content = $browser->content();
-        #     my $json = new JSON;
-        #     my $json_text = $json->decode($content);
-        #     foreach my $record (@{$json_text->{hits}{hits}}) {
-        #         print Dumper($cell_line);
-        #         print Dumper($record->{_source}{samples}[0]{cellType});
-        #     }
-        }
-    }
+    # foreach my $celllines ($data->{$exp}{'Cell line'}) {
+    #     # print Dumper ($celllines);
+    #     foreach my $cell_line (@$celllines) {
+    #         print $cell_line;
+    #     #     my $browser = WWW::Mechanize->new();
+    #     #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+    #     #     my $query =
+    #     #     '{
+    #     #       "size": 1000,
+    #     #       "query": {
+    #     #         "filtered": {
+    #     #           "filter": {
+    #     #             "term": {"samples.name": "'.$cell_line.'"}
+    #     #           }
+    #     #         }
+    #     #       }
+    #     #     }';
+    #     #     $browser->post( $hipsci_api, content => $query );
+    #     #     my $content = $browser->content();
+    #     #     my $json = new JSON;
+    #     #     my $json_text = $json->decode($content);
+    #     #     foreach my $record (@{$json_text->{hits}{hits}}) {
+    #     #         print Dumper($cell_line);
+    #     #         print Dumper($record->{_source}{samples}[0]{cellType});
+    #     #     }
+    #     }
+    # }
         $docs{$es_id} = {
         description => $description,
         files => [{
