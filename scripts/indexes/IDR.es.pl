@@ -74,7 +74,7 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    foreach my $celllines ($data->{$exp}{'Cell line'}) {
+    foreach my $celllines ($data->{$exp}{'Cell line'}[0]) {
         print Dumper ($celllines);
         # foreach my $cell_line (@$celllines) {
         #     my $browser = WWW::Mechanize->new();
