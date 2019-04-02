@@ -53,7 +53,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-
+print @IDR_celllines;
 #### this is the only bit we haven't prepared:
 # my %file_sets;
 # foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
