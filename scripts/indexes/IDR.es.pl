@@ -21,7 +21,7 @@ my $dbhost = 'mysql-g1kdcc-public';
 my $demographic_filename;
 my $trim = '/nfs/hipsci';
 my $description = 'High content fluorescence microscopy';
-my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';  # IDR json data file
+my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json data file
 ##  uncomment them:
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
@@ -209,7 +209,7 @@ foreach my $exp (@experiment_array) {
 # ES_DOC:
 # while (my $es_doc = $scroll->next) {
 #   my $new_doc = $docs{$es_doc->{_id}};
-#   if (!$new_doc) {
+#   if (!$new_doc) {filename
 #     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
 #     next ES_DOC;
 #   }
