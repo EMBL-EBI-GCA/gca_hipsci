@@ -93,7 +93,9 @@ foreach my $exp (@experiment_array) {
             my $content = $browser->content();
             my $json = new JSON;
             my $json_text = $json->decode($content);
-            print Dumper($json_text->{_source}{samples}[0]{cellType});
+            foreach my $record (@{$json_text->{hits}{hits}}) {
+                print Dumper($record->{_source}{samples}[0]{cellType});
+            }
         }
     }
         $docs{$es_id} = {
