@@ -67,7 +67,7 @@ foreach my $cell_line (@IDR_celllines) {
       "query": {
         "filtered": {
           "filter": {
-            "term": {"samples.name": "'.$cell_line.'"}
+            "term": {"name": "'.$cell_line.'"}
           }
         }
       }
