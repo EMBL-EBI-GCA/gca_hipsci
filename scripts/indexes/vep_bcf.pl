@@ -76,109 +76,108 @@ foreach my $file_set (values %file_sets) {
   $dir =~ s{$trim}{};
   my @samples;
   CELL_LINE:
-  foreach my $cell_line (@open_access_samples) {
+  foreach my $cell_line (@open_access_samples){
     print $cell_line;
     my $browser = WWW::Mechanize->new();
     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
     my $query =
-        '{
+    '{
       "size": 1000,
       "query": {
         "filtered": {
           "filter": {
-            "term": {"samples.name": "' . $cell_line . '"}
+            "term": {"samples.name": "'.$cell_line.'"}
           }
         }
       }
     }';
-    $browser->post($hipsci_api, content => $query);
+    $browser->post( $hipsci_api, content => $query );
     my $content = $browser->content();
     my $json = new JSON;
     my $json_text = $json->decode($content);
-    foreach my $record (@{$json_text->{hits}{hits}}) {
-      if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes') {
+    foreach my $record (@{$json_text->{hits}{hits}}){
+      if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
         my %sample = (
-            name                => $cell_line,
-            bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
-            cellType            => $record->{_source}{samples}[0]{cellType},
-            diseaseStatus       => $record->{_source}{samples}[0]{diseaseStatus},
-            sex                 => $record->{_source}{samples}[0]{sex},
-            growingConditions   => $record->{_source}{samples}[0]{growingConditions},
-            passageNumber       => $record->{_source}{samples}[0]{passageNumber},
+          name => $cell_line,
+          bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
+          cellType => $record->{_source}{samples}[0]{cellType},
+          diseaseStatus => $record->{_source}{samples}[0]{diseaseStatus},
+          sex => $record->{_source}{samples}[0]{sex},
+          growingConditions => $record->{_source}{samples}[0]{growingConditions},
+          passageNumber => $record->{_source}{samples}[0]{passageNumber},
         );
         push(@samples, \%sample);
       }
     }
   }
-}
-#
-#   my @files;
-#   foreach my $file (@{$file_set->{files}}) {
-#     my $filetype = 'vep_bcf';
-#     push(@files, {
-#       name => $file->filename,
-#       md5 => $file->md5,
-#       type => $filetype,
-#     });
-#   }
-#
-#   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
-#   $es_id =~ s/\s/_/g;
-#   $docs{$es_id} = {
-#     description => $description,
-#     files => \@files,
-#     archive => {
-#       name => 'HipSci FTP',
-#       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-#       ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-#       openAccess => 1,
-#     },
-#     samples => \@samples,
-#     assay => {
-#       type => 'Genotyping array',
-#       description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
-#       instrument => 'Illumina beadchip HumanCoreExome-12',
-#     }
-#   }
-# }
 
-#
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             description => $description
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
-#
-# my $systemdate = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   my $new_doc = $docs{$es_doc->{_id}};
-#   if (!$new_doc) {
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $systemdate;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   $new_doc->{_indexCreated} = $systemdate;
-#   $new_doc->{_indexUpdated} = $systemdate;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+  my @files;
+  foreach my $file (@{$file_set->{files}}) {
+    my $filetype = 'vep_bcf';
+    push(@files, {
+      name => $file->filename,
+      md5 => $file->md5,
+      type => $filetype,
+    });
+  }
+
+  my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+  $es_id =~ s/\s/_/g;
+  $docs{$es_id} = {
+    description => $description,
+    files => \@files,
+    archive => {
+      name => 'HipSci FTP',
+      url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+      ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+      openAccess => 1,
+    },
+    samples => \@samples,
+    assay => {
+      type => 'Genotyping array',
+      description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+      instrument => 'Illumina beadchip HumanCoreExome-12',
+    }
+  }
+}
+
+
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            description => $description
+          },
+        }
+      }
+    }
+  }
+));
+
+my $systemdate = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  my $new_doc = $docs{$es_doc->{_id}};
+  if (!$new_doc) {
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  $new_doc->{_indexUpdated} = $systemdate;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) {
+  $new_doc->{_indexCreated} = $systemdate;
+  $new_doc->{_indexUpdated} = $systemdate;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
