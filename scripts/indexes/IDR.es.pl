@@ -76,11 +76,12 @@ foreach my $cell_line (@IDR_celllines) {
     my $content = $browser->content();
     my $json = new JSON;
     my $json_text = $json->decode($content);
-    print Dumper ($json_text);
-    last;
-    # foreach my $record (@{$json_text->{hits}{hits}}) {
-    #     print Dumper($cell_line);
-    #     print Dumper($record->{_source}{samples}[0]{cellType});
+    # print Dumper ($json_text);
+    # last;
+    foreach my $record (@{$json_text->{hits}{hits}}) {
+        print Dumper($cell_line);
+        print Dumper($record->{_source}{assay}{type});
+        print Dumper($record->{_source}{samples}[0]{cellType});
     # }
 }
 # print Dumper(@IDR_celllines);
