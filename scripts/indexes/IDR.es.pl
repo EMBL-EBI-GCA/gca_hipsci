@@ -84,7 +84,7 @@ foreach my $cell_line (@IDR_celllines) {
     #     print Dumper($record->{_source}{samples}[0]{cellType});
     #     'Raw sequencing reads'
     }
-}
+# }
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
 # my %file_sets;
