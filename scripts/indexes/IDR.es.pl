@@ -71,6 +71,7 @@ my $IDR_No = 'idr0034-kilpinen-hipsci/screenA';
 my %docs;
 FILE:
 foreach my $exp (@experiment_array) {
+    print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     $docs{$es_id} = {
@@ -102,164 +103,164 @@ foreach my $exp (@experiment_array) {
     }
     # print Dumper($docs{$es_id});
 }
-# foreach my $file_set (values %file_sets) {
-#                                 # ???
-#     my $dir = $file_set->{dir}; # ???
-#     $dir =~ s{$trim}{};         # ???
-#     my @samples;                # ???
-#     CELL_LINE:
-#     foreach my $cell_line (@IDR_celllines) {
-#         my $browser = WWW::Mechanize->new();
-#         my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-#         my $query =
-#             '{
-#       "size": 1000,
-#       "query": {
-#         "filtered": {
-#           "filter": {
-#             "term": {"samples.name": "' . $cell_line . '"}
-#           }
+# # foreach my $file_set (values %file_sets) {
+# #                                 # ???
+# #     my $dir = $file_set->{dir}; # ???
+# #     $dir =~ s{$trim}{};         # ???
+# #     my @samples;                # ???
+# #     CELL_LINE:
+# #     foreach my $cell_line (@IDR_celllines) {
+# #         my $browser = WWW::Mechanize->new();
+# #         my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+# #         my $query =
+# #             '{
+# #       "size": 1000,
+# #       "query": {
+# #         "filtered": {
+# #           "filter": {
+# #             "term": {"samples.name": "' . $cell_line . '"}
+# #           }
+# #         }
+# #       }
+# #     }';
+# #         $browser->post($hipsci_api, content => $query);
+# #         my $content = $browser->content();
+# #         my $json = new JSON;
+# #         my $json_text = $json->decode($content);
+# #         # print Dumper($json_text);
+# #         foreach my $record (@{$json_text->{hits}{hits}}) {
+# #             # below if probably needs to be removed
+# #             # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
+# #             my %sample = (
+# #                 name                => $cell_line,
+# #                 bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
+# #                 cellType            => $record->{_source}{samples}[0]{cellType},
+# #                 diseaseStatus       => $record->{_source}{samples}[0]{diseaseStatus},
+# #                 sex                 => $record->{_source}{samples}[0]{sex},
+# #                 growingConditions   => $record->{_source}{samples}[0]{growingConditions},
+# #                 passageNumber       => $record->{_source}{samples}[0]{passageNumber},
+# #             );
+# #             push(@samples, \%sample);
+# #             # }
+# #         }
+# #     }
+#
+#     # my @files;
+#     # foreach my $file (@{$file_set->{files}}) { # ???
+#     #   my $filetype = 'vep_bcf'; # ???
+#     #   push(@files, {
+#     #     name => $file->filename, # ???
+#     #     md5 => $file->md5, # ???
+#     #     type => $filetype, # ???
+#     #   });
+#     # }
+#
+#
+#
+# #   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
+# #   $es_id =~ s/\s/_/g;
+# #   print $es_id;
+# #   $docs{$es_id} = {
+# #     description => $description,
+# #     files => \@files,
+# #     archive => {
+# #       name => 'HipSci FTP',
+# #       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+# #       ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
+# #       openAccess => 1,
+# #     },
+# #     samples => \@samples,
+# #     assay => {
+# #       type => 'Genotyping array',
+# #       description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
+# #       instrument => 'Illumina beadchip HumanCoreExome-12',
+# #     }
+# #   }
+# # }
+#
+#
+#
+# # my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
+# # my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
+# # my $drop_base = '/nfs/research1/hipsci/drop/hip-drop/incoming';
+# # my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_bcf/hipsci_openaccess_samples';
+#
+#
+# ######### --> The part to search elasticsearch based on description (this needs to be IDR) and update the elasticsearch:
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#             description => $description
+#           },
 #         }
 #       }
-#     }';
-#         $browser->post($hipsci_api, content => $query);
-#         my $content = $browser->content();
-#         my $json = new JSON;
-#         my $json_text = $json->decode($content);
-#         # print Dumper($json_text);
-#         foreach my $record (@{$json_text->{hits}{hits}}) {
-#             # below if probably needs to be removed
-#             # if ($record->{_source}{assay}{type} eq 'Genotyping array' && $record->{_source}{description} eq 'Imputed and phased genotypes'){
-#             my %sample = (
-#                 name                => $cell_line,
-#                 bioSamplesAccession => $record->{_source}{samples}[0]{bioSamplesAccession},
-#                 cellType            => $record->{_source}{samples}[0]{cellType},
-#                 diseaseStatus       => $record->{_source}{samples}[0]{diseaseStatus},
-#                 sex                 => $record->{_source}{samples}[0]{sex},
-#                 growingConditions   => $record->{_source}{samples}[0]{growingConditions},
-#                 passageNumber       => $record->{_source}{samples}[0]{passageNumber},
-#             );
-#             push(@samples, \%sample);
-#             # }
-#         }
-#     }
-
-    # my @files;
-    # foreach my $file (@{$file_set->{files}}) { # ???
-    #   my $filetype = 'vep_bcf'; # ???
-    #   push(@files, {
-    #     name => $file->filename, # ???
-    #     md5 => $file->md5, # ???
-    #     type => $filetype, # ???
-    #   });
-    # }
-
-
-
-#   my $es_id = join('-', $file_set->{label}, 'vep_openaccess_bcf');
-#   $es_id =~ s/\s/_/g;
-#   print $es_id;
-#   $docs{$es_id} = {
-#     description => $description,
-#     files => \@files,
-#     archive => {
-#       name => 'HipSci FTP',
-#       url => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-#       ftpUrl => "ftp://ftp.hipsci.ebi.ac.uk$dir",
-#       openAccess => 1,
-#     },
-#     samples => \@samples,
-#     assay => {
-#       type => 'Genotyping array',
-#       description => ['SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12'],
-#       instrument => 'Illumina beadchip HumanCoreExome-12',
 #     }
 #   }
-# }
-
-
-
-# my $file_pattern = 'vep_openaccess_bcf/chr%.bcf';
-# my $drop_trim = '/nfs/hipsci/vol1/ftp/data';
-# my $drop_base = '/nfs/research1/hipsci/drop/hip-drop/incoming';
-# my $sample_list = '/nfs/research1/hipsci/drop/hip-drop/incoming/vep_openaccess_bcf/hipsci_openaccess_samples';
-
-
-######### --> The part to search elasticsearch based on description (this needs to be IDR) and update the elasticsearch:
-my $scroll = $elasticsearch->call('scroll_helper', (
-  index => 'hipsci',
-  type => 'file',
-  search_type => 'scan',
-  size => 500,
-  body => {
-    query => {
-      filtered => {
-        filter => {
-          term => {
-            description => $description
-          },
-        }
-      }
-    }
-  }
-));
-
-my $systemdate = strftime('%Y%m%d', localtime);
-ES_DOC:
-while (my $es_doc = $scroll->next) {
-  my $new_doc = $docs{$es_doc->{_id}};
-  if (!$new_doc) {
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-    next ES_DOC;
-  }
-  delete $docs{$es_doc->{_id}};
-  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
-  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
-  next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  $new_doc->{_indexUpdated} = $systemdate;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-}
-while (my ($es_id, $new_doc) = each %docs) {
-  $new_doc->{_indexCreated} = $systemdate;
-  $new_doc->{_indexUpdated} = $systemdate;
-  $elasticsearch->index_file(body => $new_doc, id => $es_id);
-}
-######## <-- The end ########
-
-
-################## How to get the json data ##################
-# use warnings;
-# use strict;
-# use JSON::MaybeXS;
+# ));
 #
-# # IDR data is saved in a json format in
-# use Data::Dumper;
-# use lib qw(..);
-# use JSON qw( );
-# my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';
-# my $json_text = do {
-#    open(my $json_fh, "<:encoding(UTF-8)", $filename)
-#       or die("Can't open \$filename\": $!\n");
-#    local $/;
-#    <$json_fh>
-# };
-# my $json = JSON->new;
-# my $data = $json->decode($json_text);
-# print Dumper($data);
-
-# 'experiment_20' => {
-#                    'Cell line' => [
-#                                     'HPSI0513i-cuau_2'
-#                                   ],
-#                    'Instrument' => 'Operetta',
-#                    'Sex' => [
-#                               'female'
-#                             ],
-#                    'Assay' => 'High content imaging',
-#                    'Archive' => undef,
-#                    'Description' => 'High content fluorescence microscopy',
-#                    'File download' => 'https://idr.openmicroscopy.org/webclient/?show=plate-6114',
-#                    'Accession' => 'experiment_20'
-#                  }
-######## <-- The end ########
+# my $systemdate = strftime('%Y%m%d', localtime);
+# ES_DOC:
+# while (my $es_doc = $scroll->next) {
+#   my $new_doc = $docs{$es_doc->{_id}};
+#   if (!$new_doc) {
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $systemdate;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $systemdate;
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) {
+#   $new_doc->{_indexCreated} = $systemdate;
+#   $new_doc->{_indexUpdated} = $systemdate;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
+# ######## <-- The end ########
+#
+#
+# ################## How to get the json data ##################
+# # use warnings;
+# # use strict;
+# # use JSON::MaybeXS;
+# #
+# # # IDR data is saved in a json format in
+# # use Data::Dumper;
+# # use lib qw(..);
+# # use JSON qw( );
+# # my $filename = '/homes/hipdcc/IDR_data/IDR_json_data.json';
+# # my $json_text = do {
+# #    open(my $json_fh, "<:encoding(UTF-8)", $filename)
+# #       or die("Can't open \$filename\": $!\n");
+# #    local $/;
+# #    <$json_fh>
+# # };
+# # my $json = JSON->new;
+# # my $data = $json->decode($json_text);
+# # print Dumper($data);
+#
+# # 'experiment_20' => {
+# #                    'Cell line' => [
+# #                                     'HPSI0513i-cuau_2'
+# #                                   ],
+# #                    'Instrument' => 'Operetta',
+# #                    'Sex' => [
+# #                               'female'
+# #                             ],
+# #                    'Assay' => 'High content imaging',
+# #                    'Archive' => undef,
+# #                    'Description' => 'High content fluorescence microscopy',
+# #                    'File download' => 'https://idr.openmicroscopy.org/webclient/?show=plate-6114',
+# #                    'Accession' => 'experiment_20'
+# #                  }
+# ######## <-- The end ########
