@@ -75,7 +75,7 @@ foreach my $exp (@experiment_array) {
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
-        foreach my $cellline (@$celllines) {
+        foreach my $cell_line (@$celllines) {
             my $browser = WWW::Mechanize->new();
             my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
             my $query =
