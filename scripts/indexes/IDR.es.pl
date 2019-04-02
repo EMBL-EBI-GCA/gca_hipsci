@@ -76,15 +76,15 @@ foreach my $cell_line (@IDR_celllines) {
     my $content = $browser->content();
     my $json = new JSON;
     my $json_text = $json->decode($content);
-    print Dumper ($json_text);
-    last;
-    # foreach my $record (@{$json_text->{hits}{hits}}) {
-    #     print Dumper($cell_line);
-    #     print Dumper($record->{_source}{assay}{type});
-    #     print Dumper($record->{_source}{samples}[0]{cellType});
-    #     'Raw sequencing reads'
+    # print Dumper ($json_text);
+    # last;
+    foreach my $record (@{$json_text->{hits}{hits}}) {
+        print Dumper($cell_line);
+        # print Dumper($record->{_source}{assay}{type});
+        print Dumper($record->{_source}{cellType}{value});
+        'Raw sequencing reads'
     }
-# }
+}
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
 # my %file_sets;
