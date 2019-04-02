@@ -71,12 +71,29 @@ my $IDR_No = 'idr0034-kilpinen-hipsci/screenA';
 my %docs;
 FILE:
 foreach my $exp (@experiment_array) {
-    print Dumper($exp);
+    # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
         foreach my $cellline (@$celllines) {
-            print $cellline;
+            my $browser = WWW::Mechanize->new();
+            my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+            my $query =
+            '{
+              "size": 1000,
+              "query": {
+                "filtered": {
+                  "filter": {
+                    "term": {"samples.name": "'.$cell_line.'"}
+                  }
+                }
+              }
+            }';
+            $browser->post( $hipsci_api, content => $query );
+            my $content = $browser->content();
+            my $json = new JSON;
+            my $json_text = $json->decode($content);
+            print Dumper($json_text);
         }
     }
         $docs{$es_id} = {
