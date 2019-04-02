@@ -75,29 +75,30 @@ foreach my $exp (@experiment_array) {
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
-        foreach my $cell_line (@$celllines) {
-            my $browser = WWW::Mechanize->new();
-            my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-            my $query =
-            '{
-              "size": 1000,
-              "query": {
-                "filtered": {
-                  "filter": {
-                    "term": {"samples.name": "'.$cell_line.'"}
-                  }
-                }
-              }
-            }';
-            $browser->post( $hipsci_api, content => $query );
-            my $content = $browser->content();
-            my $json = new JSON;
-            my $json_text = $json->decode($content);
-            foreach my $record (@{$json_text->{hits}{hits}}) {
-                print Dumper($cell_line);
-                print Dumper($record->{_source}{samples}[0]{cellType});
-            }
-        }
+        print Dumper ($celllines);
+        # foreach my $cell_line (@$celllines) {
+        #     my $browser = WWW::Mechanize->new();
+        #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+        #     my $query =
+        #     '{
+        #       "size": 1000,
+        #       "query": {
+        #         "filtered": {
+        #           "filter": {
+        #             "term": {"samples.name": "'.$cell_line.'"}
+        #           }
+        #         }
+        #       }
+        #     }';
+        #     $browser->post( $hipsci_api, content => $query );
+        #     my $content = $browser->content();
+        #     my $json = new JSON;
+        #     my $json_text = $json->decode($content);
+        #     foreach my $record (@{$json_text->{hits}{hits}}) {
+        #         print Dumper($cell_line);
+        #         print Dumper($record->{_source}{samples}[0]{cellType});
+        #     }
+        # }
     }
         $docs{$es_id} = {
         description => $description,
