@@ -74,9 +74,10 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    foreach my $celllines ($data->{$exp}{'Cell line'}[0]) {
-        print Dumper ($celllines);
-        # foreach my $cell_line (@$celllines) {
+    foreach my $celllines ($data->{$exp}{'Cell line'}) {
+        # print Dumper ($celllines);
+        foreach my $cell_line (@$celllines) {
+            print $cell_line;
         #     my $browser = WWW::Mechanize->new();
         #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
         #     my $query =
@@ -98,7 +99,7 @@ foreach my $exp (@experiment_array) {
         #         print Dumper($cell_line);
         #         print Dumper($record->{_source}{samples}[0]{cellType});
         #     }
-        # }
+        }
     }
         $docs{$es_id} = {
         description => $description,
