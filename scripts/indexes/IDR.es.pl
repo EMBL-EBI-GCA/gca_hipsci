@@ -53,7 +53,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-print @IDR_celllines;
+# print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
 # my %file_sets;
 # foreach my $file (@{$fa->fetch_by_filename($file_pattern)}) {
@@ -74,7 +74,12 @@ foreach my $exp (@experiment_array) {
     print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    $docs{$es_id} = {
+    foreach my $celllines ($data->{$exp}{'Cell line'}) {
+        foreach my $cellline (@$celllines) {
+            print $cellline;
+        }
+    }
+        $docs{$es_id} = {
         description => $description,
         files => [{
             name => $exp,
