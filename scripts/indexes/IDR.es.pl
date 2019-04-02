@@ -82,7 +82,7 @@ foreach my $cell_line (@IDR_celllines) {
         print Dumper($cell_line);
         print Dumper($record->{_source}{assay}{type});
         print Dumper($record->{_source}{samples}[0]{cellType});
-    # }
+    }
 }
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
