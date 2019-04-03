@@ -96,7 +96,7 @@ foreach my $experiment (@experiment_array) {
     #     # print Dumper($record->{_source}{assay}{type});
     #     print Dumper($record->{_source}{cellType}{value});
     #     'Raw sequencing reads'
-    }
+    # }
 # }
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
