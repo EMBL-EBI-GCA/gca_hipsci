@@ -150,7 +150,7 @@ foreach my $exp (@experiment_array) {
         # print %celltype_hash;
         print '-------';
         foreach my $cellline (keys %celltype_hash) {
-            if ($celltype_hash{$cellline} != 'iPSC') {
+            if ($celltype_hash{$cellline} ne 'iPSC') {
                 print "check why the cell type is not iPSC for $cellline";
                 $cell_type = $celltype_hash{$cellline}; last;
             }
