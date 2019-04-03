@@ -63,7 +63,7 @@ foreach my $cell_line (@IDR_celllines) {
     my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
     my $query =
     '{
-      "size": 1000,
+      "size": 1,
       "query": {
         "filtered": {
           "filter": {
@@ -78,13 +78,14 @@ foreach my $cell_line (@IDR_celllines) {
     my $json_text = $json->decode($content);
     # print Dumper ($json_text);
     # last;
-    foreach my $record (@{$json_text->{hits}{hits}}) {
-        print Dumper($cell_line);
-        # print Dumper($record->{_source}{assay}{type});
-        print Dumper($record->{_source}{cellType}{value});
-        'Raw sequencing reads'
+    print Dumper($json_text->{hits}{hits}{_source}{cellType}{value});
+    # foreach my $record (@{$json_text->{hits}{hits}}) {
+    #     print Dumper($cell_line);
+    #     # print Dumper($record->{_source}{assay}{type});
+    #     print Dumper($record->{_source}{cellType}{value});
+    #     'Raw sequencing reads'
     }
-}
+# }
 # print Dumper(@IDR_celllines);
 #### this is the only bit we haven't prepared:
 # my %file_sets;
@@ -107,8 +108,34 @@ foreach my $exp (@experiment_array) {
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     # foreach my $celllines ($data->{$exp}{'Cell line'}) {
-    #     # print Dumper ($celllines);
+    # #     # print Dumper ($celllines);
     #     foreach my $cell_line (@$celllines) {
+    #         my $browser = WWW::Mechanize->new();
+    #         my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+    #         my $query =
+    #         '{
+    #           "size": 1,
+    #           "query": {
+    #             "filtered": {
+    #               "filter": {
+    #                 "term": {"name": "'.$cell_line.'"}
+    #               }
+    #             }
+    #           }
+    #         }';
+    #         $browser->post( $hipsci_api, content => $query );
+    #         my $content = $browser->content();
+    #         my $json = new JSON;
+    #         my $json_text = $json->decode($content);
+    #         # print Dumper ($json_text);
+    #         # last;
+    #         foreach my $record (@{$json_text->{hits}{hits}}) {
+    #             print Dumper($cell_line);
+    #             # print Dumper($record->{_source}{assay}{type});
+    #             print Dumper($record->{_source}{cellType}{value});
+    #             'Raw sequencing reads'
+    #         }
+    #     }
     #         print $cell_line;
     #     #     my $browser = WWW::Mechanize->new();
     #     #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
@@ -133,8 +160,9 @@ foreach my $exp (@experiment_array) {
     #     #     }
     #     }
     # }
-        $docs{$es_id} = {
+    $docs{$es_id} = {
         description => $description,
+        cellType => ,
         files => [{
             name => $exp,
             # md5 => $search_file->{md5},
