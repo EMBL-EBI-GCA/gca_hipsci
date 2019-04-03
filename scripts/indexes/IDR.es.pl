@@ -121,6 +121,7 @@ foreach my $exp (@experiment_array) {
     $es_id =~ s/\s/_/g;
     my %celltype_hash;
     foreach my $cell_line ($data->{$exp}{'Cell line'}[0]) {
+        print Dumper($data->{$exp}{'Accession'});
         print Dumper($cell_line);
         # my $browser = WWW::Mechanize->new();
         # my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
