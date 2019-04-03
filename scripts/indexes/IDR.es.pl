@@ -161,7 +161,6 @@ foreach my $exp (@experiment_array) {
 
     $docs{$es_id} = {
         description => $description,
-        cellType    => $cell_type,
         files       => [ {
             name => $exp,
             # md5 => $search_file->{md5},
@@ -177,7 +176,7 @@ foreach my $exp (@experiment_array) {
         samples     => [ {
             name                => $data->{$exp}{'Cell line'},
             bioSamplesAccession => $exp,
-            # cellType => $cell_type,
+            cellType => $cell_type,
             sex                 => $data->{$exp}{'Sex'},
         } ],
         # samples     => \@samples,
