@@ -85,7 +85,7 @@ foreach my $cell_line (@IDR_celllines) {
     # my $new_test = $test[0];
     # print Dumper($new_test['_source']);
     # print Dumper($new_test->{_source}{assay}{type});
-    last;
+    # last;
     # foreach my $record (@{$json_text->{hits}{hits}}) {
     #     print Dumper($cell_line);
     #     # print Dumper($record->{_source}{assay}{type});
@@ -114,58 +114,58 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    foreach my $celllines ($data->{$exp}{'Cell line'}) {
-    #     # print Dumper ($celllines);
-        foreach my $cell_line (@$celllines) {
-            my $browser = WWW::Mechanize->new();
-            my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
-            my $query =
-            '{
-              "size": 1,
-              "query": {
-                "filtered": {
-                  "filter": {
-                    "term": {"name": "'.$cell_line.'"}
-                  }
-                }
-              }
-            }';
-            $browser->post( $hipsci_api, content => $query );
-            my $content = $browser->content();
-            my $json = new JSON;
-            my $json_text = $json->decode($content);
-            # print Dumper ($json_text);
-            # last;
-            foreach my $record (@{$json_text->{hits}{hits}}) {
-                print Dumper($cell_line);
-                # print Dumper($record->{_source}{assay}{type});
-                print Dumper($record->{_source}{cellType}{value});
-                'Raw sequencing reads'
-            }
-        }
-            print $cell_line;
-    #     #     my $browser = WWW::Mechanize->new();
-    #     #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-    #     #     my $query =
-    #     #     '{
-    #     #       "size": 1000,
-    #     #       "query": {
-    #     #         "filtered": {
-    #     #           "filter": {
-    #     #             "term": {"samples.name": "'.$cell_line.'"}
-    #     #           }
-    #     #         }
-    #     #       }
-    #     #     }';
-    #     #     $browser->post( $hipsci_api, content => $query );
-    #     #     my $content = $browser->content();
-    #     #     my $json = new JSON;
-    #     #     my $json_text = $json->decode($content);
-    #     #     foreach my $record (@{$json_text->{hits}{hits}}) {
-    #     #         print Dumper($cell_line);
-    #     #         print Dumper($record->{_source}{samples}[0]{cellType});
-    #     #     }
+    # foreach my $celllines ($data->{$exp}{'Cell line'}) {
+    # #     # print Dumper ($celllines);
+    #     foreach my $cell_line (@$celllines) {
+    #         my $browser = WWW::Mechanize->new();
+    #         my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+    #         my $query =
+    #         '{
+    #           "size": 1,
+    #           "query": {
+    #             "filtered": {
+    #               "filter": {
+    #                 "term": {"name": "'.$cell_line.'"}
+    #               }
+    #             }
+    #           }
+    #         }';
+    #         $browser->post( $hipsci_api, content => $query );
+    #         my $content = $browser->content();
+    #         my $json = new JSON;
+    #         my $json_text = $json->decode($content);
+    #         # print Dumper ($json_text);
+    #         # last;
+    #         foreach my $record (@{$json_text->{hits}{hits}}) {
+    #             print Dumper($cell_line);
+    #             # print Dumper($record->{_source}{assay}{type});
+    #             print Dumper($record->{_source}{cellType}{value});
+    #             'Raw sequencing reads'
+    #         }
     #     }
+    #         print $cell_line;
+    # #     #     my $browser = WWW::Mechanize->new();
+    # #     #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
+    # #     #     my $query =
+    # #     #     '{
+    # #     #       "size": 1000,
+    # #     #       "query": {
+    # #     #         "filtered": {
+    # #     #           "filter": {
+    # #     #             "term": {"samples.name": "'.$cell_line.'"}
+    # #     #           }
+    # #     #         }
+    # #     #       }
+    # #     #     }';
+    # #     #     $browser->post( $hipsci_api, content => $query );
+    # #     #     my $content = $browser->content();
+    # #     #     my $json = new JSON;
+    # #     #     my $json_text = $json->decode($content);
+    # #     #     foreach my $record (@{$json_text->{hits}{hits}}) {
+    # #     #         print Dumper($cell_line);
+    # #     #         print Dumper($record->{_source}{samples}[0]{cellType});
+    # #     #     }
+    # #     }
     # }
     $docs{$es_id} = {
         description => $description,
