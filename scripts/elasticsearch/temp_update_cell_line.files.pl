@@ -59,7 +59,7 @@ while(1) {
 my %elasticsearch;
 foreach my $es_host (@es_host){
   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-  print %elasticsearch{$es_host};
+  print Dumper($elasticsearch);
 }
 
 my $scroll = $elasticsearch{$es_host[0]}->call('scroll_helper',
@@ -81,15 +81,15 @@ my %ontology_map = (
     'Whole genome sequencing' => 'http://www.ebi.ac.uk/efo/EFO_0003744',
     'High content imaging'    => 'http://www.ebi.ac.uk/efo/EFO_0007550',
 );
-my %cell_line_assays;
-while ( my $doc = $scroll->next ) {
-  my $assay = $doc->{_source}{assay}{type};
-  SAMPLE:
-  foreach my $sample (@{$$doc{'_source'}{'samples'}}){
-    $cell_line_assays{$sample->{name}}{$assay} = {name => $assay, ontologyPURL => $ontology_map{$assay}};
-  }
-}
-
+# my %cell_line_assays;
+# while ( my $doc = $scroll->next ) {
+#   my $assay = $doc->{_source}{assay}{type};
+#   SAMPLE:
+#   foreach my $sample (@{$$doc{'_source'}{'samples'}}){
+#     $cell_line_assays{$sample->{name}}{$assay} = {name => $assay, ontologyPURL => $ontology_map{$assay}};
+#   }
+# }
+#
 # LINE:
 # foreach my $epd_line (@$epd_lines) {
 #   my $short_name = $epd_line->{label};
