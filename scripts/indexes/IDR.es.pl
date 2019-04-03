@@ -58,37 +58,39 @@ foreach my $experiment (@experiment_array) {
 #     # print Dumper ($celllines);
 #     foreach my $cell_line (@$celllines) {
 #         # print $cell_line;
-foreach my $cell_line (@IDR_celllines) {
-    my $browser = WWW::Mechanize->new();
-    my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
-    my $query =
-    '{
-      "size": 1,
-      "query": {
-        "filtered": {
-          "filter": {
-            "term": {"name": "'.$cell_line.'"}
-          }
-        }
-      }
-    }';
-    $browser->post( $hipsci_api, content => $query );
-    my $content = $browser->content();
-    my $json = new JSON;
-    my $json_text = $json->decode($content);
-    # print Dumper ($json_text);
+# foreach my $cell_line (@IDR_celllines) {
+#     my $browser = WWW::Mechanize->new();
+#     my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+#     my $query =
+#     '{
+#       "size": 1,
+#       "query": {
+#         "filtered": {
+#           "filter": {
+#             "term": {"name": "'.$cell_line.'"}
+#           }
+#         }
+#       }
+#     }';
+#     $browser->post( $hipsci_api, content => $query );
+#     my $content = $browser->content();
+#     my $json = new JSON;
+#     my $json_text = $json->decode($content);
+#     my @record = @{$json_text->{hits}{hits}};
+#     my $cellline_data = $record[0];
+#     print($cellline_data -> {_source}{cellType}{value});
+#     # print Dumper ($json_text);
     # last;
-    my @test = @{$json_text->{hits}{hits}};
+
 
     # print Dumper(@test);
     # print Dumper($test[0]);
     # my $record (@{$json_text->{hits}{hits}})
     # print $json_text->{hits}{hits};#[0]{_source}{cellType}{value};
-    my $new_test = $test[0];
-    print($new_test -> {_source}{cellType}{value});
+
     # print Dumper($new_test['_source']);
     # print Dumper($new_test->{_source}{assay}{type});
-    last;
+    # last;
     # foreach my $record (@{$json_text->{hits}{hits}}) {
     #     print Dumper($cell_line);
     #     # print Dumper($record->{_source}{assay}{type});
@@ -117,7 +119,31 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    # foreach my $celllines ($data->{$exp}{'Cell line'}) {
+    my %celltype_hash;
+    foreach my $cell_line ($data->{$exp}{'Cell line'}) {
+        print $cell_line;
+        # my $browser = WWW::Mechanize->new();
+        # my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+        # my $query =
+        # '{
+        #   "size": 1,
+        #   "query": {
+        #     "filtered": {
+        #       "filter": {
+        #         "term": {"name": "'.$cell_line.'"}
+        #       }
+        #     }
+        #   }
+        # }';
+        # $browser->post( $hipsci_api, content => $query );
+        # my $content = $browser->content();
+        # my $json = new JSON;
+        # my $json_text = $json->decode($content);
+        # my @record = @{$json_text->{hits}{hits}};
+        # my $cellline_data = $record[0];
+        # my %celltype_hash{} = 100;
+        # print($cellline_data -> {_source}{cellType}{value});
+    }
     # #     # print Dumper ($celllines);
     #     foreach my $cell_line (@$celllines) {
     #         my $browser = WWW::Mechanize->new();
