@@ -186,7 +186,7 @@ foreach my $exp (@experiment_array) {
             description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
             instrument  => 'Operetta',
         }
-    }
+    };
         print Dumper($docs{$es_id});
     last;
 }
