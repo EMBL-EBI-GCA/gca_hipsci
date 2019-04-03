@@ -119,7 +119,7 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-
+    my $cell_type;
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
         my %celltype_hash;
         foreach my $cell_line (@$celllines) {
@@ -128,110 +128,67 @@ foreach my $exp (@experiment_array) {
             my $browser = WWW::Mechanize->new();
             my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
             my $query =
-            '{
+                '{
               "size": 1,
               "query": {
                 "filtered": {
                   "filter": {
-                    "term": {"name": "'.$cell_line.'"}
+                    "term": {"name": "' . $cell_line . '"}
                   }
                 }
               }
             }';
-            $browser->post( $hipsci_api, content => $query );
+            $browser->post($hipsci_api, content => $query);
             my $content = $browser->content();
             my $json = new JSON;
             my $json_text = $json->decode($content);
             my @record = @{$json_text->{hits}{hits}};
             my $cellline_data = $record[0];
-            $celltype_hash{$cell_line} = ($cellline_data -> {_source}{cellType}{value});
+            $celltype_hash{$cell_line} = ($cellline_data->{_source}{cellType}{value});
             # print($cellline_data -> {_source}{cellType}{value});
         }
-        print %celltype_hash;
+        # print %celltype_hash;
         print '-------';
-        # last;
-        # #     # print Dumper ($celllines);
-        #     foreach my $cell_line (@$celllines) {
-        #         my $browser = WWW::Mechanize->new();
-        #         my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
-        #         my $query =
-        #         '{
-        #           "size": 1,
-        #           "query": {
-        #             "filtered": {
-        #               "filter": {
-        #                 "term": {"name": "'.$cell_line.'"}
-        #               }
-        #             }
-        #           }
-        #         }';
-        #         $browser->post( $hipsci_api, content => $query );
-        #         my $content = $browser->content();
-        #         my $json = new JSON;
-        #         my $json_text = $json->decode($content);
-        #         # print Dumper ($json_text);
-        #         # last;
-        #         foreach my $record (@{$json_text->{hits}{hits}}) {
-        #             print Dumper($cell_line);
-        #             # print Dumper($record->{_source}{assay}{type});
-        #             print Dumper($record->{_source}{cellType}{value});
-        #             'Raw sequencing reads'
-        #         }
-        #     }
-        #         print $cell_line;
-        # #     #     my $browser = WWW::Mechanize->new();
-        # #     #     my $hipsci_api = 'http://www.hipsci.org/lines/api/file/_search';
-        # #     #     my $query =
-        # #     #     '{
-        # #     #       "size": 1000,
-        # #     #       "query": {
-        # #     #         "filtered": {
-        # #     #           "filter": {
-        # #     #             "term": {"samples.name": "'.$cell_line.'"}
-        # #     #           }
-        # #     #         }
-        # #     #       }
-        # #     #     }';
-        # #     #     $browser->post( $hipsci_api, content => $query );
-        # #     #     my $content = $browser->content();
-        # #     #     my $json = new JSON;
-        # #     #     my $json_text = $json->decode($content);
-        # #     #     foreach my $record (@{$json_text->{hits}{hits}}) {
-        # #     #         print Dumper($cell_line);
-        # #     #         print Dumper($record->{_source}{samples}[0]{cellType});
-        # #     #     }
-        # #     }
-        # }
-        $docs{$es_id} = {
-            description => $description,
-            cellType    =>,
-            files       => [ {
-                name => $exp,
-                # md5 => $search_file->{md5},
-                # type => $search_type,
-            } ],
-            archive     => {
-                name       => 'IDR',
-                url        => $data->{$exp}{'File download'},
-                ftpUrl     => $data->{$exp}{'File download'},
-                accession  => $exp,
-                openAccess => 1,
-            },
-            samples     => [ {
-                name                => $data->{$exp}{'Cell line'},
-                bioSamplesAccession => $exp,
-                # cellType => $cell_type,
-                sex                 => $data->{$exp}{'Sex'},
-            } ],
-            # samples     => \@samples,
-            assay       => {
-                type        => 'High content imaging',
-                description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
-                instrument  => 'Operetta',
+        foreach $celllien (keys %celltype_hash) {
+            if ($celltype_hash{$celllien} != 'iPSC') {
+                print "check why the cell type is not iPSC for $celllien";
+                $cell_type = $celltype_hash{$celllien}; last;
             }
+            else {$cell_type = 'iPSC'}
         }
-        # print Dumper($docs{$es_id});
     }
+    print $exp;
+    print $cell_type;
+
+    $docs{$es_id} = {
+        description => $description,
+        cellType    => $cell_type,
+        files       => [ {
+            name => $exp,
+            # md5 => $search_file->{md5},
+            # type => $search_type,
+        } ],
+        archive     => {
+            name       => 'IDR',
+            url        => $data->{$exp}{'File download'},
+            ftpUrl     => $data->{$exp}{'File download'},
+            accession  => $exp,
+            openAccess => 1,
+        },
+        samples     => [ {
+            name                => $data->{$exp}{'Cell line'},
+            bioSamplesAccession => $exp,
+            # cellType => $cell_type,
+            sex                 => $data->{$exp}{'Sex'},
+        } ],
+        # samples     => \@samples,
+        assay       => {
+            type        => 'High content imaging',
+            description => [ 'SOFTWARE=SNP2HLA', 'PLATFORM=Illumina beadchip HumanCoreExome-12' ],
+            instrument  => 'Operetta',
+        }
+    }
+        # print Dumper($docs{$es_id});
 }
 # # foreach my $file_set (values %file_sets) {
 # #                                 # ???
