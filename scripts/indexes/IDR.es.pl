@@ -78,7 +78,7 @@ foreach my $cell_line (@IDR_celllines) {
     my $json_text = $json->decode($content);
     # print Dumper ($json_text);
     # last;
-    print Dumper(@{$json_text->{hits}{hits}});#[0]{_source}{cellType}{value};
+    print @{$json_text->{hits}{hits}}[0];#[0]{_source}{cellType}{value};
     last;
     # foreach my $record (@{$json_text->{hits}{hits}}) {
     #     print Dumper($cell_line);
