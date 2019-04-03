@@ -30,6 +30,14 @@ my $epd_content = LWP::Simple::get($epd_find_url);
 die "error getting $epd_find_url" if !defined $epd_content;
 my $epd_lines = JSON::decode_json($epd_content);
 # print Dumper($epd_lines);
+# {
+#             'surrogate_key' => 10009,
+#             'label' => 'zaos_1'
+#           },
+#           {
+#             'surrogate_key' => 10085,
+#             'label' => 'zazi_4'
+#           },
 my $idr_page = 0;
 my @idr_lines;
 IDR_PAGE:
@@ -41,13 +49,19 @@ while(1) {
   last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
   push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
 }
-print Dumper(@idr_lines);
-#
-# my %elasticsearch;
-# foreach my $es_host (@es_host){
-#   $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-# }
-#
+# print Dumper(@idr_lines);
+# $VAR23 = 'HPSI0513i-cuau_1';
+# $VAR24 = 'HPSI0513i-euir_2';
+# $VAR25 = 'HPSI0613i-riiv_3';
+
+
+
+my %elasticsearch;
+foreach my $es_host (@es_host){
+  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
+  print DUmper($elasticsearch{$es_host});
+}
+
 # my $scroll = $elasticsearch{$es_host[0]}->call('scroll_helper',
 #   index       => 'hipsci',
 #   type        => 'file',
