@@ -120,7 +120,7 @@ foreach my $exp (@experiment_array) {
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
     my %celltype_hash;
-    foreach my $cell_line ($data->{$exp}{'Cell line'}[0]) {
+    foreach my $cell_line ($data->{$exp}{'Cell line'}) {
         print Dumper($data->{$exp}{'Accession'});
         print Dumper($cell_line);
         # my $browser = WWW::Mechanize->new();
