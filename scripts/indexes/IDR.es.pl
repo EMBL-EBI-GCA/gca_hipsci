@@ -15,6 +15,7 @@ use POSIX qw(strftime);
 use WWW::Mechanize;
 use JSON -support_by_pp;
 use Data::Dumper;
+use Scalar::Util;
 
 my $es_host='ves-hx-e3:9200';
 my $dbhost = 'mysql-g1kdcc-public';
@@ -78,10 +79,10 @@ foreach my $cell_line (@IDR_celllines) {
     my $json_text = $json->decode($content);
     # print Dumper ($json_text);
     # last;
-    my @test = $json_text->{hits}{hits};
+    # my @test = $json_text->{hits}{hits};
     # print $json_text->{hits}{hits};#[0]{_source}{cellType}{value};
-    my $new_test = $test[0]->{_source}{assay}{type};
-    print Dumper($new_test);
+    # my $new_test = $test[0]->{_source}{assay}{type};
+    print reftype($json_text);
     last;
     # foreach my $record (@{$json_text->{hits}{hits}}) {
     #     print Dumper($cell_line);
