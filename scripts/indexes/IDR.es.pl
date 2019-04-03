@@ -148,7 +148,8 @@ foreach my $exp (@experiment_array) {
             # print($cellline_data -> {_source}{cellType}{value});
         }
         print %celltype_hash;
-        last;
+        print '-----------------------';
+        # last;
         # #     # print Dumper ($celllines);
         #     foreach my $cell_line (@$celllines) {
         #         my $browser = WWW::Mechanize->new();
