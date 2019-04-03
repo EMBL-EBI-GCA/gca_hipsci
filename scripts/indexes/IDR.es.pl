@@ -148,7 +148,6 @@ foreach my $exp (@experiment_array) {
             # print($cellline_data -> {_source}{cellType}{value});
         }
         # print %celltype_hash;
-        print '-------';
         foreach my $cellline (keys %celltype_hash) {
             if ($celltype_hash{$cellline} ne 'iPSC') {
                 print "check why the cell type is not iPSC for $cellline";
@@ -157,8 +156,8 @@ foreach my $exp (@experiment_array) {
             else {$cell_type = 'iPSC'}
         }
     }
-    print $exp;
-    print $cell_type;
+    # print $exp;
+    # print $cell_type;
 
     $docs{$es_id} = {
         description => $description,
@@ -188,7 +187,8 @@ foreach my $exp (@experiment_array) {
             instrument  => 'Operetta',
         }
     }
-        # print Dumper($docs{$es_id});
+        print Dumper($docs{$es_id});
+    last;
 }
 # # foreach my $file_set (values %file_sets) {
 # #                                 # ???
