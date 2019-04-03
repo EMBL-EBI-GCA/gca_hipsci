@@ -144,11 +144,11 @@ foreach my $exp (@experiment_array) {
             my $json_text = $json->decode($content);
             my @record = @{$json_text->{hits}{hits}};
             my $cellline_data = $record[0];
-            %celltype_hash = ($cell_line => ($cellline_data -> {_source}{cellType}{value}));
+            $celltype_hash{$cell_line} = ($cellline_data -> {_source}{cellType}{value});
             # print($cellline_data -> {_source}{cellType}{value});
         }
         print %celltype_hash;
-        print '-----------------------';
+        print '-------';
         # last;
         # #     # print Dumper ($celllines);
         #     foreach my $cell_line (@$celllines) {
