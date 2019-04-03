@@ -79,7 +79,7 @@ foreach my $cell_line (@IDR_celllines) {
     # print Dumper ($json_text);
     # last;
     my @test = @{$json_text->{hits}{hits}};
-    print @test;
+    print Dumper(@test);
     # my $record (@{$json_text->{hits}{hits}})
     # print $json_text->{hits}{hits};#[0]{_source}{cellType}{value};
     # my $new_test = $test[0];
