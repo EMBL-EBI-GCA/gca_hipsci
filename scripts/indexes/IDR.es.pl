@@ -119,33 +119,36 @@ foreach my $exp (@experiment_array) {
     # print Dumper($exp);
     my $es_id = join('-', $IDR_No, $exp);
     $es_id =~ s/\s/_/g;
-    my %celltype_hash;
+
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
+        my %celltype_hash;
         foreach my $cell_line (@$celllines) {
-            print Dumper($data->{$exp}{'Accession'});
-            print Dumper($cell_line);
-            # my $browser = WWW::Mechanize->new();
-            # my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
-            # my $query =
-            # '{
-            #   "size": 1,
-            #   "query": {
-            #     "filtered": {
-            #       "filter": {
-            #         "term": {"name": "'.$cell_line.'"}
-            #       }
-            #     }
-            #   }
-            # }';
-            # $browser->post( $hipsci_api, content => $query );
-            # my $content = $browser->content();
-            # my $json = new JSON;
-            # my $json_text = $json->decode($content);
-            # my @record = @{$json_text->{hits}{hits}};
-            # my $cellline_data = $record[0];
-            # my %celltype_hash{} = 100;
+            # print Dumper($data->{$exp}{'Accession'});
+            # print Dumper($cell_line);
+            my $browser = WWW::Mechanize->new();
+            my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
+            my $query =
+            '{
+              "size": 1,
+              "query": {
+                "filtered": {
+                  "filter": {
+                    "term": {"name": "'.$cell_line.'"}
+                  }
+                }
+              }
+            }';
+            $browser->post( $hipsci_api, content => $query );
+            my $content = $browser->content();
+            my $json = new JSON;
+            my $json_text = $json->decode($content);
+            my @record = @{$json_text->{hits}{hits}};
+            my $cellline_data = $record[0];
+            %celltype_hash = ($cell_line => ($cellline_data -> {_source}{cellType}{value}));
             # print($cellline_data -> {_source}{cellType}{value});
         }
+        print %celltype_hash;
+        last;
         # #     # print Dumper ($celllines);
         #     foreach my $cell_line (@$celllines) {
         #         my $browser = WWW::Mechanize->new();
