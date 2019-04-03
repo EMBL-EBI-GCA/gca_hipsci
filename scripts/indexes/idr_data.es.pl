@@ -57,8 +57,6 @@ foreach my $exp (@experiment_array) {
     foreach my $celllines ($data->{$exp}{'Cell line'}) {
         my %celltype_hash;
         foreach my $cell_line (@$celllines) {
-            # print Dumper($data->{$exp}{'Accession'});
-            # print Dumper($cell_line);
             my $browser = WWW::Mechanize->new();
             my $hipsci_api = 'http://www.hipsci.org/lines/api/cellLine/_search';
             my $query =
@@ -79,9 +77,7 @@ foreach my $exp (@experiment_array) {
             my @record = @{$json_text->{hits}{hits}};
             my $cellline_data = $record[0];
             $celltype_hash{$cell_line} = ($cellline_data->{_source}{cellType}{value});
-            # print($cellline_data -> {_source}{cellType}{value});
         }
-        # print %celltype_hash;
         foreach my $cellline (keys %celltype_hash) {
             if ($celltype_hash{$cellline} ne 'iPSC') {
                 print "check why the cell type is not iPSC for $cellline";
