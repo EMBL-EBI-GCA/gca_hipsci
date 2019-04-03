@@ -29,18 +29,19 @@ my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 my $epd_content = LWP::Simple::get($epd_find_url);
 die "error getting $epd_find_url" if !defined $epd_content;
 my $epd_lines = JSON::decode_json($epd_content);
-print Dumper($epd_lines);
-# my $idr_page = 0;
-# my @idr_lines;
-# IDR_PAGE:
-# while(1) {
-#   $idr_page += 1;
-#   my $idr_content = LWP::Simple::get(sprintf($idr_find_url, $idr_page));
-#   die "error getting $idr_find_url" if !defined $idr_content;
-#   my $idr_lines = JSON::decode_json($idr_content);
-#   last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
-#   push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
-# }
+# print Dumper($epd_lines);
+my $idr_page = 0;
+my @idr_lines;
+IDR_PAGE:
+while(1) {
+  $idr_page += 1;
+  my $idr_content = LWP::Simple::get(sprintf($idr_find_url, $idr_page));
+  die "error getting $idr_find_url" if !defined $idr_content;
+  my $idr_lines = JSON::decode_json($idr_content);
+  last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
+  push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
+}
+print Dumper(@idr_lines);
 #
 # my %elasticsearch;
 # foreach my $es_host (@es_host){
