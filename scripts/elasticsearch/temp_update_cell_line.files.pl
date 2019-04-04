@@ -22,9 +22,9 @@ my $epd_link_url = 'https://www.peptracker.com/epd/analytics/?section_id=40100',
 my $idr_find_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/?orphaned=true&page=%d';
 my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 my $es_host='ves-hx-e3:9200';
-&GetOptions(
-  'es_host=s' =>\@es_host,
-);
+# &GetOptions(
+#   'es_host=s' =>\@es_host,
+# );
 
 my $epd_content = LWP::Simple::get($epd_find_url);
 die "error getting $epd_find_url" if !defined $epd_content;
@@ -63,6 +63,7 @@ while(1) {
 # }
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
+# my $scroll = $elasticsearch{$es_host[0]}->call('scroll_helper',
 my $scroll = $elasticsearch->call('scroll_helper',
   index       => 'hipsci',
   type        => 'file',
@@ -94,7 +95,8 @@ while ( my $doc = $scroll->next ) {
 LINE:
 foreach my $epd_line (@$epd_lines) {
   my $short_name = $epd_line->{label};
-  my $results = $elasticsearch{$es_host[0]}->call('search',
+  # my $results = $elasticsearch{$es_host[0]}->call('search',
+  my $results = $elasticsearch->call('search',
     index => 'hipsci',
     type => 'cellLine',
     body => {
@@ -117,29 +119,29 @@ foreach my $idr_line (@idr_lines) {
       idrURL => sprintf($idr_link_url, $idr_line),
     };
 }
+#
+# while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+#   my $cell_updated = 0;
+#   my $cell_uptodate = 0;
+my $scroll = $elasticsearchserver->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'cellLine',
+  search_type => 'scan',
+  size        => 500
+);
 
-while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
-  my $cell_updated = 0;
-  my $cell_uptodate = 0;
-  my $scroll = $elasticsearchserver->call('scroll_helper',
-    index       => 'hipsci',
-    type        => 'cellLine',
-    search_type => 'scan',
-    size        => 500
-  );
-
-  CELL_LINE:
-  while ( my $doc = $scroll->next ) {
-    my $cell_line  = $doc->{_source}{name};
-    my @new_assays = values %{$cell_line_assays{$cell_line}};
-    next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-    if (scalar @new_assays) {
-      $doc->{_source}{assays} = \@new_assays;
-    }
-    else {
-      delete $doc->{_source}{assays};
-    }
-    $doc->{_source}{_indexUpdated} = $date;
-    $elasticsearchserver->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+CELL_LINE:
+while ( my $doc = $scroll->next ) {
+  my $cell_line  = $doc->{_source}{name};
+  my @new_assays = values %{$cell_line_assays{$cell_line}};
+  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  if (scalar @new_assays) {
+    $doc->{_source}{assays} = \@new_assays;
   }
+  else {
+    delete $doc->{_source}{assays};
+  }
+  $doc->{_source}{_indexUpdated} = $date;
+  $elasticsearchserver->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }
+# }
