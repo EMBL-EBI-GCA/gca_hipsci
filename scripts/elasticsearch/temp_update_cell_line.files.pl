@@ -23,8 +23,8 @@ my $idr_find_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/?orphaned=t
 my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 my $es_host='ves-hx-e3:9200';
 
-my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json data file
-my $IDR_No = 'idr0034-kilpinen-hipsci/screenA'; # IDR file name
+# my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json file for 'idr0034-kilpinen-hipsci/screenA'
+my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_2051.json';  # IDR json file for 'idr0037-vigilante-hipsci/screenA'
 
 my $json_text = do {
    open(my $json_fh, "<:encoding(UTF-8)", $filename)
@@ -43,7 +43,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-# print Dumper(@IDR_celllines);
+print Dumper(@IDR_celllines);
 # $VAR60 = 'HPSI0713i-qimz_1';
 # $VAR61 = 'HPSI0713i-darw_2';
 # $VAR62 = 'HPSI0613i-auim_2';
