@@ -164,20 +164,22 @@ my $new_scroll = $elasticsearch->call('scroll_helper',
   search_type => 'scan',
   size        => 500
 );
-
+my $i = 0;
 CELL_LINE:
 while ( my $doc = $new_scroll->next ) {
   my $cell_line  = $doc->{_source}{name};
-  print $cell_line;
-  # my @new_assays = values %{$cell_line_assays{$cell_line}};
-  # next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-  # if (scalar @new_assays) {
-  #   # print Dumper(@new_assays);
-  #   $doc->{_source}{assays} = \@new_assays;
-  # }
-  # else {
-  #   delete $doc->{_source}{assays}; # no IDR is deleted here
-  # }
+  # print $cell_line;
+  my @new_assays = values %{$cell_line_assays{$cell_line}};
+  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  print $i;
+  $i = $i + 1;
+  if (scalar @new_assays) {
+    # print Dumper(@new_assays);
+    $doc->{_source}{assays} = \@new_assays;
+  }
+  else {
+    delete $doc->{_source}{assays}; # no IDR is deleted here
+  }
   # $doc->{_source}{_indexUpdated} = $date;
   # $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }
