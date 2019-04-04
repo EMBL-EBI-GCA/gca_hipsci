@@ -14,15 +14,32 @@ use POSIX qw(strftime);
 
 my $date = strftime('%Y%m%d', localtime);
 
-my @es_host;
+my $es_host='ves-hx-e3:9200';
 my $epd_find_url = 'https://www.peptracker.com/epd/hipsci_lines/';
 my $epd_link_url = 'https://www.peptracker.com/epd/analytics/?section_id=40100',
 my $idr_find_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/?orphaned=true&page=%d';
 my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 
-&GetOptions(
-  'es_host=s' =>\@es_host,
-);
+# my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json file for 'idr0034-kilpinen-hipsci/screenA'
+my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_2051.json';  # IDR json file for 'idr0037-vigilante-hipsci/screenA'
+
+my $json_text = do {
+   open(my $json_fh, "<:encoding(UTF-8)", $filename)
+      or die("Can't open \$filename\": $!\n");
+   local $/;
+   <$json_fh>
+};
+my $json = JSON->new;
+my $data = $json->decode($json_text);
+my @IDR_celllines; # cellline for the particular IDR like idr0034
+my @experiment_array = keys %$data;
+foreach my $experiment (@experiment_array) {
+   foreach my $celllines ($data->{$experiment}{'Cell line'}) {
+      foreach my $cellline (@$celllines) {
+         push(@IDR_celllines, $cellline)
+      }
+   }
+}
 
 my $epd_content = LWP::Simple::get($epd_find_url);
 die "error getting $epd_find_url" if !defined $epd_content;
@@ -40,12 +57,9 @@ while(1) {
   push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
 }
 
-my %elasticsearch;
-foreach my $es_host (@es_host){
-  $elasticsearch{$es_host} = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
-}
+my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
-my $scroll = $elasticsearch{$es_host[0]}->call('scroll_helper',
+my $scroll = $elasticsearch->call('scroll_helper',
   index       => 'hipsci',
   type        => 'file',
   search_type => 'scan',
@@ -62,6 +76,7 @@ my %ontology_map = (
   'Exome-seq' => 'http://www.ebi.ac.uk/efo/EFO_0005396',
   'ChIP-seq' => 'http://www.ebi.ac.uk/efo/EFO_0002692',
   'Whole genome sequencing' => 'http://www.ebi.ac.uk/efo/EFO_0003744',
+  'High content imaging'    => 'http://www.ebi.ac.uk/efo/EFO_0007550',
 );
 my %cell_line_assays;
 while ( my $doc = $scroll->next ) {
@@ -99,28 +114,33 @@ foreach my $idr_line (@idr_lines) {
     };
 }
 
-while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
-  my $cell_updated = 0;
-  my $cell_uptodate = 0;
-  my $scroll = $elasticsearchserver->call('scroll_helper',
-    index       => 'hipsci',
-    type        => 'cellLine',
-    search_type => 'scan',
-    size        => 500
-  );
+LINE:
+foreach my $idr (@IDR_celllines) {
+  $cell_line_assays{$idr}{'High content imaging'} = {
+      name => 'High content imaging',
+      ontologyPURL =>$ontology_map{'High content imaging'},
+      # idrURL => sprintf($idr_link_url, $idr),
+    };
+}
 
-  CELL_LINE:
-  while ( my $doc = $scroll->next ) {
-    my $cell_line  = $doc->{_source}{name};
-    my @new_assays = values %{$cell_line_assays{$cell_line}};
-    next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-    if (scalar @new_assays) {
-      $doc->{_source}{assays} = \@new_assays;
-    }
-    else {
-      delete $doc->{_source}{assays};
-    }
-    $doc->{_source}{_indexUpdated} = $date;
-    $elasticsearchserver->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+my $new_scroll = $elasticsearch->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'cellLine',
+  search_type => 'scan',
+  size        => 500
+);
+
+CELL_LINE:
+while ( my $doc = $new_scroll->next ) {
+  my $cell_line  = $doc->{_source}{name};
+  my @new_assays = values %{$cell_line_assays{$cell_line}};
+  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  if (scalar @new_assays) {
+    $doc->{_source}{assays} = \@new_assays;
   }
+  else {
+    delete $doc->{_source}{assays};
+  }
+  $doc->{_source}{_indexUpdated} = $date;
+  $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }

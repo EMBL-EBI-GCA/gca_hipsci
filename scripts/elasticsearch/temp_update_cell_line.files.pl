@@ -43,7 +43,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-print Dumper(@IDR_celllines);
+# print Dumper(@IDR_celllines);
 # $VAR60 = 'HPSI0713i-qimz_1';
 # $VAR61 = 'HPSI0713i-darw_2';
 # $VAR62 = 'HPSI0613i-auim_2';
@@ -51,29 +51,29 @@ print Dumper(@IDR_celllines);
 #   'es_host=s' =>\@es_host,
 # );
 
-# my $epd_content = LWP::Simple::get($epd_find_url);
-# die "error getting $epd_find_url" if !defined $epd_content;
-# my $epd_lines = JSON::decode_json($epd_content);
-# # print Dumper($epd_lines);
-# # {
-# #             'surrogate_key' => 10009,
-# #             'label' => 'zaos_1'
-# #           },
-# #           {
-# #             'surrogate_key' => 10085,
-# #             'label' => 'zazi_4'
-# #           },
-# my $idr_page = 0;
-# my @idr_lines;
-# IDR_PAGE:
-# while(1) {
-#   $idr_page += 1;
-#   my $idr_content = LWP::Simple::get(sprintf($idr_find_url, $idr_page));
-#   die "error getting $idr_find_url" if !defined $idr_content;
-#   my $idr_lines = JSON::decode_json($idr_content);
-#   last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
-#   push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
-# }
+my $epd_content = LWP::Simple::get($epd_find_url);
+die "error getting $epd_find_url" if !defined $epd_content;
+my $epd_lines = JSON::decode_json($epd_content);
+# print Dumper($epd_lines);
+# {
+#             'surrogate_key' => 10009,
+#             'label' => 'zaos_1'
+#           },
+#           {
+#             'surrogate_key' => 10085,
+#             'label' => 'zazi_4'
+#           },
+my $idr_page = 0;
+my @idr_lines;
+IDR_PAGE:
+while(1) {
+  $idr_page += 1;
+  my $idr_content = LWP::Simple::get(sprintf($idr_find_url, $idr_page));
+  die "error getting $idr_find_url" if !defined $idr_content;
+  my $idr_lines = JSON::decode_json($idr_content);
+  last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
+  push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
+}
 # print Dumper(@idr_lines);
 # $VAR23 = 'HPSI0513i-cuau_1';
 # $VAR24 = 'HPSI0513i-euir_2';
@@ -117,33 +117,33 @@ while ( my $doc = $scroll->next ) {
   }
 }
 #
-# LINE:
-# foreach my $epd_line (@$epd_lines) {
-#   my $short_name = $epd_line->{label};
-#   # my $results = $elasticsearch{$es_host[0]}->call('search',
-#   my $results = $elasticsearch->call('search',
-#     index => 'hipsci',
-#     type => 'cellLine',
-#     body => {
-#       query => { match => {'searchable.fixed' => $short_name} }
-#     }
-#   );
-#   next LINE if ! @{$results->{hits}{hits}};
-#   $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
-#       name => 'Proteomics',
-#       ontologyPURL =>$ontology_map{Proteomics},
-#       peptrackerURL => $epd_link_url,
-#     };
-# }
-#
-# LINE:
-# foreach my $idr_line (@idr_lines) {
-#   $cell_line_assays{$idr_line}{'Cellular phenotyping'} = {
-#       name => 'Cellular phenotyping',
-#       ontologyPURL =>$ontology_map{'Cellular phenotyping'},
-#       idrURL => sprintf($idr_link_url, $idr_line),
-#     };
-# }
+LINE:
+foreach my $epd_line (@$epd_lines) {
+  my $short_name = $epd_line->{label};
+  # my $results = $elasticsearch{$es_host[0]}->call('search',
+  my $results = $elasticsearch->call('search',
+    index => 'hipsci',
+    type => 'cellLine',
+    body => {
+      query => { match => {'searchable.fixed' => $short_name} }
+    }
+  );
+  next LINE if ! @{$results->{hits}{hits}};
+  $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
+      name => 'Proteomics',
+      ontologyPURL =>$ontology_map{Proteomics},
+      peptrackerURL => $epd_link_url,
+    };
+}
+
+LINE:
+foreach my $idr_line (@idr_lines) {
+  $cell_line_assays{$idr_line}{'Cellular phenotyping'} = {
+      name => 'Cellular phenotyping',
+      ontologyPURL =>$ontology_map{'Cellular phenotyping'},
+      idrURL => sprintf($idr_link_url, $idr_line),
+    };
+}
 
 LINE:
 foreach my $idr (@IDR_celllines) {
@@ -164,23 +164,19 @@ my $new_scroll = $elasticsearch->call('scroll_helper',
   search_type => 'scan',
   size        => 500
 );
-my $i = 0;
+
 CELL_LINE:
 while ( my $doc = $new_scroll->next ) {
   my $cell_line  = $doc->{_source}{name};
-  # print $cell_line;
   my @new_assays = values %{$cell_line_assays{$cell_line}};
   next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-  print $i;
-  $i = $i + 1;
   if (scalar @new_assays) {
-    # print Dumper(@new_assays);
     $doc->{_source}{assays} = \@new_assays;
   }
   else {
-    delete $doc->{_source}{assays}; # no IDR is deleted here
+    delete $doc->{_source}{assays};
   }
-  # $doc->{_source}{_indexUpdated} = $date;
-  # $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+  $doc->{_source}{_indexUpdated} = $date;
+  $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }
 # }
