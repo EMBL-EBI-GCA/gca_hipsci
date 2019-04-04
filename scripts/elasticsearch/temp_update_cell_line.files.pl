@@ -43,7 +43,10 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-print Dumper(@IDR_celllines);
+# print Dumper(@IDR_celllines);
+# $VAR60 = 'HPSI0713i-qimz_1';
+# $VAR61 = 'HPSI0713i-darw_2';
+# $VAR62 = 'HPSI0613i-auim_2';
 # &GetOptions(
 #   'es_host=s' =>\@es_host,
 # );
@@ -71,7 +74,7 @@ while(1) {
   last IDR_PAGE if ! scalar @{$idr_lines->{maps}};
   push(@idr_lines, grep {/^HPSI/} map {$_->{id}} @{$idr_lines->{maps}});
 }
-print Dumper(@idr_lines);
+# print Dumper(@idr_lines);
 # $VAR23 = 'HPSI0513i-cuau_1';
 # $VAR24 = 'HPSI0513i-euir_2';
 # $VAR25 = 'HPSI0613i-riiv_3';
@@ -114,56 +117,66 @@ while ( my $doc = $scroll->next ) {
   }
 }
 #
-# LINE:
-# foreach my $epd_line (@$epd_lines) {
-#   my $short_name = $epd_line->{label};
-#   # my $results = $elasticsearch{$es_host[0]}->call('search',
-#   my $results = $elasticsearch->call('search',
-#     index => 'hipsci',
-#     type => 'cellLine',
-#     body => {
-#       query => { match => {'searchable.fixed' => $short_name} }
-#     }
-#   );
-#   next LINE if ! @{$results->{hits}{hits}};
-#   $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
-#       name => 'Proteomics',
-#       ontologyPURL =>$ontology_map{Proteomics},
-#       peptrackerURL => $epd_link_url,
-#     };
-# }
+LINE:
+foreach my $epd_line (@$epd_lines) {
+  my $short_name = $epd_line->{label};
+  # my $results = $elasticsearch{$es_host[0]}->call('search',
+  my $results = $elasticsearch->call('search',
+    index => 'hipsci',
+    type => 'cellLine',
+    body => {
+      query => { match => {'searchable.fixed' => $short_name} }
+    }
+  );
+  next LINE if ! @{$results->{hits}{hits}};
+  $cell_line_assays{$results->{hits}{hits}[0]{_source}{name}}{Proteomics} = {
+      name => 'Proteomics',
+      ontologyPURL =>$ontology_map{Proteomics},
+      peptrackerURL => $epd_link_url,
+    };
+}
+
+LINE:
+foreach my $idr_line (@idr_lines) {
+  $cell_line_assays{$idr_line}{'Cellular phenotyping'} = {
+      name => 'Cellular phenotyping',
+      ontologyPURL =>$ontology_map{'Cellular phenotyping'},
+      idrURL => sprintf($idr_link_url, $idr_line),
+    };
+}
+
+LINE:
+foreach my $idr (@IDR_celllines) {
+  $cell_line_assays{$idr}{'High content imaging'} = {
+      name => 'High content imaging',
+      ontologyPURL =>$ontology_map{'High content imaging'},
+      # idrURL => sprintf($idr_link_url, $idr),
+    };
+}
+
 #
-# LINE:
-# foreach my $idr_line (@idr_lines) {
-#   $cell_line_assays{$idr_line}{'Cellular phenotyping'} = {
-#       name => 'Cellular phenotyping',
-#       ontologyPURL =>$ontology_map{'Cellular phenotyping'},
-#       idrURL => sprintf($idr_link_url, $idr_line),
-#     };
+# while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
+#   my $cell_updated = 0;
+#   my $cell_uptodate = 0;
+my $new_scroll = $elasticsearch->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'cellLine',
+  search_type => 'scan',
+  size        => 500
+);
+
+CELL_LINE:
+while ( my $doc = $new_scroll->next ) {
+  my $cell_line  = $doc->{_source}{name};
+  my @new_assays = values %{$cell_line_assays{$cell_line}};
+  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  if (scalar @new_assays) {
+    $doc->{_source}{assays} = \@new_assays;
+  }
+  else {
+    delete $doc->{_source}{assays};
+  }
+  $doc->{_source}{_indexUpdated} = $date;
+  $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+}
 # }
-# #
-# # while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
-# #   my $cell_updated = 0;
-# #   my $cell_uptodate = 0;
-# my $scroll = $elasticsearch->call('scroll_helper',
-#   index       => 'hipsci',
-#   type        => 'cellLine',
-#   search_type => 'scan',
-#   size        => 500
-# );
-#
-# CELL_LINE:
-# while ( my $doc = $scroll->next ) {
-#   my $cell_line  = $doc->{_source}{name};
-#   my @new_assays = values %{$cell_line_assays{$cell_line}};
-#   next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-#   if (scalar @new_assays) {
-#     $doc->{_source}{assays} = \@new_assays;
-#   }
-#   else {
-#     delete $doc->{_source}{assays};
-#   }
-#   $doc->{_source}{_indexUpdated} = $date;
-#   $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
-# }
-# # }
