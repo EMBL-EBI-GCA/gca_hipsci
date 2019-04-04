@@ -171,10 +171,11 @@ while ( my $doc = $new_scroll->next ) {
   my @new_assays = values %{$cell_line_assays{$cell_line}};
   next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
   if (scalar @new_assays) {
-    print Dumper(@new_assays);
+    # print Dumper(@new_assays);
     $doc->{_source}{assays} = \@new_assays;
   }
   else {
+    print Dumper(@new_assays);
     delete $doc->{_source}{assays};
   }
   # $doc->{_source}{_indexUpdated} = $date;
