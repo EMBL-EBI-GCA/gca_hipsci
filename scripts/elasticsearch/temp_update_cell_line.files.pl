@@ -123,7 +123,7 @@ foreach my $idr_line (@idr_lines) {
 # while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
 #   my $cell_updated = 0;
 #   my $cell_uptodate = 0;
-my $scroll = $elasticsearchserver->call('scroll_helper',
+my $scroll = $elasticsearch->call('scroll_helper',
   index       => 'hipsci',
   type        => 'cellLine',
   search_type => 'scan',
@@ -142,6 +142,6 @@ while ( my $doc = $scroll->next ) {
     delete $doc->{_source}{assays};
   }
   $doc->{_source}{_indexUpdated} = $date;
-  $elasticsearchserver->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+  $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }
 # }
