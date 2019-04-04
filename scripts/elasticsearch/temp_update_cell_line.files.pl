@@ -43,7 +43,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-# print Dumper(@IDR_celllines);
+print Dumper(@IDR_celllines);
 # $VAR60 = 'HPSI0713i-qimz_1';
 # $VAR61 = 'HPSI0713i-darw_2';
 # $VAR62 = 'HPSI0613i-auim_2';
@@ -168,16 +168,16 @@ my $new_scroll = $elasticsearch->call('scroll_helper',
 CELL_LINE:
 while ( my $doc = $new_scroll->next ) {
   my $cell_line  = $doc->{_source}{name};
-  my @new_assays = values %{$cell_line_assays{$cell_line}};
-  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-  if (scalar @new_assays) {
-    # print Dumper(@new_assays);
-    $doc->{_source}{assays} = \@new_assays;
-  }
-  else {
-    print Dumper(@new_assays);
-    delete $doc->{_source}{assays};
-  }
+  print $cell_line;
+  # my @new_assays = values %{$cell_line_assays{$cell_line}};
+  # next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  # if (scalar @new_assays) {
+  #   # print Dumper(@new_assays);
+  #   $doc->{_source}{assays} = \@new_assays;
+  # }
+  # else {
+  #   delete $doc->{_source}{assays}; # no IDR is deleted here
+  # }
   # $doc->{_source}{_indexUpdated} = $date;
   # $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
 }
