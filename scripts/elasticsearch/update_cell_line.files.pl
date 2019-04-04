@@ -1,4 +1,9 @@
 #!/usr/bin/env perl
+# This code requires the jason files associated with IDR data so it can get the cell line names.
+# The files should be the same ones used to load IDR file data to elasticsearch
+# They can be found in script/indexes/idr_data.es.pl
+# The path to the file needs to be called $filename, smilar to line 28, 29.
+# This is currently done for IDR0034 and IDR0037.
 
 use strict;
 use warnings;
