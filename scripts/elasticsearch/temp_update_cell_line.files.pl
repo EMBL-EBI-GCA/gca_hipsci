@@ -43,7 +43,7 @@ foreach my $experiment (@experiment_array) {
       }
    }
 }
-print Dumper(@IDR_celllines);
+# print Dumper(@IDR_celllines);
 # $VAR60 = 'HPSI0713i-qimz_1';
 # $VAR61 = 'HPSI0713i-darw_2';
 # $VAR62 = 'HPSI0613i-auim_2';
