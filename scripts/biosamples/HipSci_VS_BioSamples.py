@@ -538,8 +538,8 @@ class HipSciVSBiosamples:
 
 # new_instance = HipSciVSBiosamples('TEST_HS_BS_dict', 'hipsci_data', 'biosamples_data') # this is a test versions
 new_instance = HipSciVSBiosamples('HS_BS_dict', 'hipsci_data', 'biosamples_data')
-# new_instance.getCelllineDataHipSci()  # comment out after first time
-# new_instance.getCelllineDataBioSamples()  # Authorization comment out after first time
+new_instance.getCelllineDataHipSci()  # comment out after first time
+new_instance.getCelllineDataBioSamples()  # Authorization comment out after first time
 
 # comment out first to get the data then uncomment
 gen = new_instance.generateIndividualFinalJSONFiles()
@@ -559,7 +559,6 @@ with open('response.json', 'a') as jf:
     json.dump(new_instance.response_dic, jf, indent=4)
 # ######
 
-# [datetime.datetime(2019, 3, 6, 11, 4, 30, 437803), datetime.datetime(2019, 3, 6, 12, 0, 17, 930055), datetime.datetime(2019, 3, 6, 12, 0, 26, 749313)]
 
 # More information
 # IMPORTANT: run HipSciVSBiosamples('TETS_HS_BS_dict', 'hipsci_data', 'biosamples_data') for testing.
@@ -575,22 +574,6 @@ with open('response.json', 'a') as jf:
 # {"SAMEA4453758": {"index": {response}, "banking status": {response} ... . . . }, "SAMEA65333422": { ..... .... }}
 
 
-# To check our data
-# BS_infile = open('biosamples_data', 'r')
-# HS_infile = open('hipsci_data', 'r')
-# HS_BS_dict = open('TEST_HS_BS_dict', 'rb')
-# BS_data = pickle.load(BS_infile)  # SAMEA2658090, data
-# HS_data = pickle.load(HS_infile)
-# HS_BS_data = pickle.load(HS_BS_dict)
-# BS_infile.close()
-# HS_infile.close()
-# print BS_data['SAMEA3355536']
-# print "********************************************************"
-# for key, value in HS_BS_data.items():
-#     if value == 'SAMEA3355536':
-#         print HS_data[key]
-
-
 # for testing purposes:
 # test_list = [u'SAMEA3355536', u'SAMEA3355535', u'SAMEA4451167', u'SAMEA4451168', u'SAMEA4451169', u'SAMEA4451171',
 #              u'SAMEA3355538', u'SAMEA3355539', u'SAMEA104619372', u'SAMEA104619373', u'SAMEA4453887', u'SAMEA4453886',
@@ -601,23 +584,5 @@ with open('response.json', 'a') as jf:
 # 'SAMEA104134262', 'SAMEA103884566', 'SAMEA103884569', 'SAMEA4448524', 'SAMEA104132156', 'SAMEA103887524',
 # 'SAMEA104132052', 'SAMEA4453884', 'SAMEA104012318', 'SAMEA104134252', 'SAMEA104236993', 'SAMEA104132428'
 
-# some accessions with maximum number of keys in both JipSci and BioSamples dictionaries:
+# some accessions with maximum number of keys in both HipSci and BioSamples dictionaries:
 # u'SAMEA2698314', u'SAMEA3355549', u'SAMEA2612483', u'SAMEA2536412']
-
-
-# tests for Peter:
-# new_instance.compareAndCompleteDict()
-# These are the keys that could be different:
-# ('disease state', 'iri'), ('disease state', 'value'), ('sex', 'iri') or some are different in both
-# ('disease state', 'iri') and ('sex', 'iri'). see below examples:
-# 'SAMEA4448216': [('disease state', 'iri')], 'SAMEA4085274': [('disease state', 'iri')]
-# 'SAMEA104132430': [('sex', 'iri')], 'SAMEA104276931': [('sex', 'iri')]
-# 'SAMEA17507668': [('disease state', 'value')], 'SAMEA4562171': [('disease state', 'value')]
-# 'SAMEA4451489': [('disease state', 'iri'), ('sex', 'iri')], 'SAMEA4449168': [('disease state',
-#     'iri'), ('sex', 'iri')], 'SAMEA104621354': [('disease state', 'iri'), ('sex', 'iri')]
-# Some are the same, but some new keys from Hipsci like: SAMEA2398161, SAMEA103886293, SAMEA2398225
-# Some keys with max numebr of keys in both Hipsci and Biosamples: 'SAMEA2698314', 'SAMEA3355549', 'SAMEA2612483'
-#  We test it for these accessions:
-#  The test list = ['SAMEA4448216', 'SAMEA104132430', 'SAMEA17507668', 'SAMEA4451489', 'SAMEA4449168', 'SAMEA2398161',
-#  'SAMEA103886293', 'SAMEA2698314', 'SAMEA3355549']
-# we can use this code HipSci_VS_Biosamples_test_version.py to get two files old hs and old bs data for the above accessions.
