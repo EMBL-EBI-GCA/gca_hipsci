@@ -23,6 +23,7 @@ my $epd_link_url = 'https://www.peptracker.com/epd/analytics/?section_id=40100',
 my $idr_find_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/?orphaned=true&page=%d';
 my $idr_link_url = 'https://idr.openmicroscopy.org/mapr/cellline/?value=%s';
 
+my $idr_api_url = 'https://idr.openmicroscopy.org/mapr/api/cellline/';
 # my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_1901.json';  # IDR json file for 'idr0034-kilpinen-hipsci/screenA'
 my $filename = '/homes/hipdcc/IDR_data/IDR_data/IDR_Screen_ID_2051.json';  # IDR json file for 'idr0037-vigilante-hipsci/screenA'
 
@@ -115,7 +116,6 @@ foreach my $idr_line (@idr_lines) {
       ontologyPURL => $ontology_map{'Cellular phenotyping'},
       idrURL       => sprintf($idr_link_url, $idr_line),
     };
-  print $cell_line_assays{$idr_line}{'Cellular phenotyping'}{'idrURL'};
 }
 
 LINE:
@@ -123,7 +123,7 @@ foreach my $idr (@IDR_celllines) {
   $cell_line_assays{$idr}{'High content imaging'} = {
       name => 'High content imaging',
       ontologyPURL =>$ontology_map{'High content imaging'},
-      # idrURL => sprintf($idr_link_url, $idr),
+      idrapiURL => $idr_api_url,
     };
 }
 
