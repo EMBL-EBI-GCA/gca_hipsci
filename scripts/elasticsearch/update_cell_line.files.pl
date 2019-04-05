@@ -127,24 +127,24 @@ foreach my $idr (@IDR_celllines) {
     };
 }
 
-# my $new_scroll = $elasticsearch->call('scroll_helper',
-#   index       => 'hipsci',
-#   type        => 'cellLine',
-#   search_type => 'scan',
-#   size        => 500
-# );
-#
-# CELL_LINE:
-# while ( my $doc = $new_scroll->next ) {
-#   my $cell_line  = $doc->{_source}{name};
-#   my @new_assays = values %{$cell_line_assays{$cell_line}};
-#   next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
-#   if (scalar @new_assays) {
-#     $doc->{_source}{assays} = \@new_assays;
-#   }
-#   else {
-#     delete $doc->{_source}{assays};
-#   }
-#   $doc->{_source}{_indexUpdated} = $date;
-#   $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
-# }
+my $new_scroll = $elasticsearch->call('scroll_helper',
+  index       => 'hipsci',
+  type        => 'cellLine',
+  search_type => 'scan',
+  size        => 500
+);
+
+CELL_LINE:
+while ( my $doc = $new_scroll->next ) {
+  my $cell_line  = $doc->{_source}{name};
+  my @new_assays = values %{$cell_line_assays{$cell_line}};
+  next CELL_LINE if Compare(\@new_assays, $doc->{_source}{assays} || []);
+  if (scalar @new_assays) {
+    $doc->{_source}{assays} = \@new_assays;
+  }
+  else {
+    delete $doc->{_source}{assays};
+  }
+  $doc->{_source}{_indexUpdated} = $date;
+  $elasticsearch->index_line(id => $doc->{_source}{name}, body => $doc->{_source});
+}
