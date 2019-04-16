@@ -8,7 +8,7 @@ HIPSCI_CODE=`dirname $0`/../..
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   $ERA_DB_ARGS \
   -dataset_id EGAD00001000893 \
-  -dataset_id EGAD00001000897 \
+  -dataset_id EGAD00001003529 \
   -dataset_id EGAD00001001422 \
   -dataset_id EGAD00001001437 \
   -dataset_id EGAD00001001438 \
@@ -61,6 +61,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
 #  -dataset_id EGAD00001002000 \ to be ignored
 #  -dataset_id EGAD00001003204 \ to be ignored
 
+#  -dataset_id EGAD00001003529   needs to replace EGAD0000100089
 
 
 
