@@ -7,7 +7,7 @@ HIPSCI_CODE=`dirname $0`/../..
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   $ERA_DB_ARGS \
-  -dataset_id EGAD00001000893 \
+  -dataset_id EGAD00001001932 \
   -dataset_id EGAD00001003529 \
   -dataset_id EGAD00001001422 \
   -dataset_id EGAD00001001437 \
