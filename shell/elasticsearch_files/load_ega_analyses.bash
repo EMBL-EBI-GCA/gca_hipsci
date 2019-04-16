@@ -12,7 +12,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -dataset_id EGAD00001001422 \
   -dataset_id EGAD00001001437 \
   -dataset_id EGAD00001001438 \
-  -dataset_id EGAD00001003514 \
+  -dataset_id EGAD00001001932 \
   -dataset_id EGAD00001001933 \
   -dataset_id EGAD00001001949 \
   -dataset_id EGAD00001001950 \
@@ -21,7 +21,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -dataset_id EGAD00001001953 \
   -dataset_id EGAD00001001954 \
   -dataset_id EGAD00001001955 \
-  -dataset_id EGAD00001003515 \
+  -dataset_id EGAD00001003161 \
   -dataset_id EGAD00001003180 \
   -dataset_id EGAD00001003181 \
   -dataset_id EGAD00001003516 \
@@ -37,7 +37,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
   -dataset_id EGAD00001003526 \
   -dataset_id EGAD00001003527 \
   -dataset_id EGAD00001003528 \
-  -dataset_id EGAD00001003529 \
   -dataset_id EGAD00001003530 \
   -dataset_id EGAD00001003531 \
   -dataset_id EGAD00001003532 \
@@ -63,7 +62,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
 
 #  -dataset_id EGAD00001003529   replaced EGAD0000100089
 #  -dataset_id EGAD00001003514 needs to replace  EGAD00001001932
-#  -dataset_id EGAD00001003514 needs to replace  EGAD00001001932
 #  -dataset_id EGAD00001003515 needs to replace  EGAD00001003161
+# datasets need to be released.
 
 
