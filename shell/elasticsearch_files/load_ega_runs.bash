@@ -7,12 +7,12 @@ HIPSCI_CODE=`dirname $0`/../..
 
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   $ERA_DB_ARGS \
-  -dataset_id EGAD00001001932 \
+  -dataset_id EGAD00001003514 \
   -dataset_id EGAD00001003529 \
   -dataset_id EGAD00001001422 \
   -dataset_id EGAD00001001437 \
   -dataset_id EGAD00001001438 \
-  -dataset_id EGAD00001001932 \
+  -dataset_id EGAD00001003514 \
   -dataset_id EGAD00001001933 \
   -dataset_id EGAD00001001949 \
   -dataset_id EGAD00001001950 \
@@ -21,7 +21,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001001953 \
   -dataset_id EGAD00001001954 \
   -dataset_id EGAD00001001955 \
-  -dataset_id EGAD00001003161 \
+  -dataset_id EGAD00001003515 \
   -dataset_id EGAD00001003180 \
   -dataset_id EGAD00001003181 \
   -dataset_id EGAD00001003516 \
