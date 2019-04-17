@@ -42,9 +42,12 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     #       'for_elasticsearch' => 'Genetic macular dystrophy'
     #     };
     my $name = $cohort{disease}{value};
-    print Dumper($name);
-    # my $id = lc($name);
-    # $id =~ s/[^\w]/-/g;
+    # print Dumper($name);
+    # $VAR1 = 'Normal';
+    # $VAR1 = 'Bardet-Biedl syndrome';
+    my $id = lc($name);
+    $id =~ s/[^\w]/-/g;
+    print Dumper($id);
 }
 #   $cohort{datasets} = [];
 #   $cohort{name} = $name;
