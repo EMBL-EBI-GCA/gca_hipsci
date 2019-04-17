@@ -134,8 +134,8 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 accessionType => 'DATASET_ID',
                 url           => "https://ega-archive.org/datasets/$accession",
             });
-            print Dumper($cohort{datasets});
         }
+        print Dumper($cohort{datasets});
     }
 }
 #
