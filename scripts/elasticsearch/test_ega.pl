@@ -47,27 +47,30 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     # $VAR1 = 'Bardet-Biedl syndrome';
     my $id = lc($name);
     $id =~ s/[^\w]/-/g;
-    print Dumper($id);
+    # print Dumper($id);
+    # $VAR1 = 'normal';
+    # $VAR1 = 'bardet-biedl-syndrome';
+    $cohort{datasets} = [];
+    $cohort{name} = $name;
+
+      my $donor_search  = $es->call('search',
+        index => 'hipsci',
+        type => 'donor',
+        body => {
+          query => {
+            constant_score => {
+              filter => {
+                term => {'diseaseStatus.value' => $cohort{disease}{value}},
+              }
+            }
+          },
+        },
+        size => 0,
+      );
+    print Dumper($donor_search);
 }
-#   $cohort{datasets} = [];
-#   $cohort{name} = $name;
-#
-#   my $donor_search  = $es->call('search',
-#     index => 'hipsci',
-#     type => 'donor',
-#     body => {
-#       query => {
-#         constant_score => {
-#           filter => {
-#             term => {'diseaseStatus.value' => $cohort{disease}{value}},
-#           }
-#         }
-#       },
-#     },
-#     size => 0,
-#   );
-#   $cohort{donors} = {count => $donor_search->{hits}{total}};
-#
+  # $cohort{donors} = {count => $donor_search->{hits}{total}};
+# 
 #   foreach my $assay (@assays) {
 #
 #     my $search  = $es->call('search',
