@@ -67,10 +67,11 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         },
         size => 0,
       );
+    print Dumper($disease);
     print Dumper($donor_search);
 }
   # $cohort{donors} = {count => $donor_search->{hits}{total}};
-# 
+#
 #   foreach my $assay (@assays) {
 #
 #     my $search  = $es->call('search',
