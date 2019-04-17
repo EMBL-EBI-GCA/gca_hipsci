@@ -121,20 +121,23 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
-        print Dumper($search);
+        # print Dumper($search);
+        # see below
+
+        if ($search->{hits}{total}) {
+            # if we there is any
+            my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
+            push(@{$cohort{datasets}}, {
+                assay         => $assay,
+                archive       => 'EGA',
+                accession     => $accession,
+                accessionType => 'DATASET_ID',
+                url           => "https://ega-archive.org/datasets/$accession",
+            });
+            print Dumper($cohort{datasets});
+        }
     }
 }
-#     if ($search->{hits}{total}) {
-#       my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-#       push(@{$cohort{datasets}}, {
-#         assay => $assay,
-#         archive => 'EGA',
-#         accession => $accession,
-#         accessionType => 'DATASET_ID',
-#         url => "https://ega-archive.org/datasets/$accession",
-#       });
-#     }
-#   }
 #
 #   $es->call('index',
 #     index => 'hipsci',
@@ -143,3 +146,73 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
 #     body => \%cohort,
 #   );
 # }
+
+
+#
+# '_source' => {
+#                'samples' => [
+#                               {
+#                                 'cellType' => 'iPSC',
+#                                 'growingConditions' => 'Feeder-free',
+#                                 'name' => 'HPSI0316i-xaqm_6',
+#                                 'bioSamplesAccession' => 'SAMEA4453885',
+#                                 'diseaseStatus' => 'Congenital hyperinsulinism',
+#                                 'sex' => 'male',
+#                                 'passageNumber' => '11'
+#                               }
+#                             ],
+#                'archive' => {
+#                               'accessionType' => 'DATASET_ID',
+#                               'name' => 'EGA',
+#                               'url' => 'https://ega-archive.org/datasets/EGAD00001003520',
+#                               'ftpUrl' => 'secure access via EGA',
+#                               'openAccess' => 0,
+#                               'accession' => 'EGAD00001003520'
+#                             },
+#                'assay' => {
+#                             'type' => 'Exome-seq',
+#                             'instrument' => 'Illumina HiSeq 2500',
+#                             'description' => [
+#                                                'INSTRUMENT_PLATFORM=ILLUMINA',
+#                                                'INSTRUMENT_MODEL=Illumina HiSeq 2500',
+#                                                'LIBRARY_LAYOUT=PAIRED',
+#                                                'LIBRARY_STRATEGY=WXS',
+#                                                'LIBRARY_SOURCE=GENOMIC',
+#                                                'LIBRARY_SELECTION=Hybrid Selection',
+#                                                'PAIRED_NOMINAL_LENGTH=167'
+#                                              ]
+#                           },
+#                'files' => [
+#                             {
+#                               'name' => '21907_3#14.cram',
+#                               'type' => 'cram',
+#                               'md5' => 'dce51cf6f44bb28a3600e1ad51089f1a'
+#                             }
+#                           ],
+#                '_indexUpdated' => '20181129',
+#                '_indexCreated' => '20181129',
+#                'description' => 'Raw sequencing reads'
+#              },
+# '_score' => '1',
+# '_index' => 'hipsci_build2',
+# '_id' => 'HPSI0316i-xaqm_6-exomeseq-ERR1903469',
+# '_type' => 'file'
+# },
+# {
+# '_source' => {
+#                'samples' => [
+#                               {
+#                                 'cellType' => 'iPSC',
+#                                 'growingConditions' => 'Feeder-free',
+#                                 'name' => 'HPSI0216i-puxp_1',
+#                                 'bioSamplesAccession' => 'SAMEA4448207',
+#                                 'diseaseStatus' => 'Congenital hyperinsulinism',
+#                                 'sex' => 'female',
+#                                 'passageNumber' => '19'
+#                               }
+#                             ],
+#                'archive' => {
+#                               'accessionType' => 'DATASET_ID',
+#                               'name' => 'EGA',
+#                               'url' => 'https://ega-archive.org/datasets/EGAD00001003520',
+#                               'ftpUrl' => 'secure access via EGA',
