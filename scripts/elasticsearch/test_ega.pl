@@ -34,12 +34,18 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             value        => $disease->{for_elasticsearch},
         },
     );
-    print Dumper($disease);
+    # print Dumper($disease);
+    # $VAR1 = {
+    #       'ontology_full' => 'http://www.orpha.net/ORDO/Orphanet_98664',
+    #       'ontology_short' => 'Orphanet:98664',
+    #       'regex' => qr/(?^i:macular dystrophy)/,
+    #       'for_elasticsearch' => 'Genetic macular dystrophy'
+    #     };
+    my $name = $cohort{disease}{value};
+    print Dumper($name);
+    # my $id = lc($name);
+    # $id =~ s/[^\w]/-/g;
 }
-#   my $name = $cohort{disease}{value};
-#   my $id = lc($name);
-#   $id =~ s/[^\w]/-/g;
-#
 #   $cohort{datasets} = [];
 #   $cohort{name} = $name;
 #
