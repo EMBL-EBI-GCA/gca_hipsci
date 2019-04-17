@@ -53,24 +53,46 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     $cohort{datasets} = [];
     $cohort{name} = $name;
 
-      my $donor_search  = $es->call('search',
+    my $donor_search = $es->call('search',
         index => 'hipsci',
-        type => 'donor',
-        body => {
-          query => {
-            constant_score => {
-              filter => {
-                term => {'diseaseStatus.value' => $cohort{disease}{value}},
-              }
-            }
-          },
+        type  => 'donor',
+        body  => {
+            query => {
+                constant_score => {
+                    filter => {
+                        term => { 'diseaseStatus.value' => $cohort{disease}{value} },
+                    }
+                }
+            },
         },
-        size => 0,
-      );
-    print Dumper($disease);
-    print Dumper($donor_search);
+        size  => 0,
+    );
+    # print Dumper($disease);
+    # $VAR1 = {
+    #       'ontology_full' => 'http://www.orpha.net/ORDO/Orphanet_71859',
+    #       'ontology_short' => 'Orphanet:71859',
+    #       'regex' => qr/(?^i:neurological disorder)/,
+    #       'for_elasticsearch' => 'Rare genetic neurological disorder'
+    #     };
+    #
+    # print Dumper($donor_search);
+    # $VAR1 = {
+    #       'hits' => {
+    #                   'hits' => [],
+    #                   'max_score' => '0',
+    #                   'total' => 6
+    #                 },
+    #       'timed_out' => bless( do{\(my $o = 0)}, 'JSON::PP::Boolean' ),
+    #       '_shards' => {
+    #                      'failed' => 0,
+    #                      'successful' => 5,
+    #                      'total' => 5
+    #                    },
+    #       'took' => 1
+    #     };
+    $cohort{donors} = { count => $donor_search->{hits}{total} };
+    print Dumper($cohort{donors});
 }
-  # $cohort{donors} = {count => $donor_search->{hits}{total}};
 #
 #   foreach my $assay (@assays) {
 #
