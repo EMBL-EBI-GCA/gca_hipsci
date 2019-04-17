@@ -27,7 +27,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
 #    -dataset EGAD00010001348=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002007.gtarray.201812.tsv
 #    -dataset EGAD00010001350=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002008.gtarray.201812.tsv
 #    -dataset EGAD00010001352=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002009.gtarray.201812.tsv
-#    -dataset EGAD00010001354=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002010.gtarray.201812.tsv
+#    -dataset EGAD00010001354=/nfs/research1/hipsci/tracking_resources/ega_array_data_submission s/EGAS00001002010.gtarray.201812.tsv
 #    -dataset EGAD00010001356=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002011.gtarray.201812.tsv
 #    -dataset EGAD00010001358=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002012.gtarray.201812.tsv
 #    -dataset EGAD00010001360=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002013.gtarray.201812.tsv

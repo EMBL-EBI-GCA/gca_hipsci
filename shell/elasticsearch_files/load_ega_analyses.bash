@@ -60,7 +60,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.analyses.es.pl \
 #  -dataset_id EGAD00001002000 \ to be ignored
 #  -dataset_id EGAD00001003204 \ to be ignored
 
-#  -dataset_id EGAD00001003529   replaced EGAD0000100089
+#  -dataset_id EGAD00001003529   replaced EGAD00001000897
 #  -dataset_id EGAD00001003514 needs to replace  EGAD00001003514 and EGAD00001000893
 #  -dataset_id EGAD00001003515 needs to replace  EGAD00001003161
 # datasets need to be released.
