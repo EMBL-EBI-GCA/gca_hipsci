@@ -92,37 +92,38 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     #     };
     $cohort{donors} = { count => $donor_search->{hits}{total} };
     # print Dumper($cohort{donors});
-#     $VAR1 = {
-#           'count' => 450
-#         };
-#     $VAR1 = {
-#           'count' => 50
-#         };
+    #     $VAR1 = {
+    #           'count' => 450
+    #         };
+    #     $VAR1 = {
+    #           'count' => 50
+    #         };
 
 
-  foreach my $assay (@assays) {
+    foreach my $assay (@assays) {
 
-      my $search = $es->call('search',
-          index => 'hipsci',
-          type  => 'file',
-          body  => {
-              query => {
-                  constant_score => {
-                      filter => {
-                          bool => {
-                              must => [
-                                  { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
-                                  { term => { 'assay.type' => $assay } },
-                                  { term => { 'archive.name' => 'EGA' } },
-                              ]
-                          }
-                      }
-                  }
-              }
-          }
-      );
-      print Dumper($search);
-  }
+        my $search = $es->call('search',
+            index => 'hipsci',
+            type  => 'file',
+            body  => {
+                query => {
+                    constant_score => {
+                        filter => {
+                            bool => {
+                                must => [
+                                    { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
+                                    { term => { 'assay.type' => $assay } },
+                                    { term => { 'archive.name' => 'EGA' } },
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        print Dumper($search);
+    }
+}
 #     if ($search->{hits}{total}) {
 #       my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
 #       push(@{$cohort{datasets}}, {
