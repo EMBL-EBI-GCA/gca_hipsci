@@ -316,10 +316,10 @@ my $date = strftime('%Y%m%d', localtime);
 # print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  print Dumper($es_doc); # we have EGAD00001003514 here
+  # print Dumper($es_doc); # we have EGAD00001003514 here
 
   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
-  # print $es_doc->{_id};
+  print $es_doc->{_id};
 
 
   # $VAR1 = {
