@@ -433,8 +433,9 @@ while (my $es_doc = $scroll->next) {
   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-  unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
-  # next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  print Dumper($new_doc);
   # $new_doc->{_indexUpdated} = $date;
 #   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 # }
