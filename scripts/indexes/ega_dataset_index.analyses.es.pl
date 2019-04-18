@@ -133,7 +133,7 @@ foreach my $dataset_id (@dataset_id) {
   die "did not recognise disease for $dataset_id" if !$disease;
   $sth_analysis->bind_param(1, $dataset_id);
   $sth_analysis->execute or die "could not execute";
-  print DUmper($sth_analysis);
+  print Dumper($sth_analysis);
 }
 #   ROW:
 #   while (my $row = $sth_analysis->fetchrow_hashref) {
