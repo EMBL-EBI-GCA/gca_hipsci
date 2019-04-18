@@ -422,18 +422,20 @@ while (my $es_doc = $scroll->next) {
   #         'description' => 'BWA alignment'
   #       };
 #
-  if ($new_doc) {
-    print Dumper($es_doc->{_source}{archive}{accession});
-    # printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+  if (!$new_doc) {
+    # print Dumper($es_doc->{_source}{archive}{accession});
+    # everything except what we already have in the load bash script
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
   }
   delete $docs{$es_doc->{_id}};
-}
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $date;
+
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+  if (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
+  # next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  # $new_doc->{_indexUpdated} = $date;
 #   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 # }
 # while (my ($es_id, $new_doc) = each %docs) {
@@ -441,5 +443,5 @@ while (my $es_doc = $scroll->next) {
 #   $new_doc->{_indexCreated} = $date;
 #   $new_doc->{_indexUpdated} = $date;
 #   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+}
 #
