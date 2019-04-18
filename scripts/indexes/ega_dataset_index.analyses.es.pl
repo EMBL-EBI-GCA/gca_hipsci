@@ -424,7 +424,7 @@ while (my $es_doc = $scroll->next) {
 #
   if (!$new_doc) {
     print Dumper($es_doc->{_source}{archive}{accession});
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    # printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
   }
   delete $docs{$es_doc->{_id}};
