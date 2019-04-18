@@ -310,11 +310,12 @@ my $scroll = $elasticsearch->call('scroll_helper', (
     }
   }
 ));
-print Dumper($scroll);
 #
-# my $date = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
+my $date = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  print Dumper($es_doc);
+}
 #   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
 #   my $new_doc = $docs{$es_doc->{_id}};
 #   if (!$new_doc) {
