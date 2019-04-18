@@ -138,6 +138,7 @@ foreach my $dataset_id (@dataset_id) {
   while (my $row = $sth_analysis->fetchrow_hashref) {
     print Dumper($row);
   }
+  last;
 }
     # my $xml_hash = XMLin($row->{ANALYSIS_XML});
 #     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
