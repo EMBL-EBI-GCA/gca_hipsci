@@ -304,7 +304,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
         filter => {
           term => {
             # 'archive.name' => 'EGA',
-            'archive.accession' => 'EGAD00001003514',
+            'archive.accession' => 'EGAD00001000893',
           },
         }
       }
