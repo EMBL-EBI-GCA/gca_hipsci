@@ -163,7 +163,7 @@ foreach my $dataset_id (@dataset_id) {
     print Dumper($xml_hash);
 
   }
-  last;
+  # last;
 }
 
 #     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
