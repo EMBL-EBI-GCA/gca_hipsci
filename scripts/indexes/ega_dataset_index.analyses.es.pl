@@ -303,8 +303,8 @@ my $scroll = $elasticsearch->call('scroll_helper', (
       filtered => {
         filter => {
           term => {
-              'archive.name' => 'EGA', # we have EGAD00001003514 here
-            # 'archive.accession' => 'EGAD00001000893',
+              # 'archive.name' => 'EGA', # we have EGAD00001003514 here
+            'archive.accession' => 'EGAD00001000893',
           },
         }
       }
@@ -316,10 +316,10 @@ my $date = strftime('%Y%m%d', localtime);
 # print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  # print Dumper($es_doc); # we have EGAD00001003514 here
+  print Dumper($es_doc); # we have EGAD00001003514 here
 
   # next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
-print $es_doc->{_id};
+# print $es_doc->{_id};
 }
 
   # $VAR1 = {
