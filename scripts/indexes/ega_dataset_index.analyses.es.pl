@@ -167,97 +167,96 @@ foreach my $dataset_id (@dataset_id) {
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
-    print Dumper($cgap_tissue);
+    # print Dumper($cgap_tissue);
+
+    my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
+    my $source_material = $cgap_tissue->tissue_type || '';
+    my $cell_type = $cgap_ips_line ? 'iPSC'
+                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                  : die "did not recognise source material $source_material";
+
+    my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
+    $files = ref($files) eq 'ARRAY' ? $files : [$files];
+    $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
+
+    $sth_run->bind_param(1, $row->{SAMPLE_ID});
+    $sth_run->bind_param(2, $dataset_id);
+    $sth_run->execute or die "could not execute";
+    my $run_row = $sth_run->fetchrow_hashref;
+    my $run_time = $run_row ? DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90) : undef;
+    my $experiment_xml_hash = $run_row ? XMLin($run_row->{EXPERIMENT_XML}) : {};
+    my ($growing_conditions, $passage_number);
+    if ($cgap_ips_line) {
+      if ($run_time) {
+        my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
+        $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
+        $passage_number = $cgap_release->passage;
       }
+    }
+    else {
+      $growing_conditions = $cell_type;
+    }
+
+    my $description = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bstar\b/i ? 'Splice-aware STAR alignment'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
+                    : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{PROCESSED_READS} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bkallisto\b/i ? 'Abundances of transcripts'
+                    : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
+
+    my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
+    $es_id =~ s/\s/_/g;
+
+
+    $docs{$es_id} = {
+      description => $description,
+      files => [
+      ],
+      archive => {
+        name => 'EGA',
+        accession => $dataset_id,
+        accessionType => 'DATASET_ID',
+        url => 'https://ega-archive.org/datasets/'.$dataset_id,
+        ftpUrl => 'secure access via EGA',
+        openAccess => 0,
+      },
+      samples => [{
+        name => $sample_name,
+        bioSamplesAccession => $row->{BIOSAMPLE_ID},
+        cellType => $cell_type,
+        diseaseStatus => $disease,
+        sex => $cgap_tissue->donor->gender,
+        growingConditions => $growing_conditions,
+      }],
+      assay => {
+        type => $long_assay,
+        description => $run_row ? [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)] : [],
+        instrument => $run_row ? $run_row->{INSTRUMENT_MODEL} : undef,
+      }
+    };
+    if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
+      push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
+    }
+    if ($passage_number) {
+      $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+    }
+    FILE:
+    foreach my $file (@$files) {
+      my $filename = fileparse($file->{filename});
+      $filename =~ s/\.gpg$//;
+      push(@{$docs{$es_id}{files}},
+          {
+            name => $filename,
+            md5 => $file->{unencrypted_checksum},
+            type => $file->{filetype},
+          }
+        );
+      print Dumper($file);
+    }
+  }
+
 }
-#
-    # my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
-    # my $source_material = $cgap_tissue->tissue_type || '';
-    # my $cell_type = $cgap_ips_line ? 'iPSC'
-    #               : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-    #               : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-    #               : die "did not recognise source material $source_material";
-    #
-    # my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
-    # $files = ref($files) eq 'ARRAY' ? $files : [$files];
-    # $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
-#
-#     $sth_run->bind_param(1, $row->{SAMPLE_ID});
-#     $sth_run->bind_param(2, $dataset_id);
-#     $sth_run->execute or die "could not execute";
-#     my $run_row = $sth_run->fetchrow_hashref;
-#     my $run_time = $run_row ? DateTime::Format::ISO8601->parse_datetime($run_row->{FIRST_CREATED})->subtract(days => 90) : undef;
-#     my $experiment_xml_hash = $run_row ? XMLin($run_row->{EXPERIMENT_XML}) : {};
-#     my ($growing_conditions, $passage_number);
-#     if ($cgap_ips_line) {
-#       if ($run_time) {
-#         my $cgap_release = $cgap_ips_line->get_release_for(type => 'qc2', date =>$run_time->ymd);
-#         $growing_conditions = $cgap_release->is_feeder_free ? 'Feeder-free' : 'Feeder-dependent';
-#         $passage_number = $cgap_release->passage;
-#       }
-#     }
-#     else {
-#       $growing_conditions = $cell_type;
-#     }
-#
-#     my $description = $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bstar\b/i ? 'Splice-aware STAR alignment'
-#                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{REFERENCE_ALIGNMENT} ? 'BWA alignment'
-#                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bimputed\b/i ? 'Imputed and phased genotypes'
-#                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{SEQUENCE_VARIATION} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bmpileup\b/i ? 'mpileup variant calls'
-#                     : $xml_hash->{ANALYSIS}{ANALYSIS_TYPE}{PROCESSED_READS} && $xml_hash->{ANALYSIS}{DESCRIPTION} =~ /\bkallisto\b/i ? 'Abundances of transcripts'
-#                     : die 'did not derive a file description for '.$row->{ANALYSIS_ID};
-#
-#     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
-#     $es_id =~ s/\s/_/g;
-#
-#
-#     $docs{$es_id} = {
-#       description => $description,
-#       files => [
-#       ],
-#       archive => {
-#         name => 'EGA',
-#         accession => $dataset_id,
-#         accessionType => 'DATASET_ID',
-#         url => 'https://ega-archive.org/datasets/'.$dataset_id,
-#         ftpUrl => 'secure access via EGA',
-#         openAccess => 0,
-#       },
-#       samples => [{
-#         name => $sample_name,
-#         bioSamplesAccession => $row->{BIOSAMPLE_ID},
-#         cellType => $cell_type,
-#         diseaseStatus => $disease,
-#         sex => $cgap_tissue->donor->gender,
-#         growingConditions => $growing_conditions,
-#       }],
-#       assay => {
-#         type => $long_assay,
-#         description => $run_row ? [ map {$_.'='.$run_row->{$_}}  qw(INSTRUMENT_PLATFORM INSTRUMENT_MODEL LIBRARY_LAYOUT LIBRARY_STRATEGY LIBRARY_SOURCE LIBRARY_SELECTION PAIRED_NOMINAL_LENGTH)] : [],
-#         instrument => $run_row ? $run_row->{INSTRUMENT_MODEL} : undef,
-#       }
-#     };
-#     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
-#       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
-#     }
-#     if ($passage_number) {
-#       $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
-#     }
-#     FILE:
-#     foreach my $file (@$files) {
-#       my $filename = fileparse($file->{filename});
-#       $filename =~ s/\.gpg$//;
-#       push(@{$docs{$es_id}{files}},
-#           {
-#             name => $filename,
-#             md5 => $file->{unencrypted_checksum},
-#             type => $file->{filetype},
-#           }
-#         );
-#     }
-#   }
-#
-# }
 # my $scroll = $elasticsearch->call('scroll_helper', (
 #   index => 'hipsci',
 #   type => 'file',
