@@ -122,7 +122,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
-        print Dumper($search);
+        # print Dumper($search);
         # see below
 
         if ($search->{hits}{total}) {
