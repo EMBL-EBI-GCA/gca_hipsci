@@ -440,7 +440,7 @@ while (my $es_doc = $scroll->next) {
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
 while (my ($es_id, $new_doc) = each %docs) {
-  print 'ok';
+  print Dumper($new_doc);
   $new_doc->{_indexCreated} = $date;
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(body => $new_doc, id => $es_id);
