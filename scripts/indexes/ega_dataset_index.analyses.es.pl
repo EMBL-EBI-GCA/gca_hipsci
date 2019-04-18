@@ -68,7 +68,7 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
 foreach my $dataset_id (@dataset_id) {
-  # print Dumper($dataset_id);
+  print Dumper($dataset_id);
   $sth_dataset->bind_param(1, $dataset_id);
   $sth_dataset->execute or die "could not execute";
   my $row = $sth_dataset->fetchrow_hashref;
@@ -129,14 +129,12 @@ foreach my $dataset_id (@dataset_id) {
   # print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
   # print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  print Dumper($disease);
+  # print Dumper($disease);
+  die "did not recognise disease for $dataset_id" if !$disease;
+  $sth_analysis->bind_param(1, $dataset_id);
+  $sth_analysis->execute or die "could not execute";
+  print DUmper($sth_analysis);
 }
-
-#   die "did not recognise disease for $dataset_id" if !$disease;
-#
-#   $sth_analysis->bind_param(1, $dataset_id);
-#   $sth_analysis->execute or die "could not execute";
-#
 #   ROW:
 #   while (my $row = $sth_analysis->fetchrow_hashref) {
 #
