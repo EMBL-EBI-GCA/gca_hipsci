@@ -163,24 +163,24 @@ foreach my $dataset_id (@dataset_id) {
     # print Dumper($xml_hash);
 
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
-    print Dumper($cgap_ips_line);
+    # print Dumper($cgap_ips_line);
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+    print Dumper($cgap_tissue);
       }
-  last
 }
 #
-#     my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
-#     my $source_material = $cgap_tissue->tissue_type || '';
-#     my $cell_type = $cgap_ips_line ? 'iPSC'
-#                   : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-#                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-#                   : die "did not recognise source material $source_material";
-#
-#     my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
-#     $files = ref($files) eq 'ARRAY' ? $files : [$files];
-#     $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
+    my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
+    my $source_material = $cgap_tissue->tissue_type || '';
+    my $cell_type = $cgap_ips_line ? 'iPSC'
+                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                  : die "did not recognise source material $source_material";
+
+    my $files = $xml_hash->{ANALYSIS}{FILES}{FILE};
+    $files = ref($files) eq 'ARRAY' ? $files : [$files];
+    $files = [grep {$_->{filetype} ne 'bai' && $_->{filetype} ne 'tabix'} @$files];
 #
 #     $sth_run->bind_param(1, $row->{SAMPLE_ID});
 #     $sth_run->bind_param(2, $dataset_id);
