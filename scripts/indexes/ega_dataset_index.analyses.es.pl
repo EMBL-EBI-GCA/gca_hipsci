@@ -369,6 +369,7 @@ while (my $es_doc = $scroll->next) {
   #       };
 
   my $new_doc = $docs{$es_doc->{_id}};
+  print Dumper($new_doc);
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
