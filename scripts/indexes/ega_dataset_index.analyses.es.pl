@@ -369,7 +369,50 @@ while (my $es_doc = $scroll->next) {
   #       };
 
   my $new_doc = $docs{$es_doc->{_id}};
-  print Dumper($new_doc);
+  # print Dumper($new_doc);
+  # $VAR1 = {
+  #         'samples' => [
+  #                        {
+  #                          'cellType' => 'iPSC',
+  #                          'growingConditions' => 'Feeder-free',
+  #                          'diseaseStatus' => 'Monogenic diabetes',
+  #                          'bioSamplesAccession' => 'SAMEA4091786',
+  #                          'name' => 'HPSI0514i-aecv_2',
+  #                          'sex' => 'female',
+  #                          'passageNumber' => '14'
+  #                        }
+  #                      ],
+  #         'assay' => {
+  #                      'instrument' => 'Illumina HiSeq 2500',
+  #                      'type' => 'Exome-seq',
+  #                      'description' => [
+  #                                         'INSTRUMENT_PLATFORM=ILLUMINA',
+  #                                         'INSTRUMENT_MODEL=Illumina HiSeq 2500',
+  #                                         'LIBRARY_LAYOUT=PAIRED',
+  #                                         'LIBRARY_STRATEGY=WXS',
+  #                                         'LIBRARY_SOURCE=GENOMIC',
+  #                                         'LIBRARY_SELECTION=Hybrid Selection',
+  #                                         'PAIRED_NOMINAL_LENGTH=164'
+  #                                       ]
+  #                    },
+  #         'archive' => {
+  #                        'accessionType' => 'DATASET_ID',
+  #                        'openAccess' => 0,
+  #                        'ftpUrl' => 'secure access via EGA',
+  #                        'url' => 'https://ega-archive.org/datasets/EGAD00001003516',
+  #                        'name' => 'EGA',
+  #                        'accession' => 'EGAD00001003516'
+  #                      },
+  #         'files' => [
+  #                      {
+  #                        'name' => 'HPSI0514i-aecv_2.hs37d5.bwa.realign.recal.calmd.markdup.exomeseq.20170327.bam',
+  #                        'type' => 'bam',
+  #                        'md5' => '5085fa2117591d24caa509c395428505'
+  #                      }
+  #                    ],
+  #         'description' => 'BWA alignment'
+  #       };
+
   if (!$new_doc) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
@@ -383,6 +426,7 @@ while (my $es_doc = $scroll->next) {
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
 while (my ($es_id, $new_doc) = each %docs) {
+  print 'ok';
   $new_doc->{_indexCreated} = $date;
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(body => $new_doc, id => $es_id);
