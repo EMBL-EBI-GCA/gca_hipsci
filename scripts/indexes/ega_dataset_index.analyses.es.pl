@@ -160,16 +160,15 @@ foreach my $dataset_id (@dataset_id) {
     #         <PRIMARY_ID>ERS1254906</PRIMARY_ID>
 
     my $xml_hash = XMLin($row->{ANALYSIS_XML});
-    print Dumper($xml_hash);
+    # print Dumper($xml_hash);
 
-  }
-  # last;
+    my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
+    print Dumper($cgap_ips_line);
+    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                    : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
+    die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
+      }
 }
-
-#     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
-#     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-#                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
-#     die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
 #
 #     my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
 #     my $source_material = $cgap_tissue->tissue_type || '';
