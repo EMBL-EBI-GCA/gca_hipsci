@@ -435,14 +435,14 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexUpdated} = $date;
   # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  print Dumper($new_doc);
+  # print Dumper($new_doc);
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   # print 'ok';
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+while (my ($es_id, $new_doc) = each %docs) {
+  # print 'ok';
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
 # #
