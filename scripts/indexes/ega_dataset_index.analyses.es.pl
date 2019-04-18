@@ -161,9 +161,11 @@ foreach my $dataset_id (@dataset_id) {
 
     my $xml_hash = XMLin($row->{ANALYSIS_XML});
     print Dumper($xml_hash);
-    last;
+
   }
+  last;
 }
+
 #     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
 #     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
 #                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
