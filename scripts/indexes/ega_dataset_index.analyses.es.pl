@@ -75,12 +75,59 @@ foreach my $dataset_id (@dataset_id) {
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
   print Dumper($xml_hash);
+  # $VAR1 = {
+  #         'DATASET' => {
+  #                      'POLICY_REF' => {
+  #                                      'IDENTIFIERS' => {
+  #                                                       'PRIMARY_ID' => 'EGAP00001000210'
+  #                                                     },
+  #                                      'accession' => 'EGAP00001000210'
+  #                                    },
+  #                      'IDENTIFIERS' => {
+  #                                       'SUBMITTER_ID' => {
+  #                                                         'namespace' => 'SC',
+  #                                                         'content' => 'ena-DATASET-SC-03-08-2017-09:25:16:341-1545'
+  #                                                       },
+  #                                       'PRIMARY_ID' => 'EGAD00001003514'
+  #                                     },
+  #                      'accession' => 'EGAD00001003514',
+  #                      'broker_name' => 'EGA',
+  #                      'TITLE' => 'HipSci - Healthy Normals - Exome Sequencing - July 2017',
+  #                      'ANALYSIS_REF' => [
+  #                                        {
+  #                                          'IDENTIFIERS' => {
+  #                                                           'PRIMARY_ID' => 'EGAZ00001091701'
+  #                                                         },
+  #                                          'accession' => 'EGAZ00001091701'
+  #                                        },
+  #                                        {
+  #                                          'IDENTIFIERS' => {
+  #                                                           'PRIMARY_ID' => 'EGAZ00001091702'
+  #                                                         },
+  #                                          'accession' => 'EGAZ00001091702'
+  #                                        },
+  #
+  #                                            'IDENTIFIERS' => {
+  #                                                           'PRIMARY_ID' => 'EGAZ00001314228'
+  #                                                         },
+  #                                          'accession' => 'EGAZ00001314228'
+  #                                        }
+  #                                      ],
+  #                      'DESCRIPTION' => 'HipSci - Healthy Normals - Exome Sequencing - July 2017',
+  #                      'center_name' => 'SC',
+  #                      'RUN_REF' => [
+  #                                   {
+  #                                     'IDENTIFIERS' => {
+  #                                                      'PRIMARY_ID' => 'EGAR00001184781'
+  #                                                    },
+  #                                     'accession' => 'EGAR00001184781'
+  my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
+      : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
+      : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
+      : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
+      : die "did not recognise assay for $dataset_id";
+  print Dumper($short_assay);
 }
-#   my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
-#             : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
-#             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
-#             : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
-#             : die "did not recognise assay for $dataset_id";
 #   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
 #   # print "$disease\n";
 #   die "did not recognise disease for $dataset_id" if !$disease;
