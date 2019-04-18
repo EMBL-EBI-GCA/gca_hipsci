@@ -304,6 +304,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
         filter => {
           term => {
             'archive.name' => 'EGA',
+            'archive.accession' => 'EGAD00001003514',
           },
         }
       }
@@ -315,8 +316,10 @@ my $date = strftime('%Y%m%d', localtime);
 print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  # print Dumper($es_doc);
-  next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
+  print Dumper($es_doc);
+}
+  # next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
+
   # $VAR1 = {
   #         '_source' => {
   #                        'samples' => [
@@ -368,8 +371,9 @@ while (my $es_doc = $scroll->next) {
   #         '_type' => 'file'
   #       };
 
-  my $new_doc = $docs{$es_doc->{_id}};
+  # my $new_doc = $docs{$es_doc->{_id}};
   # print Dumper($new_doc);
+
   # $VAR1 = {
   #         'samples' => [
   #                        {
@@ -413,22 +417,22 @@ while (my $es_doc = $scroll->next) {
   #         'description' => 'BWA alignment'
   #       };
 
-  if (!$new_doc) {
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-    next ES_DOC;
-  }
-  delete $docs{$es_doc->{_id}};
-  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-  next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-}
-while (my ($es_id, $new_doc) = each %docs) {
-  print 'ok';
-  $new_doc->{_indexCreated} = $date;
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(body => $new_doc, id => $es_id);
-}
-
+#   if (!$new_doc) {
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) {
+#   print 'ok';
+#   $new_doc->{_indexCreated} = $date;
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
+#
