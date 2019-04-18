@@ -126,11 +126,12 @@ foreach my $dataset_id (@dataset_id) {
       : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
       : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
       : die "did not recognise assay for $dataset_id";
-  print Dumper($short_assay);
-  print Dumper($long_assay);
+  # print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
+  # print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
+  my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
+  print Dumper($disease);
 }
-#   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-#   # print "$disease\n";
+
 #   die "did not recognise disease for $dataset_id" if !$disease;
 #
 #   $sth_analysis->bind_param(1, $dataset_id);
