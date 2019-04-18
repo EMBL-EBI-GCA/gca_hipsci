@@ -378,7 +378,7 @@ while (my $es_doc = $scroll->next) {
   my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
   # print Dumper(%docs); # 3514 is here
   # last;
-}
+
   # $VAR1 = {
   #         'samples' => [
   #                        {
@@ -423,7 +423,7 @@ while (my $es_doc = $scroll->next) {
   #       };
 #
   if (!$new_doc) {
-    print($es_doc->{_source})
+    print($es_doc->{_source});
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
   }
