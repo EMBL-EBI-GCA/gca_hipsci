@@ -314,10 +314,61 @@ my $scroll = $elasticsearch->call('scroll_helper', (
 my $date = strftime('%Y%m%d', localtime);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  print Dumper($es_doc);
-}
-#   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
-#   my $new_doc = $docs{$es_doc->{_id}};
+  # print Dumper($es_doc);
+  next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
+  # $VAR1 = {
+  #         '_source' => {
+  #                        'samples' => [
+  #                                       {
+  #                                         'cellType' => 'iPSC',
+  #                                         'growingConditions' => 'Feeder-free',
+  #                                         'name' => 'HPSI0414i-biiw_1',
+  #                                         'bioSamplesAccession' => 'SAMEA2733282',
+  #                                         'diseaseStatus' => 'Monogenic diabetes',
+  #                                         'sex' => 'male',
+  #                                         'passageNumber' => '16'
+  #                                       }
+  #                                     ],
+  #                        'archive' => {
+  #                                       'accessionType' => 'DATASET_ID',
+  #                                       'name' => 'EGA',
+  #                                       'url' => 'https://ega-archive.org/datasets/EGAD00001003516',
+  #                                       'ftpUrl' => 'secure access via EGA',
+  #                                       'openAccess' => 0,
+  #                                       'accession' => 'EGAD00001003516'
+  #                                     },
+  #                        'assay' => {
+  #                                     'type' => 'Exome-seq',
+  #                                     'instrument' => 'Illumina HiSeq 2000',
+  #                                     'description' => [
+  #                                                        'INSTRUMENT_PLATFORM=ILLUMINA',
+  #                                                        'INSTRUMENT_MODEL=Illumina HiSeq 2000',
+  #                                                        'LIBRARY_LAYOUT=PAIRED',
+  #                                                        'LIBRARY_STRATEGY=WXS',
+  #                                                        'LIBRARY_SOURCE=GENOMIC',
+  #                                                        'LIBRARY_SELECTION=Hybrid Selection',
+  #                                                        'PAIRED_NOMINAL_LENGTH=175'
+  #                                                      ]
+  #                                   },
+  #                        'files' => [
+  #                                     {
+  #                                       'name' => '18050_2#13.cram',
+  #                                       'type' => 'cram',
+  #                                       'md5' => '8638154f94ddccf0b54e083cffbd4b5e'
+  #                                     }
+  #                                   ],
+  #                        '_indexUpdated' => '20181129',
+  #                        '_indexCreated' => '20181129',
+  #                        'description' => 'Raw sequencing reads'
+  #                      },
+  #         '_score' => '0',
+  #         '_index' => 'hipsci_build2',
+  #         '_id' => 'HPSI0414i-biiw_1-exomeseq-ERR1245300',
+  #         '_type' => 'file'
+  #       };
+
+  my $new_doc = $docs{$es_doc->{_id}};
+  print Dumper($new_doc);
 #   if (!$new_doc) {
 #     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
 #     next ES_DOC;
