@@ -374,7 +374,7 @@ while (my $es_doc = $scroll->next) {
   #       };
 
   my $new_doc = $docs{$es_doc->{_id}};
-  print Dumper($docs);
+  print Dumper(%docs);
 }
   # $VAR1 = {
   #         'samples' => [
