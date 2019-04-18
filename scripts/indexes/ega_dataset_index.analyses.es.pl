@@ -40,8 +40,8 @@ my $era_db = get_erapro_conn(@era_params);
 $era_db->dbc->db_handle->{LongReadLen} = 4000000;
 
 my $sql_dataset =  'select xmltype.getclobval(ega_dataset_xml) ega_dataset_xml from ega_dataset where ega_dataset_id=?';
-print Dumper($sql_dataset);
-# my $sth_dataset = $era_db->dbc->prepare($sql_dataset) or die "could not prepare $sql_dataset";
+my $sth_dataset = $era_db->dbc->prepare($sql_dataset) or die "could not prepare $sql_dataset";
+print Dumper($sth_dataset);
 #
 # my $sql_analysis =  "
 #   select a.analysis_id, to_char(sub.submission_date, 'YYYY-MM-DD') submission_date, xmltype.getclobval(a.analysis_xml) analysis_xml, s.biosample_id, s.sample_id
