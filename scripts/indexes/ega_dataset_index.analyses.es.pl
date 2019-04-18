@@ -312,6 +312,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
 ));
 #
 my $date = strftime('%Y%m%d', localtime);
+print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
   # print Dumper($es_doc);
