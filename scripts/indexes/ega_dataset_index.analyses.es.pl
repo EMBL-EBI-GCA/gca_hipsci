@@ -235,7 +235,43 @@ foreach my $dataset_id (@dataset_id) {
         instrument => $run_row ? $run_row->{INSTRUMENT_MODEL} : undef,
       }
     };
-    print Dumper($docs{$es_id});
+    # print Dumper($docs{$es_id});
+    # $VAR1 = {
+    #       'samples' => [
+    #                      {
+    #                        'cellType' => 'iPSC',
+    #                        'growingConditions' => 'Feeder-free',
+    #                        'diseaseStatus' => 'Normal',
+    #                        'bioSamplesAccession' => 'SAMEA2398365',
+    #                        'name' => 'HPSI0713i-fett_3',
+    #                        'sex' => 'male'
+    #                      }
+    #                    ],
+    #       'assay' => {
+    #                    'instrument' => 'Illumina HiSeq 2500',
+    #                    'type' => 'Exome-seq',
+    #                    'description' => [
+    #                                       'INSTRUMENT_PLATFORM=ILLUMINA',
+    #                                       'INSTRUMENT_MODEL=Illumina HiSeq 2500',
+    #                                       'LIBRARY_LAYOUT=PAIRED',
+    #                                       'LIBRARY_STRATEGY=WXS',
+    #                                       'LIBRARY_SOURCE=GENOMIC',
+    #                                       'LIBRARY_SELECTION=Hybrid Selection',
+    #                                       'PAIRED_NOMINAL_LENGTH=164'
+    #                                     ]
+    #                  },
+    #       'archive' => {
+    #                      'accessionType' => 'DATASET_ID',
+    #                      'openAccess' => 0,
+    #                      'ftpUrl' => 'secure access via EGA',
+    #                      'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
+    #                      'name' => 'EGA',
+    #                      'accession' => 'EGAD00001003514'
+    #                    },
+    #       'files' => [],
+    #       'description' => 'BWA alignment'
+    #     };
+
     if (my $exp_protocol = $experiment_xml_hash->{DESIGN}{LIBRARY_DESCRIPTOR}{LIBRARY_CONSTRUCTION_PROTOL}) {
       push(@{$docs{$es_id}{assay}{description}}, $exp_protocol);
     }
@@ -257,23 +293,24 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'EGA',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'EGA',
+          },
+        }
+      }
+    }
+  }
+));
+print Dumper($scroll);
 #
 # my $date = strftime('%Y%m%d', localtime);
 # ES_DOC:
