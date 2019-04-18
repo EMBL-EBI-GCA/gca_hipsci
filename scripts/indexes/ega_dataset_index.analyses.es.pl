@@ -168,6 +168,7 @@ foreach my $dataset_id (@dataset_id) {
                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
     die 'did not recognise sample '.$row->{BIOSAMPLE_ID} if !$cgap_tissue;
       }
+  last
 }
 #
 #     my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
