@@ -68,7 +68,7 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
 foreach my $dataset_id (@dataset_id) {
-  print Dumper($dataset_id);
+  # print Dumper($dataset_id);
   $sth_dataset->bind_param(1, $dataset_id);
   $sth_dataset->execute or die "could not execute";
   my $row = $sth_dataset->fetchrow_hashref;
@@ -316,7 +316,7 @@ my $date = strftime('%Y%m%d', localtime);
 # print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  print Dumper($es_doc); # we have EGAD00001003514 here
+  # print Dumper($es_doc); # we have EGAD00001003514 here
 
   # next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/;
 print $es_doc->{_id};
