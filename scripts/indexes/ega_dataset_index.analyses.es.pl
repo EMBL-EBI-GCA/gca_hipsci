@@ -68,14 +68,14 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
 foreach my $dataset_id (@dataset_id) {
-  print Dumper($dataset_id);
+  # print Dumper($dataset_id);
+  $sth_dataset->bind_param(1, $dataset_id);
+  $sth_dataset->execute or die "could not execute";
+  my $row = $sth_dataset->fetchrow_hashref;
+  die "no dataset $dataset_id" if !$row;
+  my $xml_hash = XMLin($row->{EGA_DATASET_XML});
+  print Dumper($xml_hash);
 }
-#   $sth_dataset->bind_param(1, $dataset_id);
-#   $sth_dataset->execute or die "could not execute";
-#   my $row = $sth_dataset->fetchrow_hashref;
-#   die "no dataset $dataset_id" if !$row;
-#   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-#   # print Dumper($xml_hash);
 #   my ($short_assay, $long_assay) = $xml_hash->{DATASET}{TITLE} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
 #             : $xml_hash->{DATASET}{TITLE} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
 #             : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
