@@ -136,9 +136,9 @@ foreach my $dataset_id (@dataset_id) {
   # print Dumper($sth_analysis);
   ROW:
   while (my $row = $sth_analysis->fetchrow_hashref) {
-    print Dumper($row)
+    print Dumper($row);
   }
-
+}
     # my $xml_hash = XMLin($row->{ANALYSIS_XML});
 #     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
 #     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
