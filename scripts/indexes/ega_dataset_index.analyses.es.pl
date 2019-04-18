@@ -136,11 +136,33 @@ foreach my $dataset_id (@dataset_id) {
   # print Dumper($sth_analysis);
   ROW:
   while (my $row = $sth_analysis->fetchrow_hashref) {
-    print Dumper($row);
+    # print Dumper($row);
+    #     $VAR1 = 'EGAD00001003514';
+    # $VAR1 = {
+    #           'BIOSAMPLE_ID' => 'SAMEA2398943',
+    #           'ANALYSIS_XML' => '<?xml version="1.0" encoding="UTF-8"?>
+    # <ANALYSIS_SET>
+    #   <ANALYSIS alias="hipsci.rel-2016-01.exomeseq.improved_bams.sc-20160209.sample_HPSI0513pf-oogu" center_name="SC" broker_name="EGA" analysis_center="SC" analysis_date="2016-02-09T10:10:10.0Z" accession="ERZ267539">
+    #     <IDENTIFIERS>
+    #       <PRIMARY_ID>ERZ267539</PRIMARY_ID>
+    #       <SUBMITTER_ID namespace="SC">hipsci.rel-2016-01.exomeseq.improved_bams.sc-20160209.sample_HPSI0513pf-oogu</SUBMITTER_ID>
+    #     </IDENTIFIERS>
+    #     <TITLE>HipSci Exome-seq improved bam (sample HPSI0513pf-oogu)</TITLE>
+    #     <DESCRIPTION>HipSci sample-level improved whole exome sequence alignment</DESCRIPTION>
+    #     <STUDY_REF accession="ERP003957" refcenter="SC" refname="HipSci___Whole_Exome_sequencing___healthy_volunteers-sc-2013-09-30T17:02:05Z-2788">
+    #       <IDENTIFIERS>
+    #         <PRIMARY_ID>ERP003957</PRIMARY_ID>
+    #         <SUBMITTER_ID namespace="SC">HipSci___Whole_Exome_sequencing___healthy_volunteers-sc-2013-09-30T17:02:05Z-2788</SUBMITTER_ID>
+    #       </IDENTIFIERS>
+    #     </STUDY_REF>
+    #     <SAMPLE_REF accession="ERS1254906" label="HPSI0513pf-oogu" refname="SAMEA2398943" refcenter="BioSD">
+    #       <IDENTIFIERS>
+    #         <PRIMARY_ID>ERS1254906</PRIMARY_ID>
+
+    my $xml_hash = XMLin($row->{ANALYSIS_XML});
+    print Dumper($xml_hash);
   }
-  last;
 }
-    # my $xml_hash = XMLin($row->{ANALYSIS_XML});
 #     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
 #     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
 #                     : List::Util::first {$_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_tissues;
