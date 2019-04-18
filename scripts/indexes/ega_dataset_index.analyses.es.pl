@@ -41,34 +41,35 @@ $era_db->dbc->db_handle->{LongReadLen} = 4000000;
 
 my $sql_dataset =  'select xmltype.getclobval(ega_dataset_xml) ega_dataset_xml from ega_dataset where ega_dataset_id=?';
 my $sth_dataset = $era_db->dbc->prepare($sql_dataset) or die "could not prepare $sql_dataset";
-print Dumper($sth_dataset);
-#
-# my $sql_analysis =  "
-#   select a.analysis_id, to_char(sub.submission_date, 'YYYY-MM-DD') submission_date, xmltype.getclobval(a.analysis_xml) analysis_xml, s.biosample_id, s.sample_id
-#   from ega_dataset d, analysis_ega_dataset ad, sample s, analysis_sample ans, analysis a, submission sub
-#   where d.ega_dataset_id=ad.ega_dataset_id
-#   and ad.analysis_id=ans.analysis_id and s.sample_id=ans.sample_id
-#   and a.analysis_id=ad.analysis_id and a.submission_id=sub.submission_id
-#   and d.ega_dataset_id=?
-#   ";
-# my $sth_analysis = $era_db->dbc->prepare($sql_analysis) or die "could not prepare $sql_analysis";
-#
-# my $sql_run =  "
-#   select r.run_id, to_char(r.first_created, 'YYYY-MM-DD') first_created, e.instrument_platform, e.instrument_model, e.library_layout, e.library_strategy, e.library_source, e.library_selection, e.paired_nominal_length, xmltype.getclobval(e.experiment_xml) experiment_xml
-#   from run_ega_dataset rd, run_sample rs, run r, experiment e
-#   where rd.run_id=rs.run_id
-#   and r.run_id=rd.run_id
-#   and r.experiment_id=e.experiment_id
-#   and rs.sample_id=?
-#   and rd.ega_dataset_id=?
-#   ";
-# my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run";
-#
-# my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
-# improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
-#
-# my %docs;
-# foreach my $dataset_id (@dataset_id) {
+
+my $sql_analysis =  "
+  select a.analysis_id, to_char(sub.submission_date, 'YYYY-MM-DD') submission_date, xmltype.getclobval(a.analysis_xml) analysis_xml, s.biosample_id, s.sample_id
+  from ega_dataset d, analysis_ega_dataset ad, sample s, analysis_sample ans, analysis a, submission sub
+  where d.ega_dataset_id=ad.ega_dataset_id
+  and ad.analysis_id=ans.analysis_id and s.sample_id=ans.sample_id
+  and a.analysis_id=ad.analysis_id and a.submission_id=sub.submission_id
+  and d.ega_dataset_id=?
+  ";
+my $sth_analysis = $era_db->dbc->prepare($sql_analysis) or die "could not prepare $sql_analysis";
+
+my $sql_run =  "
+  select r.run_id, to_char(r.first_created, 'YYYY-MM-DD') first_created, e.instrument_platform, e.instrument_model, e.library_layout, e.library_strategy, e.library_source, e.library_selection, e.paired_nominal_length, xmltype.getclobval(e.experiment_xml) experiment_xml
+  from run_ega_dataset rd, run_sample rs, run r, experiment e
+  where rd.run_id=rs.run_id
+  and r.run_id=rd.run_id
+  and r.experiment_id=e.experiment_id
+  and rs.sample_id=?
+  and rd.ega_dataset_id=?
+  ";
+my $sth_run = $era_db->dbc->prepare($sql_run) or die "could not prepare $sql_run";
+
+my ($cgap_ips_lines, $cgap_tissues, $cgap_donors) =  @{read_cgap_report()}{qw(ips_lines tissues donors)};
+improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
+
+my %docs;
+foreach my $dataset_id (@dataset_id) {
+  print Dumper($dataset_id);
+}
 #   $sth_dataset->bind_param(1, $dataset_id);
 #   $sth_dataset->execute or die "could not execute";
 #   my $row = $sth_dataset->fetchrow_hashref;
