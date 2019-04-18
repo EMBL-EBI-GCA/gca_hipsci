@@ -47,7 +47,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     # $VAR1 = 'Bardet-Biedl syndrome';
     my $id = lc($name);
     $id =~ s/[^\w]/-/g;
-    print Dumper($id);
+    # print Dumper($id);
     # $VAR1 = 'normal';
     # $VAR1 = 'bardet-biedl-syndrome';
     $cohort{datasets} = [];
@@ -101,6 +101,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
 
 
     foreach my $assay (@assays) {
+        print Dumper($assay);
 
         my $search = $es->call('search',
             index => 'hipsci',
@@ -135,7 +136,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 url           => "https://ega-archive.org/datasets/$accession",
             });
         }
-        print Dumper($cohort{datasets});
+        # print Dumper($cohort{datasets});
     }
 }
 #
