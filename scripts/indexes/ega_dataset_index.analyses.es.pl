@@ -303,8 +303,8 @@ my $scroll = $elasticsearch->call('scroll_helper', (
       filtered => {
         filter => {
           term => {
-              # 'archive.name' => 'EGA', # we have EGAD00001003514 here
-            'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
+              'archive.name' => 'EGA', # we have EGAD00001003514 here
+            # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
           },
         }
       }
@@ -316,7 +316,7 @@ my $date = strftime('%Y%m%d', localtime);
 # print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  # print Dumper($es_doc); # we have EGAD00001003514 here
+  print Dumper($es_doc); # we have EGAD00001003514 here
 
   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
   # print $es_doc->{_id};
@@ -374,8 +374,8 @@ while (my $es_doc = $scroll->next) {
   #       };
 
   my $new_doc = $docs{$es_doc->{_id}};
-  print Dumper(%docs);
-  last;
+  # print Dumper(%docs); # 3514 is here
+  # last;
 }
   # $VAR1 = {
   #         'samples' => [
@@ -419,7 +419,7 @@ while (my $es_doc = $scroll->next) {
   #                    ],
   #         'description' => 'BWA alignment'
   #       };
-
+#
 #   if (!$new_doc) {
 #     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
 #     next ES_DOC;
