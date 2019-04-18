@@ -47,7 +47,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     # $VAR1 = 'Bardet-Biedl syndrome';
     my $id = lc($name);
     $id =~ s/[^\w]/-/g;
-    # print Dumper($id);
+    print Dumper($id);
     # $VAR1 = 'normal';
     # $VAR1 = 'bardet-biedl-syndrome';
     $cohort{datasets} = [];
