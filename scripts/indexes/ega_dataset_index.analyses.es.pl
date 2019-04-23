@@ -297,7 +297,14 @@ foreach my $dataset_id (@dataset_id) {
     }
     FILE:
     foreach my $file (@$files) {
-      print Dumper($file);
+      # print Dumper($file);
+      # $VAR1 = {
+      #     'checksum' => '87e8a39bbd163f682eb4e2577c78d187',
+      #     'filetype' => 'vcf',
+      #     'filename' => 'HPSI0713i-fett_3.wes.exomeseq.SureSelect_HumanAllExon_v5.imputed_phased.20170327.genotypes.vcf.gz',
+      #     'checksum_method' => 'MD5',
+      #     'unencrypted_checksum' => 'cd1db61fd72417b955eadf440495b43a'
+      #   };
       my $filename = fileparse($file->{filename});
       $filename =~ s/\.gpg$//;
       push(@{$docs{$es_id}{files}},
@@ -441,6 +448,7 @@ while (my $es_doc = $scroll->next) {
 #   #       };
 # #
   if (!$new_doc) {
+    print 'no new one';
     # print Dumper($es_doc->{_source}{archive}{accession});
     # everything except what we already have in the load bash script
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
