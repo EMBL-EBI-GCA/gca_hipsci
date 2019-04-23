@@ -28,7 +28,7 @@ my $diseases = \@ReseqTrack::Tools::HipSci::DiseaseParser::diseases;
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
-    print DUmper($disease);
+    print Dumper($disease);
     my %cohort = (
         disease => {
             ontologyPURL => $disease->{ontology_full},
@@ -129,7 +129,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         if ($search->{hits}{total}) {
             # if we there is any
             my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-            print Dumper($accession);
+            # print Dumper($accession);
             push(@{$cohort{datasets}}, {
                 assay         => $assay,
                 archive       => 'EGA',
