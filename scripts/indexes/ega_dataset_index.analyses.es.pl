@@ -447,7 +447,7 @@ while (my $es_doc = $scroll->next) {
 #   #         'description' => 'BWA alignment'
 #   #       };
 # #
-  if (!$new_doc) {
+  unless (!$new_doc) {
     print 'no new one'; # this is called for all
     # print Dumper($es_doc->{_source}{archive}{accession});
     # everything except what we already have in the load bash script
