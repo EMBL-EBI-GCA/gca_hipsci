@@ -129,7 +129,7 @@ foreach my $dataset_id (@dataset_id) {
   # print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
   # print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  # print Dumper($disease);
+  print Dumper($disease);
   die "did not recognise disease for $dataset_id" if !$disease;
   $sth_analysis->bind_param(1, $dataset_id);
   $sth_analysis->execute or die "could not execute";
@@ -435,7 +435,7 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
   # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  print Dumper($new_doc);
+  # print Dumper($new_doc);
   # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
