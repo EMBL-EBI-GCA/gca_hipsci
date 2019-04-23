@@ -128,7 +128,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         if ($search->{hits}{total}) {
             # if we there is any
             my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-            # print Dumper($accession);
+            print Dumper($accession);
             push(@{$cohort{datasets}}, {
                 assay         => $assay,
                 archive       => 'EGA',
@@ -139,7 +139,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         }
         # print Dumper($cohort{datasets});
     }
-  print Dumper(%cohort);
+  # print Dumper(%cohort);
 }
 #
 #   $es->call('index',
