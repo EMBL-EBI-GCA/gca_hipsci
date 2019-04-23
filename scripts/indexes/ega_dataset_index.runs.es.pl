@@ -181,6 +181,7 @@ while (my $es_doc = $scroll->next) {
   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  print Dumper($new_doc);
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
