@@ -448,15 +448,15 @@ while (my $es_doc = $scroll->next) {
 #   #       };
 # #
   if (!$new_doc) {
-    print Dumper(%docs); # this is called for all
+    # print Dumper(%docs); # this is called for all
     # print Dumper($es_doc->{_source}{archive}{accession});
     # everything except what we already have in the load bash script
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
   }
-  # else {
-  #     print 'so many new ones';
-  # }
+  else {
+      print Dumper(%docs);
+  }
   delete $docs{$es_doc->{_id}};
   # print Dumper($new_doc); #it still has the 3514
   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
