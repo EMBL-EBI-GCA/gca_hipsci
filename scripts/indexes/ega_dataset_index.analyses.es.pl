@@ -207,7 +207,7 @@ foreach my $dataset_id (@dataset_id) {
 
     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
     $es_id =~ s/\s/_/g;
-    print Dumper($es_id);
+    # print Dumper($es_id);
     # $VAR1 = 'EGAD00001001422';
     # $VAR1 = 'HPSI1013i-funy_1-exomeseq-ERZ117510';
     # $VAR1 = 'HPSI0913i-gooj_1-exomeseq-ERZ117511';
@@ -252,7 +252,7 @@ foreach my $dataset_id (@dataset_id) {
         instrument => $run_row ? $run_row->{INSTRUMENT_MODEL} : undef,
       }
     };
-    print Dumper($docs{$es_id});
+    # print Dumper($docs{$es_id}); # loads for each id
     # $VAR1 = {
     #       'samples' => [
     #                      {
@@ -297,6 +297,7 @@ foreach my $dataset_id (@dataset_id) {
     }
     FILE:
     foreach my $file (@$files) {
+      print Dumper($file);
       my $filename = fileparse($file->{filename});
       $filename =~ s/\.gpg$//;
       push(@{$docs{$es_id}{files}},
