@@ -139,6 +139,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         }
         # print Dumper($cohort{datasets});
     }
+  print Dumper(%cohort);
 }
 #
 #   $es->call('index',
