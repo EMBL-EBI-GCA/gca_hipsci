@@ -133,7 +133,7 @@ foreach my $dataset_id (@dataset_id) {
   die "did not recognise disease for $dataset_id" if !$disease;
   $sth_analysis->bind_param(1, $dataset_id);
   $sth_analysis->execute or die "could not execute";
-  print Dumper(%sth_analysis);
+  # print Dumper(%sth_analysis);
   ROW:
   while (my $row = $sth_analysis->fetchrow_hashref) {
     # print Dumper($row);
@@ -160,7 +160,7 @@ foreach my $dataset_id (@dataset_id) {
     #         <PRIMARY_ID>ERS1254906</PRIMARY_ID>
 
     my $xml_hash = XMLin($row->{ANALYSIS_XML});
-    # print Dumper($xml_hash);
+    print Dumper($xml_hash);
 
     my $cgap_ips_line = List::Util::first {$_->biosample_id && $_->biosample_id eq $row->{BIOSAMPLE_ID}} @$cgap_ips_lines;
     # print Dumper($cgap_ips_line);
