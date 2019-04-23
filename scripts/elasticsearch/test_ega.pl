@@ -28,6 +28,7 @@ my $diseases = \@ReseqTrack::Tools::HipSci::DiseaseParser::diseases;
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
+    print DUmper($disease);
     my %cohort = (
         disease => {
             ontologyPURL => $disease->{ontology_full},
@@ -137,7 +138,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 url           => "https://ega-archive.org/datasets/$accession",
             });
         }
-        print Dumper($cohort{datasets});
+        # print Dumper($cohort{datasets});
     }
   # print Dumper(%cohort);
 }
