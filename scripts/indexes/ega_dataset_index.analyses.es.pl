@@ -68,13 +68,13 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
 foreach my $dataset_id (@dataset_id) {
-  print Dumper($dataset_id);
+  print Dumper($dataset_id); # datasets in load file returne correctly.
   $sth_dataset->bind_param(1, $dataset_id);
   $sth_dataset->execute or die "could not execute";
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-  # print Dumper($xml_hash);
+  print Dumper($xml_hash);
   # $VAR1 = {
   #         'DATASET' => {
   #                      'POLICY_REF' => {
@@ -129,7 +129,7 @@ foreach my $dataset_id (@dataset_id) {
   # print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
   # print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
-  print Dumper($disease);
+  print Dumper($disease); # 'Normal'; 'Bardet-Biedl syndrome';
   die "did not recognise disease for $dataset_id" if !$disease;
   $sth_analysis->bind_param(1, $dataset_id);
   $sth_analysis->execute or die "could not execute";
@@ -293,157 +293,157 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
-my $scroll = $elasticsearch->call('scroll_helper', (
-  index => 'hipsci',
-  type => 'file',
-  search_type => 'scan',
-  size => 500,
-  body => {
-    query => {
-      filtered => {
-        filter => {
-          term => {
-              'archive.name' => 'EGA', # we have EGAD00001003514 here
-            # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
-          },
-        }
-      }
-    }
-  }
-));
-#
-my $date = strftime('%Y%m%d', localtime);
-# print Dumper($date);
-ES_DOC:
-while (my $es_doc = $scroll->next) {
-  # print Dumper($es_doc); # we have EGAD00001003514 here
-
-# $VAR1 = {
-#           '_source' => {
-#                          'samples' => [
-#                                         {
-#                                           'cellType' => 'iPSC',
-#                                           'growingConditions' => 'Feeder-free',
-#                                           'name' => 'HPSI0613i-xucm_3',
-#                                           'bioSamplesAccession' => 'SAMEA2469776',
-#                                           'diseaseStatus' => 'Normal',
-#                                           'sex' => 'female',
-#                                           'passageNumber' => '28'
-#                                         }
-#                                       ],
-#                          'archive' => {
-#                                         'accessionType' => 'DATASET_ID',
-#                                         'name' => 'EGA',
-#                                         'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
-#                                         'ftpUrl' => 'secure access via EGA',
-#                                         'openAccess' => 0,
-#                                         'accession' => 'EGAD00001003514'
-#                                       },
-#                          'assay' => {
-#                                       'type' => 'Exome-seq',
-#                                       'instrument' => 'Illumina HiSeq 2000',
-#                                       'description' => [
-#                                                          'INSTRUMENT_PLATFORM=ILLUMINA',
-#                                                          'INSTRUMENT_MODEL=Illumina HiSeq 2000',
-#                                                          'LIBRARY_LAYOUT=PAIRED',
-#                                                          'LIBRARY_STRATEGY=WXS',
-#                                                          'LIBRARY_SOURCE=GENOMIC',
-#                                                          'LIBRARY_SELECTION=Hybrid Selection',
-#                                                          'PAIRED_NOMINAL_LENGTH=171'
-#                                                        ]
-#                                     },
-#                          'files' => [
-#                                       {
-#                                         'name' => 'HPSI0613i-xucm_3.wes.exomeseq.SureSelect_HumanAllExon_v5.mpileup.20150415.genotypes.vcf.gz',
-#                                         'type' => 'vcf',
-#                                         'md5' => 'b2a7be3e2aec51dc16e96435c9032ace'
-#                                       }
-#                                     ],
-#                          '_indexUpdated' => '20190416',
-#                          '_indexCreated' => '20181129',
-#                          'description' => 'mpileup variant calls'
-#                        },
-#           '_score' => '0',
-#           '_index' => 'hipsci_build2',
-#           '_id' => 'HPSI0613i-xucm_3-exomeseq-ERZ117500',
-#           '_type' => 'file'
-#         };
-
-  next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
-  # print $es_doc->{_id};
-  # HPSI0413pf-xekf-exomeseq-ERZ267178
-  # HPSI1213i-foqj_2-exomeseq-ERZ117454
-  # HPSI0613i-xucm_3-exomeseq-ERZ117500
-
-  my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
-  # print Dumper(%docs); # 3514 is here
-  # last;
-
-  # $VAR1 = {
-  #         'samples' => [
-  #                        {
-  #                          'cellType' => 'iPSC',
-  #                          'growingConditions' => 'Feeder-free',
-  #                          'diseaseStatus' => 'Monogenic diabetes',
-  #                          'bioSamplesAccession' => 'SAMEA4091786',
-  #                          'name' => 'HPSI0514i-aecv_2',
-  #                          'sex' => 'female',
-  #                          'passageNumber' => '14'
-  #                        }
-  #                      ],
-  #         'assay' => {
-  #                      'instrument' => 'Illumina HiSeq 2500',
-  #                      'type' => 'Exome-seq',
-  #                      'description' => [
-  #                                         'INSTRUMENT_PLATFORM=ILLUMINA',
-  #                                         'INSTRUMENT_MODEL=Illumina HiSeq 2500',
-  #                                         'LIBRARY_LAYOUT=PAIRED',
-  #                                         'LIBRARY_STRATEGY=WXS',
-  #                                         'LIBRARY_SOURCE=GENOMIC',
-  #                                         'LIBRARY_SELECTION=Hybrid Selection',
-  #                                         'PAIRED_NOMINAL_LENGTH=164'
-  #                                       ]
-  #                    },
-  #         'archive' => {
-  #                        'accessionType' => 'DATASET_ID',
-  #                        'openAccess' => 0,
-  #                        'ftpUrl' => 'secure access via EGA',
-  #                        'url' => 'https://ega-archive.org/datasets/EGAD00001003516',
-  #                        'name' => 'EGA',
-  #                        'accession' => 'EGAD00001003516'
-  #                      },
-  #         'files' => [
-  #                      {
-  #                        'name' => 'HPSI0514i-aecv_2.hs37d5.bwa.realign.recal.calmd.markdup.exomeseq.20170327.bam',
-  #                        'type' => 'bam',
-  #                        'md5' => '5085fa2117591d24caa509c395428505'
-  #                      }
-  #                    ],
-  #         'description' => 'BWA alignment'
-  #       };
-#
-  if (!$new_doc) {
-    # print Dumper($es_doc->{_source}{archive}{accession});
-    # everything except what we already have in the load bash script
-    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-    next ES_DOC;
-  }
-  delete $docs{$es_doc->{_id}};
-  # print Dumper($new_doc); #it still has the 3514
-  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
-  # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
-  next ES_DOC if Compare($new_doc, $es_doc->{_source});
-  # print Dumper($new_doc);
-  # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-}
-while (my ($es_id, $new_doc) = each %docs) { # it doesnt execute this.
-  # print Dumper($new_doc);
-  $new_doc->{_indexCreated} = $date;
-  $new_doc->{_indexUpdated} = $date;
-  $elasticsearch->index_file(body => $new_doc, id => $es_id);
-}
+# my $scroll = $elasticsearch->call('scroll_helper', (
+#   index => 'hipsci',
+#   type => 'file',
+#   search_type => 'scan',
+#   size => 500,
+#   body => {
+#     query => {
+#       filtered => {
+#         filter => {
+#           term => {
+#               'archive.name' => 'EGA', # we have EGAD00001003514 here
+#             # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
+#           },
+#         }
+#       }
+#     }
+#   }
+# ));
 # #
+# my $date = strftime('%Y%m%d', localtime);
+# # print Dumper($date);
+# ES_DOC:
+# while (my $es_doc = $scroll->next) {
+#   # print Dumper($es_doc); # we have EGAD00001003514 here
+#
+# # $VAR1 = {
+# #           '_source' => {
+# #                          'samples' => [
+# #                                         {
+# #                                           'cellType' => 'iPSC',
+# #                                           'growingConditions' => 'Feeder-free',
+# #                                           'name' => 'HPSI0613i-xucm_3',
+# #                                           'bioSamplesAccession' => 'SAMEA2469776',
+# #                                           'diseaseStatus' => 'Normal',
+# #                                           'sex' => 'female',
+# #                                           'passageNumber' => '28'
+# #                                         }
+# #                                       ],
+# #                          'archive' => {
+# #                                         'accessionType' => 'DATASET_ID',
+# #                                         'name' => 'EGA',
+# #                                         'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
+# #                                         'ftpUrl' => 'secure access via EGA',
+# #                                         'openAccess' => 0,
+# #                                         'accession' => 'EGAD00001003514'
+# #                                       },
+# #                          'assay' => {
+# #                                       'type' => 'Exome-seq',
+# #                                       'instrument' => 'Illumina HiSeq 2000',
+# #                                       'description' => [
+# #                                                          'INSTRUMENT_PLATFORM=ILLUMINA',
+# #                                                          'INSTRUMENT_MODEL=Illumina HiSeq 2000',
+# #                                                          'LIBRARY_LAYOUT=PAIRED',
+# #                                                          'LIBRARY_STRATEGY=WXS',
+# #                                                          'LIBRARY_SOURCE=GENOMIC',
+# #                                                          'LIBRARY_SELECTION=Hybrid Selection',
+# #                                                          'PAIRED_NOMINAL_LENGTH=171'
+# #                                                        ]
+# #                                     },
+# #                          'files' => [
+# #                                       {
+# #                                         'name' => 'HPSI0613i-xucm_3.wes.exomeseq.SureSelect_HumanAllExon_v5.mpileup.20150415.genotypes.vcf.gz',
+# #                                         'type' => 'vcf',
+# #                                         'md5' => 'b2a7be3e2aec51dc16e96435c9032ace'
+# #                                       }
+# #                                     ],
+# #                          '_indexUpdated' => '20190416',
+# #                          '_indexCreated' => '20181129',
+# #                          'description' => 'mpileup variant calls'
+# #                        },
+# #           '_score' => '0',
+# #           '_index' => 'hipsci_build2',
+# #           '_id' => 'HPSI0613i-xucm_3-exomeseq-ERZ117500',
+# #           '_type' => 'file'
+# #         };
+#
+#   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
+#   # print $es_doc->{_id};
+#   # HPSI0413pf-xekf-exomeseq-ERZ267178
+#   # HPSI1213i-foqj_2-exomeseq-ERZ117454
+#   # HPSI0613i-xucm_3-exomeseq-ERZ117500
+#
+#   my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
+#   # print Dumper(%docs); # 3514 is here
+#   # last;
+#
+#   # $VAR1 = {
+#   #         'samples' => [
+#   #                        {
+#   #                          'cellType' => 'iPSC',
+#   #                          'growingConditions' => 'Feeder-free',
+#   #                          'diseaseStatus' => 'Monogenic diabetes',
+#   #                          'bioSamplesAccession' => 'SAMEA4091786',
+#   #                          'name' => 'HPSI0514i-aecv_2',
+#   #                          'sex' => 'female',
+#   #                          'passageNumber' => '14'
+#   #                        }
+#   #                      ],
+#   #         'assay' => {
+#   #                      'instrument' => 'Illumina HiSeq 2500',
+#   #                      'type' => 'Exome-seq',
+#   #                      'description' => [
+#   #                                         'INSTRUMENT_PLATFORM=ILLUMINA',
+#   #                                         'INSTRUMENT_MODEL=Illumina HiSeq 2500',
+#   #                                         'LIBRARY_LAYOUT=PAIRED',
+#   #                                         'LIBRARY_STRATEGY=WXS',
+#   #                                         'LIBRARY_SOURCE=GENOMIC',
+#   #                                         'LIBRARY_SELECTION=Hybrid Selection',
+#   #                                         'PAIRED_NOMINAL_LENGTH=164'
+#   #                                       ]
+#   #                    },
+#   #         'archive' => {
+#   #                        'accessionType' => 'DATASET_ID',
+#   #                        'openAccess' => 0,
+#   #                        'ftpUrl' => 'secure access via EGA',
+#   #                        'url' => 'https://ega-archive.org/datasets/EGAD00001003516',
+#   #                        'name' => 'EGA',
+#   #                        'accession' => 'EGAD00001003516'
+#   #                      },
+#   #         'files' => [
+#   #                      {
+#   #                        'name' => 'HPSI0514i-aecv_2.hs37d5.bwa.realign.recal.calmd.markdup.exomeseq.20170327.bam',
+#   #                        'type' => 'bam',
+#   #                        'md5' => '5085fa2117591d24caa509c395428505'
+#   #                      }
+#   #                    ],
+#   #         'description' => 'BWA alignment'
+#   #       };
+# #
+#   if (!$new_doc) {
+#     # print Dumper($es_doc->{_source}{archive}{accession});
+#     # everything except what we already have in the load bash script
+#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+#     next ES_DOC;
+#   }
+#   delete $docs{$es_doc->{_id}};
+#   # print Dumper($new_doc); #it still has the 3514
+#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
+#   # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
+#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
+#   # print Dumper($new_doc);
+#   # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+# }
+# while (my ($es_id, $new_doc) = each %docs) { # it doesnt execute this.
+#   # print Dumper($new_doc);
+#   $new_doc->{_indexCreated} = $date;
+#   $new_doc->{_indexUpdated} = $date;
+#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
+# }
+# # #
