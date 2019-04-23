@@ -74,7 +74,7 @@ foreach my $dataset_id (@dataset_id) {
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-  print Dumper($xml_hash);
+  # print Dumper($xml_hash);
   # $VAR1 = {
   #         'DATASET' => {
   #                      'POLICY_REF' => {
@@ -126,8 +126,8 @@ foreach my $dataset_id (@dataset_id) {
       : $xml_hash->{DATASET}{DESCRIPTION} =~ /rna\W*seq/i ? ('rnaseq', 'RNA-seq')
       : $xml_hash->{DATASET}{DESCRIPTION} =~ /exome\W*seq/i ? ('exomeseq', 'Exome-seq')
       : die "did not recognise assay for $dataset_id";
-  # print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
-  # print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
+  print Dumper($short_assay); 'exomeseq', 'rnaseq', ...
+  print Dumper($long_assay);  'Exome-seq', 'RNA-seq', ...
   my $disease = get_disease_for_elasticsearch($xml_hash->{DATASET}{TITLE}) || get_disease_for_elasticsearch($xml_hash->{DATASET}{DESCRIPTION});
   print Dumper($disease); # 'Normal'; 'Bardet-Biedl syndrome';
   die "did not recognise disease for $dataset_id" if !$disease;
