@@ -454,9 +454,93 @@ while (my $es_doc = $scroll->next) {
     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
     next ES_DOC;
   }
-  else {
-      print Dumper(%docs);
-  }
+#   else {
+#       print Dumper(%docs);
+#     $VAR2814 = {
+#              'samples' => [
+#                             {
+#                               'cellType' => 'Fibroblast',
+#                               'growingConditions' => 'Fibroblast',
+#                               'diseaseStatus' => 'Normal',
+#                               'bioSamplesAccession' => 'SAMEA2398989',
+#                               'name' => 'HPSI0213pf-nawk',
+#                               'sex' => 'male'
+#                             }
+#                           ],
+#              'assay' => {
+#                           'instrument' => 'Illumina HiSeq 2000',
+#                           'type' => 'Exome-seq',
+#                           'description' => [
+#                                              'INSTRUMENT_PLATFORM=ILLUMINA',
+#                                              'INSTRUMENT_MODEL=Illumina HiSeq 2000',
+#                                              'LIBRARY_LAYOUT=PAIRED',
+#                                              'LIBRARY_STRATEGY=WXS',
+#                                              'LIBRARY_SOURCE=GENOMIC',
+#                                              'LIBRARY_SELECTION=Hybrid Selection',
+#                                              'PAIRED_NOMINAL_LENGTH=174'
+#                                            ]
+#                         },
+#              'archive' => {
+#                             'accessionType' => 'DATASET_ID',
+#                             'openAccess' => 0,
+#                             'ftpUrl' => 'secure access via EGA',
+#                             'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
+#                             'name' => 'EGA',
+#                             'accession' => 'EGAD00001003514'
+#                           },
+#              'files' => [
+#                           {
+#                             'name' => 'HPSI0213pf-nawk.hs37d5.bwa.realign.recal.calmd.markdup.exomeseq.20160122.bam',
+#                             'type' => 'bam',
+#                             'md5' => '79b92020740750b9ba4d36602ccf59a8'
+#                           }
+#                         ],
+#              'description' => 'BWA alignment'
+#            };
+# $VAR2815 = 'HPSI0513pf-debk-exomeseq-ERZ267279';
+# $VAR2816 = {
+#              'samples' => [
+#                             {
+#                               'cellType' => 'Fibroblast',
+#                               'growingConditions' => 'Fibroblast',
+#                               'diseaseStatus' => 'Normal',
+#                               'bioSamplesAccession' => 'SAMEA2398631',
+#                               'name' => 'HPSI0513pf-debk',
+#                               'sex' => 'female'
+#                             }
+#                           ],
+#              'assay' => {
+#                           'instrument' => 'Illumina HiSeq 2000',
+#                           'type' => 'Exome-seq',
+#                           'description' => [
+#                                              'INSTRUMENT_PLATFORM=ILLUMINA',
+#                                              'INSTRUMENT_MODEL=Illumina HiSeq 2000',
+#                                              'LIBRARY_LAYOUT=PAIRED',
+#                                              'LIBRARY_STRATEGY=WXS',
+#                                              'LIBRARY_SOURCE=GENOMIC',
+#                                              'LIBRARY_SELECTION=Hybrid Selection',
+#                                              'PAIRED_NOMINAL_LENGTH=175'
+#                                            ]
+#                         },
+#              'archive' => {
+#                             'accessionType' => 'DATASET_ID',
+#                             'openAccess' => 0,
+#                             'ftpUrl' => 'secure access via EGA',
+#                             'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
+#                             'name' => 'EGA',
+#                             'accession' => 'EGAD00001003514'
+#                           },
+#              'files' => [
+#                           {
+#                             'name' => 'HPSI0513pf-debk.wes.exomeseq.SureSelect_HumanAllExon_v5.imputed_phased.20160122.genotypes.vcf.gz',
+#                             'type' => 'vcf',
+#                             'md5' => '5e6fb7cb93f15c7ccf07eb0a5bf6a15a'
+#                           }
+#                         ],
+#              'description' => 'Imputed and phased genotypes'
+#            };
+#
+#   }
   delete $docs{$es_doc->{_id}};
   # print Dumper($new_doc); #it still has the 3514
   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
