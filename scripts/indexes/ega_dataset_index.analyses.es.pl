@@ -293,31 +293,31 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#               'archive.name' => 'EGA', # we have EGAD00001003514 here
-#             # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+              'archive.name' => 'EGA', # we have EGAD00001003514 here
+            # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
+          },
+        }
+      }
+    }
+  }
+));
 # #
-# my $date = strftime('%Y%m%d', localtime);
-# # print Dumper($date);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   # print Dumper($es_doc); # we have EGAD00001003514 here
-#
+my $date = strftime('%Y%m%d', localtime);
+# print Dumper($date);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  # print Dumper($es_doc); # we have EGAD00001003514 here
+
 # # $VAR1 = {
 # #           '_source' => {
 # #                          'samples' => [
@@ -369,16 +369,16 @@ foreach my $dataset_id (@dataset_id) {
 # #           '_type' => 'file'
 # #         };
 #
-#   next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
-#   # print $es_doc->{_id};
-#   # HPSI0413pf-xekf-exomeseq-ERZ267178
-#   # HPSI1213i-foqj_2-exomeseq-ERZ117454
-#   # HPSI0613i-xucm_3-exomeseq-ERZ117500
-#
-#   my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
-#   # print Dumper(%docs); # 3514 is here
-#   # last;
-#
+  next ES_DOC if $es_doc->{_id} !~ /-ERZ\d+$/; # ok
+  # print $es_doc->{_id};
+  # HPSI0413pf-xekf-exomeseq-ERZ267178
+  # HPSI1213i-foqj_2-exomeseq-ERZ117454
+  # HPSI0613i-xucm_3-exomeseq-ERZ117500
+
+  my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
+  # print Dumper(%docs); # 3514 is here
+  # last;
+
 #   # $VAR1 = {
 #   #         'samples' => [
 #   #                        {
@@ -422,28 +422,28 @@ foreach my $dataset_id (@dataset_id) {
 #   #         'description' => 'BWA alignment'
 #   #       };
 # #
-#   if (!$new_doc) {
-#     # print Dumper($es_doc->{_source}{archive}{accession});
-#     # everything except what we already have in the load bash script
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   # print Dumper($new_doc); #it still has the 3514
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
-#   # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   # print Dumper($new_doc);
-#   # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) { # it doesnt execute this.
-#   # print Dumper($new_doc);
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+  if (!$new_doc) {
+    # print Dumper($es_doc->{_source}{archive}{accession});
+    # everything except what we already have in the load bash script
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  # print Dumper($new_doc); #it still has the 3514
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
+  # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  # print Dumper($new_doc);
+  # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) { # it doesnt execute this.
+  # print Dumper($new_doc);
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
 # # #

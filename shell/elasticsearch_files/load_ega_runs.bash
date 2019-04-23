@@ -37,7 +37,6 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.runs.es.pl \
   -dataset_id EGAD00001003526 \
   -dataset_id EGAD00001003527 \
   -dataset_id EGAD00001003528 \
-  -dataset_id EGAD00001003529 \
   -dataset_id EGAD00001003530 \
   -dataset_id EGAD00001003531 \
   -dataset_id EGAD00001003532 \
