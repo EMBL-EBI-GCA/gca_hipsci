@@ -124,6 +124,9 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
+        while (my $test = $search->next) {
+            print Dumper($test);
+        }
         print Dumper($search->{hits}{total});
         print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
         # print Dumper($search->{hits}{hits}[0]);
