@@ -7,7 +7,7 @@ use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::Tools::HipSci::DiseaseParser;
 use Data::Dumper;
-use Set::Scalar;
+# use Set::Scalar;
 
 
 my $es_host = 'ves-hx-e4:9200';
@@ -127,13 +127,20 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
-
+        my $recent_dataset_no = 0;
         while (my $es_doc = $search->next) {
-          my $s = Set::Scalar->new;
-          $s->insert(Dumper($es_doc->{_source}{archive}{accession}));
-          # print Dumper($es_doc->{_source}{archive}{accession});
+            my $new_dataset = $es_doc->{_source}{archive}{accession};
+            my @new_dataset_array = split /EGAD00/, $new_dataset;
+            my $new_dataset_no = $new_dataset_array[-1];
+            if ($new_dataset_no > $recent_dataset_no) {
+                $recent_dataset_no = $new_dataset
+            }
+        # my $latest_dataset = Dumper($es_doc->{_source}{archive}{accession});
+        # my @my_array;
+        # push(@my_array, element);
+        # $s->insert(Dumper($es_doc->{_source}{archive}{accession}));
         }
-        print $s;
+        print $recent_dataset_no;
         # print Dumper($search->{hits}{total});
         #### print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
         # print Dumper($search->{hits}{hits}[0]);
