@@ -318,7 +318,7 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
-print Dumper($docs);
+print Dumper(%docs);
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
   type => 'file',
