@@ -400,7 +400,7 @@ while (my $es_doc = $scroll->next) {
   # HPSI1213i-foqj_2-exomeseq-ERZ117454
   # HPSI0613i-xucm_3-exomeseq-ERZ117500
 
-  my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date
+  my $new_doc = $docs{$es_doc->{_id}};  # $doc is the one we have built without date, keeps only relevant ones
   # print Dumper(%docs); # 3514 is here
   # last;
 
@@ -541,15 +541,16 @@ while (my $es_doc = $scroll->next) {
 #            };
 #
 #   }
+  print $es_doc->{_id};
   delete $docs{$es_doc->{_id}};
-  # print Dumper($new_doc); #it still has the 3514
+  # print Dumper($new_doc); # it still has the 3514
   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date; # why do we have here then we have here and later
   # unless (Compare($new_doc, $es_doc->{_source})) {print Dumper($es_doc->{_source}{archive}{accession})};
   next ES_DOC if Compare($new_doc, $es_doc->{_source});
   # print Dumper($new_doc);
-  # print Dumper($new_doc); # returns nopthing but returns something if we change the indexUpdated.
+  # print Dumper($new_doc); # returns nothing but returns something if we change the indexUpdated.
   $new_doc->{_indexUpdated} = $date;
   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
 }
