@@ -132,8 +132,8 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             my $new_dataset = $es_doc->{_source}{archive}{accession};
             my @new_dataset_array = split /EGAD00/, $new_dataset;
             my $new_dataset_no = $new_dataset_array[-1];
-            if ($new_dataset_no > int($recent_dataset_no)) {
-                $recent_dataset_no = $new_dataset
+            if (int($new_dataset_no) > $recent_dataset_no) {
+                $recent_dataset_no = $new_dataset_no
             }
         # my $latest_dataset = Dumper($es_doc->{_source}{archive}{accession});
         # my @my_array;
