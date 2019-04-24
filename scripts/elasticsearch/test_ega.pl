@@ -116,7 +116,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                                     { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
                                     { term => { 'assay.type' => $assay } },
                                     { term => { 'archive.name' => 'EGA' } },
-                                    { term => { 'archive.accession' => 'EGAD00001003514' } },
+                                    { term => { 'archive.accession' => 'EGAD00001000893' } },
                                 ]
                             }
                         }
