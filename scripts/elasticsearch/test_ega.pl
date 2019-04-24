@@ -116,7 +116,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                                     { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
                                     { term => { 'assay.type' => $assay } },
                                     { term => { 'archive.name' => 'EGA' } },
-                                    { term => { 'archive.accession' => 'EGAD00001000893' } },
+                                    # { term => { 'archive.accession' => 'EGAD00001003514' } },
                                 ]
                             }
                         }
@@ -125,7 +125,8 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             }
         );
         # print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
-        print Dumper($search->{hits}{hits}[0]);
+        # print Dumper($search->{hits}{hits}[0]);
+        print Dumper($search->{hits}{total});
         # see below
 
         if ($search->{hits}{total}) {
