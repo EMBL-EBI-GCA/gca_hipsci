@@ -104,7 +104,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     foreach my $assay (@assays) {
         print Dumper($assay);
 
-        my $scroll = $es->call('scroll_helper',  # this returns a wrong accession
+        my $search = $es->call('scroll_helper',  # this returns a wrong accession
             index => 'hipsci',
             type  => 'file',
             body  => {
@@ -124,31 +124,31 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
-        while (my $es_doc = $scroll->next) {
-          print Dumper($es_doc->{_source}{archive}{accession});
-        }
+        # while (my $es_doc = $search->next) {
+        #   print Dumper($es_doc->{_source}{archive}{accession});
+        # }
         # print Dumper($search->{hits}{total});
-        # print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
+        #### print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
         # print Dumper($search->{hits}{hits}[0]);
 
         # see below
 
-        # if ($search->{hits}{total}) {
-        #     # if we there is any
-        #     my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-        #     print Dumper($accession);
-        #     push(@{$cohort{datasets}}, {
-        #         assay         => $assay,
-        #         archive       => 'EGA',
-        #         accession     => $accession,
-        #         accessionType => 'DATASET_ID',
-        #         url           => "https://ega-archive.org/datasets/$accession",
-        #     });
-        # }
+        if ($search->{hits}{total}) {
+            # if we there is any
+            my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
+            print Dumper($accession);
+            push(@{$cohort{datasets}}, {
+                assay         => $assay,
+                archive       => 'EGA',
+                accession     => $accession,
+                accessionType => 'DATASET_ID',
+                url           => "https://ega-archive.org/datasets/$accession",
+            });
+        }
         # print Dumper($cohort{datasets});
 
     }
-    last;
+    # last;
   # print Dumper(%cohort);
 }
 #
