@@ -7,6 +7,7 @@ use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::Tools::HipSci::DiseaseParser;
 use Data::Dumper;
+use Set::Scalar;
 
 
 my $es_host = 'ves-hx-e4:9200';
