@@ -318,7 +318,50 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
-print Dumper(%docs);
+# print Dumper(%docs);
+# THIS IS THE DICTIONARY WE BUILT:
+# $VAR65 = 'HPSI0813i-ffdr_3-exomeseq-ERZ117479';
+# $VAR66 = {
+#            'samples' => [
+#                           {
+#                             'cellType' => 'iPSC',
+#                             'growingConditions' => 'Feeder-dependent',
+#                             'diseaseStatus' => 'Normal',
+#                             'bioSamplesAccession' => 'SAMEA2201451',
+#                             'name' => 'HPSI0813i-ffdr_3',
+#                             'sex' => 'male'
+#                           }
+#                         ],
+#            'assay' => {
+#                         'instrument' => 'Illumina HiSeq 2000',
+#                         'type' => 'Exome-seq',
+#                         'description' => [
+#                                            'INSTRUMENT_PLATFORM=ILLUMINA',
+#                                            'INSTRUMENT_MODEL=Illumina HiSeq 2000',
+#                                            'LIBRARY_LAYOUT=PAIRED',
+#                                            'LIBRARY_STRATEGY=WXS',
+#                                            'LIBRARY_SOURCE=GENOMIC',
+#                                            'LIBRARY_SELECTION=Hybrid Selection',
+#                                            'PAIRED_NOMINAL_LENGTH=170'
+#                                          ]
+#                       },
+#            'archive' => {
+#                           'accessionType' => 'DATASET_ID',
+#                           'openAccess' => 0,
+#                           'ftpUrl' => 'secure access via EGA',
+#                           'url' => 'https://ega-archive.org/datasets/EGAD00001003514',
+#                           'name' => 'EGA',
+#                           'accession' => 'EGAD00001003514'
+#                         },
+#            'files' => [
+#                         {
+#                           'name' => 'HPSI0813i-ffdr_3.wes.exomeseq.SureSelect_HumanAllExon_v5.mpileup.20150415.genotypes.vcf.gz',
+#                           'type' => 'vcf',
+#                           'md5' => 'f2e029ee952ccacbe0020f9373af64f4'
+#                         }
+#                       ],
+#            'description' => 'mpileup variant calls'
+#          };
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
   type => 'file',
@@ -330,7 +373,7 @@ my $scroll = $elasticsearch->call('scroll_helper', (
         filter => {
           term => {
               'archive.name' => 'EGA', # we have EGAD00001003514 here
-            # 'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
+              'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
           },
         }
       }
@@ -342,7 +385,7 @@ my $date = strftime('%Y%m%d', localtime);
 # print Dumper($date);
 ES_DOC:
 while (my $es_doc = $scroll->next) {
-  # print Dumper($es_doc); # we have EGAD00001003514 here
+  print Dumper($es_doc); # we have EGAD00001003514 here
 
 # # $VAR1 = {
 # #           '_source' => {
