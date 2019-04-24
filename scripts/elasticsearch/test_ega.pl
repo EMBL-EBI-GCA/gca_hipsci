@@ -125,7 +125,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             }
         );
         while (my $es_doc = $scroll->next) {
-          print Dumper($es_doc);
+          print Dumper($es_doc->{_source}{archive}{accession});
         }
         # print Dumper($search->{hits}{total});
         # print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
@@ -146,7 +146,9 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         #     });
         # }
         # print Dumper($cohort{datasets});
+
     }
+    last;
   # print Dumper(%cohort);
 }
 #
