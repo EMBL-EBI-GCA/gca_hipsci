@@ -104,7 +104,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
     foreach my $assay (@assays) {
         print Dumper($assay);
 
-        my $search = $es->call('search',  # this returns a wrong accession
+        my $scroll = $es->call('scroll_helper',  # this returns a wrong accession
             index => 'hipsci',
             type  => 'file',
             body  => {
@@ -124,8 +124,8 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                 }
             }
         );
-        while (my $test = $search->next) {
-            print Dumper($test);
+        while (my $es_doc = $scroll->next) {
+          print Dumper($es_doc);
         }
         print Dumper($search->{hits}{total});
         print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
