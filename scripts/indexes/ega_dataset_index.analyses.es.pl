@@ -541,7 +541,7 @@ while (my $es_doc = $scroll->next) {
 #            };
 #
 #   }
-  print $es_doc->{_id};
+#   print $es_doc->{_id};
   delete $docs{$es_doc->{_id}};
   # print Dumper($new_doc); # it still has the 3514
   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
