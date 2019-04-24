@@ -135,12 +135,47 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             if (int($new_dataset_no) > $recent_dataset_no) {
                 $recent_dataset_no = $new_dataset_no
             }
+        my $final_dataset_id = 'EGAD00' . $recent_dataset_no;
+        my $search  = $es->call('search',
+          index => 'hipsci',
+          type => 'file',
+          body => {
+            query => {
+              constant_score => {
+                filter => {
+                  bool => {
+                    must => [
+                      {term => {'samples.diseaseStatus' => $cohort{disease}{value}}},
+                      {term => {'assay.type' => $assay}},
+                      {term => {'archive.name' => 'EGA'}},
+                      { term => { 'archive.accession' => $final_dataset_id } },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        );
+        if ($search->{hits}{total}) {
+          my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
+          push(@{$cohort{datasets}}, {
+            assay => $assay,
+            archive => 'EGA',
+            accession => $accession,
+            accessionType => 'DATASET_ID',
+            url => "https://ega-archive.org/datasets/$accession",
+          });
+        }
+      }
+
+
+
         # my $latest_dataset = Dumper($es_doc->{_source}{archive}{accession});
         # my @my_array;
         # push(@my_array, element);
         # $s->insert(Dumper($es_doc->{_source}{archive}{accession}));
-        }
-        print $recent_dataset_no;
+    }
+        # print $recent_dataset_no;
         # print Dumper($search->{hits}{total});
         #### print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
         # print Dumper($search->{hits}{hits}[0]);
@@ -161,18 +196,18 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
         # }
         # print Dumper($cohort{datasets});
 
-    }
+# }
     # last;
   # print Dumper(%cohort);
-}
-#
-#   $es->call('index',
-#     index => 'hipsci',
-#     type => 'cohort',
-#     id => $id,
-#     body => \%cohort,
-#   );
 # }
+#
+  $es->call('index',
+    index => 'hipsci',
+    type => 'cohort',
+    id => $id,
+    body => \%cohort,
+  );
+}
 
 
 #
