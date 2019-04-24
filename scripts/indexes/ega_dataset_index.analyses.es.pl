@@ -207,7 +207,7 @@ foreach my $dataset_id (@dataset_id) {
 
     my $es_id = join('-', $sample_name, $short_assay, $row->{ANALYSIS_ID});
     $es_id =~ s/\s/_/g;
-    print Dumper($es_id);
+    # print Dumper($es_id);
     # $VAR1 = 'EGAD00001001422';
     # $VAR1 = 'HPSI1013i-funy_1-exomeseq-ERZ117510';
     # $VAR1 = 'HPSI0913i-gooj_1-exomeseq-ERZ117511';
@@ -318,6 +318,7 @@ foreach my $dataset_id (@dataset_id) {
   }
 
 }
+print Dumper($docs);
 my $scroll = $elasticsearch->call('scroll_helper', (
   index => 'hipsci',
   type => 'file',
