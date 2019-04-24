@@ -102,7 +102,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
 
 
     foreach my $assay (@assays) {
-        # print Dumper($assay);
+        print Dumper($assay);
 
         my $search = $es->call('search',  # this returns a wrong accession
             index => 'hipsci',
