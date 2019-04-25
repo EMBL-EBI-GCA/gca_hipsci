@@ -148,7 +148,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
                       {term => {'samples.diseaseStatus' => $cohort{disease}{value}}},
                       {term => {'assay.type' => $assay}},
                       {term => {'archive.name' => 'EGA'}},
-                      { term => { 'archive.accession' => $final_dataset_id } },
+                      {term => { 'archive.accession' => $final_dataset_id } },
                     ]
                   }
                 }
@@ -157,13 +157,13 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
           }
         );
         if ($search->{hits}{total}) {
-          my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
+          # my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
           push(@{$cohort{datasets}}, {
             assay => $assay,
             archive => 'EGA',
-            accession => $accession,
+            accession => $final_dataset_id,
             accessionType => 'DATASET_ID',
-            url => "https://ega-archive.org/datasets/$accession",
+            url => "https://ega-archive.org/datasets/$final_dataset_id",
           });
         }
       }
