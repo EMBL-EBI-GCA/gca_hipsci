@@ -103,78 +103,114 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
 
 
     foreach my $assay (@assays) {
-        print Dumper($assay);
-
-        my $search = $es->call('scroll_helper',  # this returns a wrong accession
-            index => 'hipsci',
-            type  => 'file',
-            body  => {
+        my $scroll = $elasticsearch->call('scroll_helper', (
+            index       => 'hipsci',
+            type        => 'file',
+            search_type => 'scan',
+            size        => 500,
+            aggs        => {
+                langs => {
+                    terms => { "field" => "archive.accession",  "size" => 500 }
+            }
+              body => {
                 query => {
-                    constant_score => {
-                        filter => {
-                            bool => {
-                                must => [
-                                    { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
-                                    # { term => { 'samples.diseaseStatus' => 'Normal' } },
-                                    {term => {'assay.type' => $assay}},
-                                    # { term => { 'assay.type' => 'Exome-seq' } },
-                                    { term => { 'archive.name' => 'EGA' } },
-                                    # { term => { 'archive.accession' => 'EGAD00001003514' } },
-                                ]
-                            }
-                        }
+                  filtered => {
+                    filter => {
+                      term => {
+                          'archive.name' => 'EGA', # we have EGAD00001003514 here
+                          'archive.accession' => 'EGAD00001003514', # 'EGAD00001000893',
+                      },
                     }
-                }
-            }
-        );
-        my $recent_dataset_no = 0;
-        while (my $es_doc = $search->next) {
-            my $new_dataset = $es_doc->{_source}{archive}{accession};
-            my @new_dataset_array = split /EGAD00/, $new_dataset;
-            my $new_dataset_no = $new_dataset_array[-1];
-            if (int($new_dataset_no) > $recent_dataset_no) {
-                $recent_dataset_no = $new_dataset_no
-            }
-        my $final_dataset_id = 'EGAD00' . $recent_dataset_no;
-        my $search  = $es->call('search',
-          index => 'hipsci',
-          type => 'file',
-          body => {
-            query => {
-              constant_score => {
-                filter => {
-                  bool => {
-                    must => [
-                      {term => {'samples.diseaseStatus' => $cohort{disease}{value}}},
-                      {term => {'assay.type' => $assay}},
-                      {term => {'archive.name' => 'EGA'}},
-                      {term => { 'archive.accession' => $final_dataset_id } },
-                    ]
                   }
                 }
               }
-            }
-          }
-        );
-        if ($search->{hits}{total}) {
-          # my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
-          push(@{$cohort{datasets}}, {
-            assay => $assay,
-            archive => 'EGA',
-            accession => $final_dataset_id,
-            accessionType => 'DATASET_ID',
-            url => "https://ega-archive.org/datasets/$final_dataset_id",
-          });
+            ));
+        # #
+            {
+# "size": 0,
+# "aggs" : {
+#     "langs" : {
+#         "terms" : { "field" : "language",  "size" : 500 }
+#     }
+# }}
+        my $date = strftime('%Y%m%d', localtime);
+        # print Dumper($date);
+        ES_DOC:
+        while (my $es_doc = $scroll->next) {
+          print Dumper($es_doc); # we have EGAD00001003514 here
         }
-      }
-
+      #   print Dumper($assay);
+      #
+      #   my $search = $es->call('scroll_helper',  # this returns a wrong accession
+      #       index => 'hipsci',
+      #       type  => 'file',
+      #       body  => {
+      #           query => {
+      #               constant_score => {
+      #                   filter => {
+      #                       bool => {
+      #                           must => [
+      #                               # { term => { 'samples.diseaseStatus' => $cohort{disease}{value} } },
+      #                               { term => { 'samples.diseaseStatus' => 'Normal' } },
+      #                               # {term => {'assay.type' => $assay}},
+      #                               { term => { 'assay.type' => 'Exome-seq' } },
+      #                               { term => { 'archive.name' => 'EGA' } },
+      #                               # { term => { 'archive.accession' => 'EGAD00001003514' } },
+      #                           ]
+      #                       }
+      #                   }
+      #               }
+      #           }
+      #       }
+      #   );
+      #   my $recent_dataset_no = 0;
+      #   while (my $es_doc = $search->next) {
+      #       my $new_dataset = $es_doc->{_source}{archive}{accession};
+      #       my @new_dataset_array = split /EGAD00/, $new_dataset;
+      #       my $new_dataset_no = $new_dataset_array[-1];
+      #       if (int($new_dataset_no) > $recent_dataset_no) {
+      #           $recent_dataset_no = $new_dataset_no
+      #       }
+      #   my $final_dataset_id = 'EGAD00' . $recent_dataset_no;
+      #   my $search  = $es->call('search',
+      #     index => 'hipsci',
+      #     type => 'file',
+      #     body => {
+      #       query => {
+      #         constant_score => {
+      #           filter => {
+      #             bool => {
+      #               must => [
+      #                 {term => {'samples.diseaseStatus' => $cohort{disease}{value}}},
+      #                 {term => {'assay.type' => $assay}},
+      #                 {term => {'archive.name' => 'EGA'}},
+      #                 {term => { 'archive.accession' => $final_dataset_id } },
+      #               ]
+      #             }
+      #           }
+      #         }
+      #       }
+      #     }
+      #   );
+      #   if ($search->{hits}{total}) {
+      #     # my $accession = $search->{hits}{hits}[0]{_source}{archive}{accession};
+      #     push(@{$cohort{datasets}}, {
+      #       assay => $assay,
+      #       archive => 'EGA',
+      #       accession => $final_dataset_id,
+      #       accessionType => 'DATASET_ID',
+      #       url => "https://ega-archive.org/datasets/$final_dataset_id",
+      #     });
+      #   }
+      # }
+      #
 
 
         # my $latest_dataset = Dumper($es_doc->{_source}{archive}{accession});
         # my @my_array;
         # push(@my_array, element);
         # $s->insert(Dumper($es_doc->{_source}{archive}{accession}));
-    }
+    # }
         # print $recent_dataset_no;
         # print Dumper($search->{hits}{total});
         #### print Dumper($search->{hits}{hits}[0]{_source}{archive}{accession});
@@ -201,13 +237,13 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
   # print Dumper(%cohort);
 # }
 #
-  $es->call('index',
-    index => 'hipsci',
-    type => 'cohort',
-    id => $id,
-    body => \%cohort,
-  );
-}
+#   $es->call('index',
+#     index => 'hipsci',
+#     type => 'cohort',
+#     id => $id,
+#     body => \%cohort,
+#   );
+# }
 
 
 #
