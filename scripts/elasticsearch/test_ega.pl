@@ -135,6 +135,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             if (int($new_dataset_no) > $recent_dataset_no) {
                 $recent_dataset_no = $new_dataset_no
             }
+        }
         my $final_dataset_id = 'EGAD00' . $recent_dataset_no;
         my $search  = $es->call('search',
           index => 'hipsci',
@@ -166,7 +167,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
             url => "https://ega-archive.org/datasets/$final_dataset_id",
           });
         }
-      }
+
 
 
 
