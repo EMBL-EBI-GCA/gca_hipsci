@@ -14,7 +14,6 @@ sub _build_hash {
   my $path_of_this_module = File::Basename::dirname( eval { ( caller() )[1] } );
   my %lines;
   my $filename = "$path_of_this_module/../../../../tracking_resources/override_selected_status.tsv";
-  print $filename, "\n";
   open my $fh, '<', $filename or die $!;
   while (my $line = <$fh>) {
     next if $line =~ /^#/;
