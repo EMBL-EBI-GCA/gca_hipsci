@@ -68,7 +68,7 @@ improve_donors(donors=>$cgap_donors, demographic_file=>$demographic_filename);
 
 my %docs;
 foreach my $dataset_id (@dataset_id) {
-  # print Dumper($dataset_id); # datasets in load file return correctly.
+  print Dumper($dataset_id); # datasets in load file return correctly.
   $sth_dataset->bind_param(1, $dataset_id);
   $sth_dataset->execute or die "could not execute";
   my $row = $sth_dataset->fetchrow_hashref;
