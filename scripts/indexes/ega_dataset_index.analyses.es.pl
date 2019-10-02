@@ -72,7 +72,7 @@ foreach my $dataset_id (@dataset_id) {
   $sth_dataset->bind_param(1, $dataset_id);
   $sth_dataset->execute or die "could not execute";
   my $row = $sth_dataset->fetchrow_hashref;
-  die "no dataset $dataset_id" if !$row;
+  die "no dataset $dataset_id" if !$row; # where it fails for new datasets
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
   # print Dumper($xml_hash);
   # $VAR1 = {
