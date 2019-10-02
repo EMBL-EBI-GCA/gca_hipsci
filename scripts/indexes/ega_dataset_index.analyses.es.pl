@@ -74,7 +74,7 @@ foreach my $dataset_id (@dataset_id) {
   my $row = $sth_dataset->fetchrow_hashref;
   die "no dataset $dataset_id" if !$row;
   my $xml_hash = XMLin($row->{EGA_DATASET_XML});
-  print Dumper($xml_hash);
+  # print Dumper($xml_hash);
   # $VAR1 = {
   #         'DATASET' => {
   #                      'POLICY_REF' => {
