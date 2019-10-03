@@ -116,20 +116,27 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   <$in_fh>;
 
   ROW:
-  while (my $line = <$in_fh>) {
-    print Dumper($line);
+  while (my $line = <$in_fh>) { # require new files so it adds new EGA datasets
+    print Dumper($line); # lines in the dataset files.
     my ($cell_line, $platform, $raw_file, undef, $signal_file, undef, $software, $genotype_file, undef, $additional_file) = split("\t", $line);
+    print Dumper($cell_line);
+    print Dumper($platform);
+    print Dumper($raw_file);
+    print Dumper($signal_file);
+    print Dumper($software);
+    print Dumper($genotype_file);
+    print Dumper($additional_file);
     my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
     die 'did not recognise sample '.$cell_line if !$cgap_tissue;
-  #
-  #   my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
-  #   my $source_material = $cgap_tissue->tissue_type || '';
-  #   my $cell_type = $cgap_ips_line ? 'iPSC'
-  #                 : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
-  #                 : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
-  #                 : die "did not recognise source material $source_material";
+
+    my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
+    my $source_material = $cgap_tissue->tissue_type || '';
+    my $cell_type = $cgap_ips_line ? 'iPSC'
+                  : CORE::fc($source_material) eq CORE::fc('skin tissue') ? 'Fibroblast'
+                  : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
+                  : die "did not recognise source material $source_material";
   #
   #   my @files = map {split(';', $_)} grep {$_} ($raw_file, $signal_file, $genotype_file, $additional_file);
   #   my @dates;
