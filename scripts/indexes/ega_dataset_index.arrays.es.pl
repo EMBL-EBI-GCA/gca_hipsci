@@ -116,16 +116,16 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   <$in_fh>;
 
   ROW:
-  while (my $line = <$in_fh>) { # require new files so it adds new EGA datasets
+  while (my $line = <$in_fh>) { # require new files so it adds new EGA datasets, some might be aempty
     print Dumper($line); # lines in the dataset files.
     my ($cell_line, $platform, $raw_file, undef, $signal_file, undef, $software, $genotype_file, undef, $additional_file) = split("\t", $line);
-    print Dumper($cell_line);
-    print Dumper($platform);
-    print Dumper($raw_file);
-    print Dumper($signal_file);
-    print Dumper($software);
-    print Dumper($genotype_file);
-    print Dumper($additional_file);
+    # print Dumper($cell_line); # 'HPSI0414i-rauj_1'
+    # print Dumper($platform); # 'HumanCoreExome-12 v1.0'
+    # print Dumper($raw_file); # 'HPSI0414i-rauj_1.HumanCoreExome-12_v1_0.9723038134_R02C01_Grn.gtarray.20141111.idat;HPSI0414i-rauj_1.HumanCoreExome-12_v1_0.9723038134_R02C01.gtarray.20141111.gtc;HPSI0414i-rauj_1.HumanCoreExome-12_v1_0.9723038134_R02C01_Red.gtarray.20141111.idat'
+    # print Dumper($signal_file); # .. empty
+    # print Dumper($software); # .. empty
+    # print Dumper($genotype_file); # 'HPSI0414i-rauj_1.wec.gtarray.HumanCoreExome-12_v1_0.20141111.genotypes.vcf.gz;HPSI0414i-rauj_1.wec.gtarray.HumanCoreExome-12_v1_0.20141111.genotypes.vcf.gz.tbi'
+    # print Dumper($additional_file); # 'HPSI0414i-rauj_1.wec.gtarray.HumanCoreExome-12_v1_0.imputed_phased.20150604.genotypes.vcf.gz;HPSI0414i-rauj_1.wec.gtarray.HumanCoreExome-12_v1_0.imputed_phased.20150604.genotypes.vcf.gz.tbi'
     my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
     my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
                     : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
@@ -138,31 +138,32 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                   : CORE::fc($source_material) eq CORE::fc('whole blood') ? 'PBMC'
                   : die "did not recognise source material $source_material";
   #
-  #   my @files = map {split(';', $_)} grep {$_} ($raw_file, $signal_file, $genotype_file, $additional_file);
-  #   my @dates;
-  #   foreach my $file (@files) {
-  #     push(@dates, $file =~ /\.(\d{8})\./);
-  #   }
-  #   my ($date) = sort {$a <=> $b} @dates;
-  #
-  #   my ($passage_number, $growing_conditions);
-  #   if ($cgap_ips_line) {
-  #     my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
-  #     my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
-  #     $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
-  #                       : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
-  #                       : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
-  #                       : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
-  #                       : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
-  #                       : die "could not get growing conditions for @files";
-  #     if ($cgap_release) {
-  #       $passage_number = $cgap_release->passage;
-  #     }
-  #   }
-  #   else {
-  #     $growing_conditions = $cell_type;
-  #   }
-  #
+    my @files = map {split(';', $_)} grep {$_} ($raw_file, $signal_file, $genotype_file, $additional_file);
+    my @dates;
+    foreach my $file (@files) {
+      push(@dates, $file =~ /\.(\d{8})\./);
+    }
+    
+    my ($date) = sort {$a <=> $b} @dates;
+    print Dumper($date);
+    my ($passage_number, $growing_conditions);
+    if ($cgap_ips_line) {
+      my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
+      my $cgap_release = $cgap_ips_line->get_release_for(type => $release_type, date =>$date);
+      $growing_conditions = $cgap_release && $cgap_release->is_feeder_free ? 'Feeder-free'
+                        : $cgap_release && !$cgap_release->is_feeder_free ? 'Feeder-dependent'
+                        : $cell_line =~ /_\d\d$/ ? 'Feeder-free'
+                        : $cgap_ips_line->passage_ips && $cgap_ips_line->passage_ips lt 20140000 ? 'Feeder-dependent'
+                        : $cgap_ips_line->qc1 && $cgap_ips_line->qc1 lt 20140000 ? 'Feeder-dependent'
+                        : die "could not get growing conditions for @files";
+      if ($cgap_release) {
+        $passage_number = $cgap_release->passage;
+      }
+    }
+    else {
+      $growing_conditions = $cell_type;
+    }
+
   #   my %files;
   #
   #   FILE:
