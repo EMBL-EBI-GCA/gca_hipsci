@@ -69,12 +69,13 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   # print Dumper($filename); #  'EGAS00001000866.gtarray.20161212.txt'
   my ($study_id) = $filename =~ /(EGAS\d+)/;
   die "did not recognise study_id from $submission_file" if !$study_id;
-  print Dumper($study_id); # 'EGAS00001000866' or 'EGAS00001000867.gexarray.20161212.txt'
+  # print Dumper($study_id); # 'EGAS00001000866', 'EGAS00001000867'  but not in order of arguments in bash file.
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
-  # my $row = $sth_study->fetchrow_hashref;
-  # die "no study $study_id" if !$row;
-  # my $xml_hash = XMLin($row->{STUDY_XML});
+  my $row = $sth_study->fetchrow_hashref;
+  die "no study $study_id" if !$row;
+  my $xml_hash = XMLin($row->{STUDY_XML});
+  print Dumper($xml_hash);
   #
   # my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /expression/i ? ('gexarray', 'Expression array')
   #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
