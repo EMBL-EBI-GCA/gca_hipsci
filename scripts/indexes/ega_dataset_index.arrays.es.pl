@@ -170,8 +170,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
     FILE:
     foreach my $filename (@files) {
       $filename =~ s/\.gpg$//;
-      print Dumper($filename);
+      # print Dumper($filename); #
       my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
+      print Dumper($ext);
       next FILE if $ext eq 'tbi';
       my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
       if (!@files) {
