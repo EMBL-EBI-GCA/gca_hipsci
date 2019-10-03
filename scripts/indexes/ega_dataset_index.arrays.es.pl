@@ -75,18 +75,43 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   my $row = $sth_study->fetchrow_hashref;
   die "no study $study_id" if !$row;
   my $xml_hash = XMLin($row->{STUDY_XML});
-  print Dumper($xml_hash);
+  # print Dumper($xml_hash);
+  # {
+  #         'STUDY' => {
+  #                    'DESCRIPTOR' => {
+  #                                    'STUDY_ABSTRACT' => 'The HipSci project brings together diverse constituents in genomics, proteomics, cell biology and clinical genetics to create a UK national iPS cell resource and use it to carry out cellular genetic studies. In this sub-study we performed Expression analysis using the Illumina HumanHT -12 Expression BeadChip on iPS cells generated from skin biopsies from healthy volunteers.',
+  #                                    'STUDY_TITLE' => 'HipSci HumanHT_12v4 Expression BeadChip analysis-Healthy volunteers',
+  #                                    'STUDY_TYPE' => {
+  #                                                    'existing_study_type' => 'Other'
+  #                                                  },
+  #                                    'STUDY_DESCRIPTION' => 'The HipSci project brings together diverse constituents in genomics, proteomics, cell biology and clinical genetics to create a UK national iPS cell resource and use it to carry out cellular genetic studies. In this sub-study we performed Expression analysis using the Illumina HumanHT -12 Expression BeadChip on iPS cells generated from skin biopsies from healthy volunteers.'
+  #                                  },
+  #                    'center_name' => 'SC',
+  #                    'IDENTIFIERS' => {
+  #                                     'SUBMITTER_ID' => {
+  #                                                       'namespace' => 'SC',
+  #                                                       'content' => 'ena-STUDY-SC-18-06-2014-10:51:13:740-505'
+  #                                                     },
+  #                                     'PRIMARY_ID' => 'ERP006106'
+  #                                   },
+  #                    'alias' => 'ena-STUDY-SC-18-06-2014-10:51:13:740-505',
+  #                    'accession' => 'ERP006106',
+  #                    'broker_name' => 'EGA'
+  #                  }
+  #       };
+
   #
-  # my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /expression/i ? ('gexarray', 'Expression array')
-  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
-  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /methylation/i ? ('mtarray', 'Methylation array')
-  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /expression/i ? ('gexarray', 'Expression array')
-  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
-  #           : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
-  #           : die "did not recognise assay for $study_id";
-  # my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
-  # die "did not recognise disease for $study_id" if !$disease;
-  #
+  my ($short_assay, $long_assay) = $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /expression/i ? ('gexarray', 'Expression array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE} =~ /methylation/i ? ('mtarray', 'Methylation array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /expression/i ? ('gexarray', 'Expression array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
+            : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
+            : die "did not recognise assay for $study_id";
+  print DUmper($short_assay, $long_assay);
+  my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
+  die "did not recognise disease for $study_id" if !$disease;
+
   # open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
   # <$in_fh>;
   #
