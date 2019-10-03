@@ -111,17 +111,18 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   # print Dumper($short_assay); # gtarray
   my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
   die "did not recognise disease for $study_id" if !$disease;
-  print($disease);
-  # open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
-  # <$in_fh>;
-  #
-  # ROW:
-  # while (my $line = <$in_fh>) {
-  #   my ($cell_line, $platform, $raw_file, undef, $signal_file, undef, $software, $genotype_file, undef, $additional_file) = split("\t", $line);
-  #   my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
-  #   my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
-  #                   : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
-  #   die 'did not recognise sample '.$cell_line if !$cgap_tissue;
+  # print($disease); # Normal Normal Bardet-Biedl syndrome Monogenic diabetes
+  open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
+  <$in_fh>;
+
+  ROW:
+  while (my $line = <$in_fh>) {
+    print Dumper($line);
+    my ($cell_line, $platform, $raw_file, undef, $signal_file, undef, $software, $genotype_file, undef, $additional_file) = split("\t", $line);
+    my $cgap_ips_line = List::Util::first {$_->name eq $cell_line} @$cgap_ips_lines;
+    my $cgap_tissue = $cgap_ips_line ? $cgap_ips_line->tissue
+                    : List::Util::first {$_->name eq $cell_line} @$cgap_tissues;
+    die 'did not recognise sample '.$cell_line if !$cgap_tissue;
   #
   #   my $sample_name = $cgap_ips_line ? $cgap_ips_line->name : $cgap_tissue->name;
   #   my $source_material = $cgap_tissue->tissue_type || '';
@@ -224,7 +225,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   #       }
   #     }
   #   }
-  # }
+  }
 
 }
 # my $scroll = $elasticsearch->call('scroll_helper', (
