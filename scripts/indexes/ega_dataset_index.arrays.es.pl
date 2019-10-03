@@ -14,6 +14,7 @@ use XML::Simple qw(XMLin);
 use Data::Compare qw(Compare);
 use POSIX qw(strftime);
 use Getopt::Long;
+use Dumper;
 
 my @era_params;
 my $demographic_filename;
