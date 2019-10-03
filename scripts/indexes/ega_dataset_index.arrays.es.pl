@@ -62,6 +62,7 @@ my $sth_study = $era_db->dbc->prepare($sql_study) or die "could not prepare $sql
 
 my %docs;
 while (my ($dataset_id, $submission_file) = each %dataset_files) {
+  print(1);
   print Dumper($dataset_id);
   print Dumper($submission_file);
   my $filename = fileparse($submission_file);
