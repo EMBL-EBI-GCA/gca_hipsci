@@ -108,10 +108,10 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /HumanExome/i ? ('gtarray', 'Genotyping array')
             : $xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION} =~ /methylation/i ? ('mtarray', 'Methylation array')
             : die "did not recognise assay for $study_id";
-  print Dumper($short_assay);
+  # print Dumper($short_assay); # gtarray
   my $disease = get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_TITLE}) || get_disease_for_elasticsearch($xml_hash->{STUDY}{DESCRIPTOR}{STUDY_DESCRIPTION});
   die "did not recognise disease for $study_id" if !$disease;
-
+  print($disease);
   # open my $in_fh, '<', $submission_file or die "could not open $submission_file $!";
   # <$in_fh>;
   #
