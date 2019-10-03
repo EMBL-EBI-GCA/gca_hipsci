@@ -170,7 +170,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
     FILE:
     foreach my $filename (@files) {
       $filename =~ s/\.gpg$//;
-      # print Dumper($filename); #
+      # print Dumper($filename); # returns the files names, whichever ones that exist, $raw_file, $signal_file, $genotype_file, $additional_file
       my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
       print Dumper($ext);
       next FILE if $ext eq 'tbi';
@@ -191,51 +191,50 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
       $files{$ext}{$file_description}{$filename} = $files[0];
 
     }
-  #
-  #   while (my ($ext, $date_hash) = each %files) {
-  #
-  #     while (my ($file_description, $file_hash) = each %{$files{$ext}}) {
-  #       my $es_id = join('-', $sample_name, $short_assay, lc($file_description), $ext);
-  #       $es_id =~ s/\s/_/g;
-  #
-  #       #Hardfix of instrument for consistency
-  #       if ($platform =~ /HumanCoreExome-12/){
-  #         $platform = 'Illumina beadchip HumanCoreExome-12'
-  #       }
-  #       $docs{$es_id} = {
-  #         description => $file_description,
-  #         files => [
-  #         ],
-  #         archive => {
-  #           name => 'EGA',
-  #           accession => $dataset_id,
-  #           accessionType => 'DATASET_ID',
-  #           url => 'https://ega-archive.org/datasets/'.$dataset_id,
-  #           ftpUrl => 'secure access via EGA',
-  #           openAccess => 0,
-  #         },
-  #         samples => [{
-  #           name => $cell_line,
-  #           bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
-  #           cellType => $cell_type,
-  #           diseaseStatus => $disease,
-  #           sex => $cgap_tissue->donor->gender,
-  #           growingConditions => $growing_conditions,
-  #         }],
-  #         assay => {
-  #           type => $long_assay,
-  #           description => ["PLATFORM=$platform",],
-  #           instrument => $platform
-  #         }
-  #       };
-  #       if ($passage_number) {
-  #         $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
-  #       }
-  #       while (my ($filename, $file_object) = each %$file_hash) {
-  #         push(@{$docs{$es_id}{files}}, {name => $filename, md5 => $file_object->md5, type => $ext});
-  #       }
-  #     }
-  #   }
+
+    while (my ($ext, $date_hash) = each %files) {
+      while (my ($file_description, $file_hash) = each %{$files{$ext}}) {
+        my $es_id = join('-', $sample_name, $short_assay, lc($file_description), $ext);
+        $es_id =~ s/\s/_/g;
+
+        #Hardfix of instrument for consistency
+        if ($platform =~ /HumanCoreExome-12/){
+          $platform = 'Illumina beadchip HumanCoreExome-12'
+        }
+        $docs{$es_id} = {
+          description => $file_description,
+          files => [
+          ],
+          archive => {
+            name => 'EGA',
+            accession => $dataset_id,
+            accessionType => 'DATASET_ID',
+            url => 'https://ega-archive.org/datasets/'.$dataset_id,
+            ftpUrl => 'secure access via EGA',
+            openAccess => 0,
+          },
+          samples => [{
+            name => $cell_line,
+            bioSamplesAccession => ($cgap_ips_line ? $cgap_ips_line->biosample_id : $cgap_tissue->biosample_id),
+            cellType => $cell_type,
+            diseaseStatus => $disease,
+            sex => $cgap_tissue->donor->gender,
+            growingConditions => $growing_conditions,
+          }],
+          assay => {
+            type => $long_assay,
+            description => ["PLATFORM=$platform",],
+            instrument => $platform
+          }
+        };
+        if ($passage_number) {
+          $docs{$es_id}{samples}[0]{passageNumber} = $passage_number;
+        }
+        while (my ($filename, $file_object) = each %$file_hash) {
+          push(@{$docs{$es_id}{files}}, {name => $filename, md5 => $file_object->md5, type => $ext});
+        }
+      }
+    }
   }
 
 }
