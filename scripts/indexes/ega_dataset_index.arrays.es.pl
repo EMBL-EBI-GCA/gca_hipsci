@@ -62,6 +62,8 @@ my $sth_study = $era_db->dbc->prepare($sql_study) or die "could not prepare $sql
 
 my %docs;
 while (my ($dataset_id, $submission_file) = each %dataset_files) {
+  print Dumper($dataset_id);
+  print Dumper($submission_file);
   my $filename = fileparse($submission_file);
   my ($study_id) = $filename =~ /(EGAS\d+)/;
   die "did not recognise study_id from $submission_file" if !$study_id;
