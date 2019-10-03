@@ -66,10 +66,10 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   # print Dumper($dataset_id); # 'EGAD00010001147'
   # print Dumper($submission_file); # '/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt'
   my $filename = fileparse($submission_file);
-  print Dumper($filename);
+  # print Dumper($filename); #  'EGAS00001000866.gtarray.20161212.txt'
   my ($study_id) = $filename =~ /(EGAS\d+)/;
   die "did not recognise study_id from $submission_file" if !$study_id;
-
+  print Dumper($study_id);
   $sth_study->bind_param(1, $study_id);
   $sth_study->execute or die "could not execute";
   my $row = $sth_study->fetchrow_hashref;
