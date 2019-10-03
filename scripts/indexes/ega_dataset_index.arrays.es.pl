@@ -139,13 +139,14 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                   : die "did not recognise source material $source_material";
   #
     my @files = map {split(';', $_)} grep {$_} ($raw_file, $signal_file, $genotype_file, $additional_file);
+    # file names in each file
     my @dates;
     foreach my $file (@files) {
       push(@dates, $file =~ /\.(\d{8})\./);
     }
-    
+
     my ($date) = sort {$a <=> $b} @dates;
-    print Dumper($date);
+    # print Dumper($date); # '20160304' # this is th eother one that is recieved from the actual files
     my ($passage_number, $growing_conditions);
     if ($cgap_ips_line) {
       my $release_type = $short_assay eq 'mtarray' ? 'qc2' : 'qc1';
@@ -164,30 +165,31 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
       $growing_conditions = $cell_type;
     }
 
-  #   my %files;
-  #
-  #   FILE:
-  #   foreach my $filename (@files) {
-  #     $filename =~ s/\.gpg$//;
-  #     my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
-  #     next FILE if $ext eq 'tbi';
-  #     my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
-  #     if (!@files) {
-  #       print "skipping $filename - did not recognise it\n";
-  #       next FILE;
-  #     }
-  #     die "multiple files for $filename" if @files>1;
-  #
-  #     my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'Imputed and phased genotypes'
-  #                         : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
-  #                         : $ext eq 'idat' ? 'Array signal intensity data'
-  #                         : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
-  #                         : $ext eq 'txt' && $short_assay eq 'gexarray' && $software ? $software.' text file'
-  #                         : die "did not recognise type of $filename";
-  #
-  #     $files{$ext}{$file_description}{$filename} = $files[0];
-  #
-  #   }
+    my %files;
+
+    FILE:
+    foreach my $filename (@files) {
+      $filename =~ s/\.gpg$//;
+      print Dumper($filename);
+      my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
+      next FILE if $ext eq 'tbi';
+      my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
+      if (!@files) {
+        print "skipping $filename - did not recognise it\n";
+        next FILE;
+      }
+      die "multiple files for $filename" if @files>1;
+
+      my $file_description = $ext eq 'vcf' && $filename =~ /imputed_phased/ ?  'Imputed and phased genotypes'
+                          : $ext eq 'vcf' || $ext eq 'gtc' ? 'Genotyping array calls'
+                          : $ext eq 'idat' ? 'Array signal intensity data'
+                          : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
+                          : $ext eq 'txt' && $short_assay eq 'gexarray' && $software ? $software.' text file'
+                          : die "did not recognise type of $filename";
+
+      $files{$ext}{$file_description}{$filename} = $files[0];
+
+    }
   #
   #   while (my ($ext, $date_hash) = each %files) {
   #
