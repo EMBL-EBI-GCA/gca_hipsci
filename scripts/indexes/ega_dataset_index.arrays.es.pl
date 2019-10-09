@@ -170,9 +170,9 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
     FILE:
     foreach my $filename (@files) {
       $filename =~ s/\.gpg$//;
-      # print Dumper($filename); # returns the files names, whichever ones that exist, $raw_file, $signal_file, $genotype_file, $additional_file
+      print Dumper($filename); # returns the files names, whichever ones that exist, $raw_file, $signal_file, $genotype_file, $additional_file
       my ($ext) = $filename =~ /\.(\w+)(?:\.gz)?$/;
-      # print Dumper($ext); # idat, vcf, ...
+      print Dumper($ext); # idat, vcf, ...
       next FILE if $ext eq 'tbi';
       my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
       print(@files);
