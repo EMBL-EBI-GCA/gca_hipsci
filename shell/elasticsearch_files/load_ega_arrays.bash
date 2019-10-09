@@ -10,15 +10,16 @@ HIPSCI_CODE=`dirname $0`/../..
 perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
   $ERA_DB_ARGS \
   -dataset EGAD00010001147=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000866.gtarray.20161212.txt \
-  -dataset EGAD00010001139=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.20161212.txt \
-  -dataset EGAD00010001143=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.20161212.txt \
-  -dataset EGAD00010000777=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
-  -dataset EGAD00010000779=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
-  -dataset EGAD00010001145=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.20161212.txt \
-  -dataset EGAD00010001149=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.20161212.txt \
-  -dataset EGAD00010000783=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
-  -dataset EGAD00010000785=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
   -demographic /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv
+
+#  -dataset EGAD00010001139=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000865.mtarray.20161212.txt \
+#  -dataset EGAD00010001143=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001000867.gexarray.20161212.txt \
+#  -dataset EGAD00010000777=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001272.gtarray.201411.tsv \
+#  -dataset EGAD00010000779=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001273.gtarray.201411.tsv \
+#  -dataset EGAD00010001145=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001274.mtarray.20161212.txt \
+#  -dataset EGAD00010001149=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001275.mtarray.20161212.txt \
+#  -dataset EGAD00010000783=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001276.gexarray.201411.tsv \
+#  -dataset EGAD00010000785=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001001277.gexarray.201411.tsv \
 
 # new ids:
 # Below are the new ones that are not included:
@@ -27,7 +28,7 @@ perl $HIPSCI_CODE/scripts/indexes/ega_dataset_index.arrays.es.pl \
 #    -dataset EGAD00010001348=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002007.gtarray.201812.tsv
 #    -dataset EGAD00010001350=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002008.gtarray.201812.tsv
 #    -dataset EGAD00010001352=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002009.gtarray.201812.tsv
-#    -dataset EGAD00010001354=/nfs/research1/hipsci/tracking_resources/ega_array_data_submission s/EGAS00001002010.gtarray.201812.tsv
+#    -dataset EAD00010001354=/nfs/research1/hipsci/tracking_resources/ega_array_data_submission s/EGAS00001002010.gtarray.201812.tsv
 #    -dataset EGAD00010001356=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002011.gtarray.201812.tsv
 #    -dataset EGAD00010001358=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002012.gtarray.201812.tsv
 #    -dataset EGAD00010001360=/nfs/research1/hipsci/tracking_resources/ega_array_data_submissions/EGAS00001002013.gtarray.201812.tsv
