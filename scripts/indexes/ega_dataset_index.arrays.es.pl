@@ -175,7 +175,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
       print Dumper($ext); # idat, vcf, ...
       next FILE if $ext eq 'tbi';
       my @files = grep {!$_->withdrawn && $_->name !~ m{/withdrawn/}} @{$fa->fetch_by_filename($filename)};
-      print(@files);
+      print Dumper(@files);
       if (!@files) {
         print "skipping $filename - did not recognise it\n";
         next FILE;
