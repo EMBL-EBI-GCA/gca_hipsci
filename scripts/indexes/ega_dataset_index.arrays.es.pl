@@ -187,6 +187,7 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
                           : $ext eq 'idat' ? 'Array signal intensity data'
                           : $ext eq 'txt' && $short_assay eq 'mtarray' ? 'Text file with probe intensities'
                           : $ext eq 'txt' && $short_assay eq 'gexarray' && $software ? $software.' text file'
+                          # Raw sequencing reads, BWA alignment, mpileup variant calls, Imputed and phased genotypes
                           : die "did not recognise type of $filename";
 
       $files{$ext}{$file_description}{$filename} = $files[0];
@@ -241,45 +242,45 @@ while (my ($dataset_id, $submission_file) = each %dataset_files) {
   }
 
 }
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   scroll => '5m',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'EGA',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
-#
-# my $date = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   next ES_DOC if $es_doc->{_id} =~ /-ER[RZ]\d+$/;
-#   my $new_doc = $docs{$es_doc->{_id}};
-#   if (!$new_doc) {
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
-#
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  scroll => '5m',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'EGA',
+          },
+        }
+      }
+    }
+  }
+));
+
+my $date = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  next ES_DOC if $es_doc->{_id} =~ /-ER[RZ]\d+$/;
+  my $new_doc = $docs{$es_doc->{_id}};
+  if (!$new_doc) {
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) {
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
+
