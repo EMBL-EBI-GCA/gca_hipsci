@@ -60,6 +60,7 @@ foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
       $cohort{donors} = { count => $donor_search->{hits}{total} };
 
       foreach my $assay (@assays) {
+          print Dumper($assay);
           my $search = $es->call('scroll_helper',
               index => 'hipsci',
               type  => 'file',
