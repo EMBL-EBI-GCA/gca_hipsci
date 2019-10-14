@@ -28,7 +28,7 @@ my $diseases = \@ReseqTrack::Tools::HipSci::DiseaseParser::diseases;
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
-  print Dumper($disease);
+  print Dumper($disease->{for_elasticsearch});
   my %cohort = (
     disease => {
       ontologyPURL => $disease->{ontology_full},
