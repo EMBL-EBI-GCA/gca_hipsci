@@ -6,6 +6,8 @@ use warnings;
 use Getopt::Long;
 use ReseqTrack::Tools::HipSci::ElasticsearchClient;
 use ReseqTrack::Tools::HipSci::DiseaseParser;
+use Data::Dumper;
+
 
 my $es_host = 'ves-hx-e4:9200';
 
@@ -26,7 +28,7 @@ my $diseases = \@ReseqTrack::Tools::HipSci::DiseaseParser::diseases;
 my $es = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 foreach my $disease (@ReseqTrack::Tools::HipSci::DiseaseParser::diseases) {
-  print $disease;
+  print Dumper($disease);
   my %cohort = (
     disease => {
       ontologyPURL => $disease->{ontology_full},
