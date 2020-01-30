@@ -31,14 +31,14 @@ GetOptions(
     'es_host=s' => \$es_host,
 );
 
-print($era_params[0]);
-print($era_params[1]);
-print($era_params[2]);
+# print($era_params[0]);
+# print($era_params[1]);
+# print($era_params[2]);
 
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my $era_db = get_erapro_conn(@era_params);
-print($era_db)
+print($era_db);
 $era_db->dbc->db_handle->{LongReadLen} = 4000000;
 
 my $sql_dataset =  'select xmltype.getclobval(ega_dataset_xml) ega_dataset_xml from ega_dataset where ega_dataset_id=?';
