@@ -38,7 +38,7 @@ GetOptions(
 my $elasticsearch = ReseqTrack::Tools::HipSci::ElasticsearchClient->new(host => $es_host);
 
 my $era_db = get_erapro_conn(@era_params);
-print(Dumper($era_db));
+# print(Dumper($era_db));
 $era_db->dbc->db_handle->{LongReadLen} = 4000000;
 
 my $sql_dataset =  'select xmltype.getclobval(ega_dataset_xml) ega_dataset_xml from ega_dataset where ega_dataset_id=?';
@@ -151,44 +151,44 @@ foreach my $dataset_id (@dataset_id) {
 
 }
 
-# my $scroll = $elasticsearch->call('scroll_helper', (
-#   index => 'hipsci',
-#   type => 'file',
-#   search_type => 'scan',
-#   size => 500,
-#   body => {
-#     query => {
-#       filtered => {
-#         filter => {
-#           term => {
-#             'archive.name' => 'EGA',
-#           },
-#         }
-#       }
-#     }
-#   }
-# ));
-#
-# my $date = strftime('%Y%m%d', localtime);
-# ES_DOC:
-# while (my $es_doc = $scroll->next) {
-#   next ES_DOC if $es_doc->{_id} !~ /-ERR\d+$/;
-#   my $new_doc = $docs{$es_doc->{_id}};
-#   if (!$new_doc) {
-#     printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
-#     next ES_DOC;
-#   }
-#   delete $docs{$es_doc->{_id}};
-#   my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
-#   $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
-#   $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
-#   next ES_DOC if Compare($new_doc, $es_doc->{_source});
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
-# }
-# while (my ($es_id, $new_doc) = each %docs) {
-#   $new_doc->{_indexCreated} = $date;
-#   $new_doc->{_indexUpdated} = $date;
-#   $elasticsearch->index_file(body => $new_doc, id => $es_id);
-# }
+my $scroll = $elasticsearch->call('scroll_helper', (
+  index => 'hipsci',
+  type => 'file',
+  search_type => 'scan',
+  size => 500,
+  body => {
+    query => {
+      filtered => {
+        filter => {
+          term => {
+            'archive.name' => 'EGA',
+          },
+        }
+      }
+    }
+  }
+));
+
+my $date = strftime('%Y%m%d', localtime);
+ES_DOC:
+while (my $es_doc = $scroll->next) {
+  next ES_DOC if $es_doc->{_id} !~ /-ERR\d+$/;
+  my $new_doc = $docs{$es_doc->{_id}};
+  if (!$new_doc) {
+    printf("curl -XDELETE http://%s/%s/%s/%s\n", $es_host, @$es_doc{qw(_index _type _id)});
+    next ES_DOC;
+  }
+  delete $docs{$es_doc->{_id}};
+  my ($created, $updated) = @{$es_doc->{_source}}{qw(_indexCreated _indexUpdated)};
+  $new_doc->{_indexCreated} = $es_doc->{_source}{_indexCreated} || $date;
+  $new_doc->{_indexUpdated} = $es_doc->{_source}{_indexUpdated} || $date;
+  next ES_DOC if Compare($new_doc, $es_doc->{_source});
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(id => $es_doc->{_id}, body => $new_doc);
+}
+while (my ($es_id, $new_doc) = each %docs) {
+  $new_doc->{_indexCreated} = $date;
+  $new_doc->{_indexUpdated} = $date;
+  $elasticsearch->index_file(body => $new_doc, id => $es_id);
+}
 
