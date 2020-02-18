@@ -15,6 +15,7 @@ use List::Util qw();
 use Data::Compare;
 use Clone qw(clone);
 use POSIX qw(strftime);
+use Data::Dumper;
 
 my $date = strftime('%Y%m%d', localtime);
 
@@ -27,6 +28,9 @@ my ($hESCreg_user, $hESCreg_pass);
     'hESCreg_user=s' => \$hESCreg_user,
     'hESCreg_pass=s' => \$hESCreg_pass,
 );
+
+print Dumper($hESCreg_user);
+print Dumper($hESCreg_pass);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my %biomaterial_provider_hash = (
