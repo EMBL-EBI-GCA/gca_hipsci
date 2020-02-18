@@ -2,6 +2,6 @@
 
 SERVER=ves-hx-e4:9200
 
-perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.coa.pl \
-  -es_host=$SERVER \
-  -trim /nfs/hipsci
+perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.files.pl \
+  -es_host=$SERVER
+
