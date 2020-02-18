@@ -15,7 +15,6 @@ use List::Util qw();
 use Data::Compare;
 use Clone qw(clone);
 use POSIX qw(strftime);
-use Data::Dumper;
 
 my $date = strftime('%Y%m%d', localtime);
 
@@ -28,9 +27,6 @@ my ($hESCreg_user, $hESCreg_pass);
     'hESCreg_user=s' => \$hESCreg_user,
     'hESCreg_pass=s' => \$hESCreg_pass,
 );
-
-print Dumper($hESCreg_user);
-print Dumper($hESCreg_pass);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my %biomaterial_provider_hash = (
@@ -133,10 +129,10 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
   $sample_index->{'bioSamplesAccession'} = $ips_line->biosample_id;
   $sample_index->{'donor'} = {name => $donor_biosample->property('Sample Name')->values->[0],
                             bioSamplesAccession => $donor->biosample_id};
-  
+
   $sample_index->{'cellType'}->{value} = "iPSC";
   $sample_index->{'cellType'}->{ontologyPURL} = "http://www.ebi.ac.uk/efo/EFO_0004905";
-  
+
   if (my $source_material = $tissue->tissue_type) {
     $sample_index->{'sourceMaterial'} = { value => $source_material };
   }
@@ -154,7 +150,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     $sample_index->{'sourceMaterial'}->{ontologyPURL} = $cell_type_purl;
   }
 
-=cut 
+=cut
 
   if (my $qc1_release = List::Util::first {$_->is_qc1} @{$ips_line->release}) {
     $sample_index->{'growingConditionsQC1'} = $qc1_release->is_feeder_free ? 'E8 media' : 'Feeder dependent';
@@ -173,7 +169,7 @@ foreach my $ips_line (@{$cgap_ips_lines}) {
     ($bank_release) = sort {$b->goal_time cmp $a->goal_time} @{$ips_line->release};
   }
   if ($bank_release) {
-                                                                  
+
     if ($bank_release->is_feeder_free) {
       $sample_index->{'culture'} = {
         medium => 'E8 media',
@@ -285,9 +281,9 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_line_by_name($sample_index->{name});
       my $update = clone $original;
-      delete $$update{'_source'}{'name'}; 
-      delete $$update{'_source'}{'bioSamplesAccession'}; 
-      delete $$update{'_source'}{'donor'}{'name'}; 
+      delete $$update{'_source'}{'name'};
+      delete $$update{'_source'}{'bioSamplesAccession'};
+      delete $$update{'_source'}{'donor'}{'name'};
       delete $$update{'_source'}{'donor'}{'bioSamplesAccession'};
       if (! scalar keys $$update{'_source'}{'donor'}){
         delete $$update{'_source'}{'donor'};
@@ -297,15 +293,15 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       if (! scalar keys $$update{'_source'}{'cellType'}){
         delete $$update{'_source'}{'cellType'};
       }
-      delete $$update{'_source'}{'sourceMaterial'}; 
-      delete $$update{'_source'}{'culture'}; 
-      delete $$update{'_source'}{'reprogramming'}; 
-      delete $$update{'_source'}{'tissueProvider'}; 
-      delete $$update{'_source'}{'openAccess'};  
-      delete $$update{'_source'}{'bankingStatus'};    
-      delete $$update{'_source'}{'ecaccCatalogNumber'};    
-      delete $$update{'_source'}{'ebiscName'};    
-      delete $$update{'_source'}{'hPSCregName'};    
+      delete $$update{'_source'}{'sourceMaterial'};
+      delete $$update{'_source'}{'culture'};
+      delete $$update{'_source'}{'reprogramming'};
+      delete $$update{'_source'}{'tissueProvider'};
+      delete $$update{'_source'}{'openAccess'};
+      delete $$update{'_source'}{'bankingStatus'};
+      delete $$update{'_source'}{'ecaccCatalogNumber'};
+      delete $$update{'_source'}{'ebiscName'};
+      delete $$update{'_source'}{'hPSCregName'};
       foreach my $field (keys %$sample_index){
         my $subfield = $$sample_index{$field};
         if (ref($subfield) eq 'HASH'){
@@ -318,7 +314,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       }
       if (Compare($$update{'_source'}, $$original{'_source'})){
         $cell_uptodate++;
-      }else{ 
+      }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         $elasticsearchserver->index_line(id => $sample_index->{name}, body => $$update{'_source'});
         $cell_updated++;
@@ -355,11 +351,11 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
     if ($line_exists){
       my $original = $elasticsearchserver->fetch_donor_by_name($donor_name);
       my $update = clone $original;
-      delete $$update{'_source'}{'name'}; 
-      delete $$update{'_source'}{'bioSamplesAccession'}; 
-      delete $$update{'_source'}{'cellLines'}; 
-      delete $$update{'_source'}{'tissueProvider'}; 
-      delete $$update{'_source'}{'numBankedLines'}; 
+      delete $$update{'_source'}{'name'};
+      delete $$update{'_source'}{'bioSamplesAccession'};
+      delete $$update{'_source'}{'cellLines'};
+      delete $$update{'_source'}{'tissueProvider'};
+      delete $$update{'_source'}{'numBankedLines'};
       foreach my $field (keys %$donor_index){
         my $subfield = $$donor_index{$field};
         if (ref($subfield) eq 'HASH'){
@@ -372,7 +368,7 @@ while( my( $host, $elasticsearchserver ) = each %elasticsearch ){
       }
       if (Compare($$update{'_source'}, $$original{'_source'})){
         $donor_uptodate++;
-      }else{ 
+      }else{
         $$update{'_source'}{'_indexUpdated'} = $date;
         $elasticsearchserver->index_donor(id => $donor_name, body => $$update{'_source'});
         $donor_updated++;
