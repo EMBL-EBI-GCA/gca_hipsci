@@ -21,8 +21,7 @@ my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
 my $ecacc_index_file;
-my $hESCreg_user;
-my $hESCreg_pass;
+my ($hESCreg_user, $hESCreg_pass);
 &GetOptions(
     'es_host=s' =>\@es_host,
     'ecacc_index_file=s'      => \$ecacc_index_file,
