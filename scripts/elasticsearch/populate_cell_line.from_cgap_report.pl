@@ -21,13 +21,16 @@ my $date = strftime('%Y%m%d', localtime);
 
 my @es_host;
 my $ecacc_index_file;
-my ($hESCreg_user, $hESCreg_pass);
+my $hESCreg_user;
+my $hESCreg_pass;
 &GetOptions(
     'es_host=s' =>\@es_host,
     'ecacc_index_file=s'      => \$ecacc_index_file,
     'hESCreg_user=s' => \$hESCreg_user,
     'hESCreg_pass=s' => \$hESCreg_pass,
 );
+# print Dumper($hESCreg_user);
+# print Dumper($hESCreg_pass);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my %biomaterial_provider_hash = (
