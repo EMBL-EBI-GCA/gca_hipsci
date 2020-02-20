@@ -86,10 +86,10 @@ my $osd = ReseqTrack::Tools::HipSci::OverrideSelectedStatus->instance;
 print Dumper($hESCreg_user);
 print Dumper($hESCreg_pass);
 
-my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
-  user => $hESCreg_user,
-  pass => $hESCreg_pass,
-);
+# my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
+#   user => $hESCreg_user,
+#   pass => $hESCreg_pass,
+# );
 
 #
 # my %ebisc_names;
