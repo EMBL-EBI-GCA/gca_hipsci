@@ -28,8 +28,10 @@ my ($hESCreg_user, $hESCreg_pass);
     'hESCreg_user=s' => \$hESCreg_user,
     'hESCreg_pass=s' => \$hESCreg_pass,
 );
-# print Dumper($hESCreg_user);
-# print Dumper($hESCreg_pass);
+print Dumper(@es_host);
+print Dumper($ecacc_index_file);
+print Dumper($hESCreg_user);
+print Dumper($hESCreg_pass);
 
 my $cgap_ips_lines = read_cgap_report()->{ips_lines};
 my %biomaterial_provider_hash = (
@@ -85,8 +87,8 @@ foreach my $es_host (@es_host){
 }
 my $osd = ReseqTrack::Tools::HipSci::OverrideSelectedStatus->instance;
 
-print Dumper($hESCreg_user);
-print Dumper($hESCreg_pass);
+# print Dumper($hESCreg_user);
+# print Dumper($hESCreg_pass);
 
 # my $hESCreg = ReseqTrack::EBiSC::hESCreg->new(
 #   user => $hESCreg_user,
