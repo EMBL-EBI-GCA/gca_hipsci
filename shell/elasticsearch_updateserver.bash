@@ -7,8 +7,6 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
   -ecacc_index_file $HIPSCI_CODE/tracking_resources/ecacc_catalog_numbers.tsv \
   -hESCreg_user $HESCREG_USER \
   -hESCreg_pass $HESCREG_PASS \
-&& perl $HIPSCI_CODE/scripts/elasticsearch/populate_fibroblast_line.from_files_elasticsearch.pl \
-  -es_host=$SERVER \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.demographic.pl \
   -es_host=$SERVER \
   -demographic_file /nfs/research1/hipsci/tracking_resources/demographic_spreadsheets/Demographicdata_HipSci_2016-12-02.csv \
@@ -24,8 +22,6 @@ perl $HIPSCI_CODE/scripts/elasticsearch/populate_cell_line.from_cgap_report.pl \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.coa.pl \
   -es_host=$SERVER \
   -trim /nfs/hipsci \
-&& perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.files.pl \
-  -es_host=$SERVER \
 && perl $HIPSCI_CODE/scripts/elasticsearch/update_cell_line.differentiations.pl \
   -es_host=$SERVER \
   --yaml=$HIPSCI_CODE/tracking_resources/differentiations/macrophage_2016.yaml \
