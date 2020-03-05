@@ -93,7 +93,7 @@ while ( my $doc = $scroll->next ) {
 LINE:
 foreach my $epd_line (@$epd_lines) {
   my $short_name = $epd_line->{label};
-  my $results = $elasticsearch->call('search',
+  my $results = $elasticsearch{$es_host[0]}->call('search',
     index => 'hipsci',
     type => 'cellLine',
     body => {
